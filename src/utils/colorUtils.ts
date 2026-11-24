@@ -77,22 +77,36 @@ export function classifyColorTone(rgb: [number, number, number]): 'warm' | 'cool
 }
 
 export function generateCssVariables(combo: Combination): string {
-  const lines = combo.colors.map((c, i) => `  --wada-${combo.id}-color-${i + 1}: ${c.hex}; /* ${c.name} */`);
-  return `/* Sanzo Wada № ${combo.id} (${combo.size}-Color) */\n:root {\n${lines.join('\n')}\n}`;
+  const volPrefix = combo.volume === 2 ? `wada-v2-${combo.id}` : `wada-${combo.id}`;
+  const lines = combo.colors.map(
+    (c, i) => `  --${volPrefix}-color-${i + 1}: ${c.hex}; /* ${c.name}${c.ja ? ` (${c.ja})` : ''} */`
+  );
+  const title = combo.volume === 2
+    ? `Sanzo Wada Vol. 2 № ${combo.id} (${combo.monthName} / ${combo.monthJa})`
+    : `Sanzo Wada Vol. 1 № ${combo.id} (${combo.size}-Color)`;
+  return `/* ${title} */\n:root {\n${lines.join('\n')}\n}`;
 }
 
 export function generateTailwindConfig(combo: Combination): string {
-  const entries = combo.colors.map((c, i) => `        'color-${i + 1}': '${c.hex}', // ${c.name}`);
-  return `// Tailwind CSS Config\nmodule.exports = {\n  theme: {\n    extend: {\n      colors: {\n        'wada-${combo.id}': {\n${entries.join('\n')}\n        }\n      }\n    }\n  }\n};`;
+  const volKey = combo.volume === 2 ? `wada-v2-${combo.id}` : `wada-${combo.id}`;
+  const entries = combo.colors.map(
+    (c, i) => `        'color-${i + 1}': '${c.hex}', // ${c.name}${c.ja ? ` (${c.ja})` : ''}`
+  );
+  return `// Tailwind CSS Config\nmodule.exports = {\n  theme: {\n    extend: {\n      colors: {\n        '${volKey}': {\n${entries.join('\n')}\n        }\n      }\n    }\n  }\n};`;
 }
 
 export function generateJsonExport(combo: Combination): string {
   return JSON.stringify(
     {
+      volume: combo.volume,
       combinationId: combo.id,
+      month: combo.month,
+      monthName: combo.monthName,
+      monthJa: combo.monthJa,
       size: combo.size,
       colors: combo.colors.map(c => ({
         name: c.name,
+        ja: c.ja || undefined,
         hex: c.hex,
         rgb: c.rgb,
         cmyk: c.cmyk,
@@ -109,20 +123,30 @@ export function downloadSvgCard(combo: Combination): void {
   const height = 1000;
   const swatchesCount = combo.colors.length;
   const swatchWidth = 640;
-  const swatchHeight = Math.floor(460 / swatchesCount);
+  const swatchHeight = Math.floor(480 / swatchesCount);
 
   const swatchesSvg = combo.colors
     .map((c, idx) => {
-      const y = 240 + idx * swatchHeight;
+      const y = 230 + idx * swatchHeight;
       const textFill = getIdealTextColor(c.hex);
+      const displayName = c.ja ? `${c.name} (${c.ja})` : c.name;
+      const showDetails = swatchHeight >= 45;
       return `
       <g transform="translate(80, ${y})">
-        <rect width="${swatchWidth}" height="${swatchHeight}" fill="${c.hex}" rx="4" />
-        <text x="24" y="${swatchHeight / 2 - 4}" fill="${textFill}" font-family="'Noto Serif JP', serif" font-size="18" font-weight="bold">${c.name}</text>
-        <text x="24" y="${swatchHeight / 2 + 20}" fill="${textFill}" opacity="0.85" font-family="'JetBrains Mono', monospace" font-size="13">${c.hex.toUpperCase()} • RGB(${c.rgb.join(', ')}) • CMYK(${c.cmyk.join(', ')})</text>
+        <rect width="${swatchWidth}" height="${swatchHeight - 4}" fill="${c.hex}" rx="4" />
+        <text x="20" y="${showDetails ? swatchHeight / 2 - 4 : swatchHeight / 2 + 5}" fill="${textFill}" font-family="'Noto Serif JP', serif" font-size="${swatchHeight < 50 ? 14 : 17}" font-weight="bold">${displayName}</text>
+        ${
+          showDetails
+            ? `<text x="20" y="${swatchHeight / 2 + 18}" fill="${textFill}" opacity="0.85" font-family="'JetBrains Mono', monospace" font-size="11">${c.hex.toUpperCase()} • RGB(${c.rgb.join(', ')}) • CMYK(${c.cmyk.join(', ')})</text>`
+            : ''
+        }
       </g>`;
     })
     .join('');
+
+  const subtitle = combo.volume === 2
+    ? `VOLUME 2 • ${combo.monthName?.toUpperCase()} (${combo.monthJa} • ${combo.monthMeaning})`
+    : `${combo.size}-COLOR HARMONY`;
 
   const svgContent = `
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
@@ -133,13 +157,13 @@ export function downloadSvgCard(combo: Combination): void {
   <rect x="30" y="30" width="${width - 60}" height="${height - 60}" fill="none" stroke="#2B2B2B" stroke-width="1.5" stroke-opacity="0.25" />
   
   <!-- Header Japanese and English Typography -->
-  <text x="80" y="90" font-family="'Cinzel', serif" font-size="28" font-weight="bold" fill="#1C1A17" letter-spacing="2">A DICTIONARY OF COLOR COMBINATIONS</text>
-  <text x="80" y="125" font-family="'Noto Serif JP', serif" font-size="16" fill="#6B665E">和田三造 (Sanzo Wada, 1933) — 配色総鑑</text>
-  <text x="80" y="175" font-family="'Cinzel', serif" font-size="22" font-weight="bold" fill="#B93826">COMBINATION № ${combo.id.toString().padStart(3, '0')}</text>
-  <text x="80" y="205" font-family="'Noto Serif JP', serif" font-size="13" fill="#888177" text-transform="uppercase" letter-spacing="1.5">${combo.size}-COLOR HARMONY</text>
+  <text x="80" y="85" font-family="'Cinzel', serif" font-size="26" font-weight="bold" fill="#1C1A17" letter-spacing="2">A DICTIONARY OF COLOR COMBINATIONS</text>
+  <text x="80" y="118" font-family="'Noto Serif JP', serif" font-size="15" fill="#6B665E">和田三造 (Sanzo Wada, 1933) — 配色総鑑 ${combo.volume === 2 ? 'B篇' : ''}</text>
+  <text x="80" y="165" font-family="'Cinzel', serif" font-size="22" font-weight="bold" fill="#B93826">VOL. ${combo.volume} № ${combo.id.toString().padStart(3, '0')}</text>
+  <text x="80" y="195" font-family="'Noto Serif JP', serif" font-size="13" fill="#888177" text-transform="uppercase" letter-spacing="1.5">${subtitle}</text>
 
   <!-- Hanko Stamp Impression -->
-  <g transform="translate(660, 80)">
+  <g transform="translate(660, 75)">
     <rect width="60" height="60" fill="none" stroke="#B93826" stroke-width="2.5" rx="6" />
     <text x="30" y="38" font-family="'Noto Serif JP', serif" font-size="22" font-weight="900" fill="#B93826" text-anchor="middle">三造</text>
   </g>
@@ -148,8 +172,8 @@ export function downloadSvgCard(combo: Combination): void {
   ${swatchesSvg}
 
   <!-- Footer -->
-  <text x="80" y="920" font-family="'Noto Serif JP', serif" font-size="12" fill="#999185">Digitized from the original 1930s Showa plates • Japan Standard Color Association</text>
-  <text x="720" y="920" font-family="'JetBrains Mono', monospace" font-size="12" fill="#999185" text-anchor="end">sanzo-wada-palette</text>
+  <text x="80" y="930" font-family="'Noto Serif JP', serif" font-size="12" fill="#999185">Digitized from the original 1930s Showa plates • Japan Standard Color Association</text>
+  <text x="720" y="930" font-family="'JetBrains Mono', monospace" font-size="12" fill="#999185" text-anchor="end">sanzo-wada-palette</text>
 </svg>
 `;
 
@@ -157,7 +181,7 @@ export function downloadSvgCard(combo: Combination): void {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `sanzo-wada-combo-${combo.id}.svg`;
+  link.download = `sanzo-wada-vol${combo.volume}-combo-${combo.id}.svg`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);

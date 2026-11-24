@@ -25,7 +25,7 @@ interface ModalStudioProps {
   combination: Combination | null;
   onClose: () => void;
   isFavorite: boolean;
-  onToggleFavorite: (id: number) => void;
+  onToggleFavorite: (id: number, volume: number) => void;
   onCopyText: (text: string, label: string) => void;
 }
 
@@ -59,12 +59,13 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
 
   const handleShuffleRoles = () => {
     const indices = Array.from({ length: colors.length }, (_, i) => i);
-    // Shuffle
     const shuffled = [...indices].sort(() => Math.random() - 0.5);
     setBgIndex(shuffled[0]);
     setSurfaceIndex(shuffled[1 % colors.length]);
     setAccentIndex(shuffled[2 % colors.length]);
   };
+
+  const isVol2 = combination.volume === 2;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -80,16 +81,31 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
               三造
             </div>
             <div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-lg font-editorial font-bold">
-                  Combination № {combination.id.toString().padStart(3, '0')}
+                  {isVol2
+                    ? `Volume 2 • Card № ${combination.id.toString().padStart(2, '0')}`
+                    : `Volume 1 • Combination № ${combination.id.toString().padStart(3, '0')}`}
                 </h2>
-                <span className="px-2 py-0.5 text-xs font-code rounded bg-stone-200 dark:bg-stone-800 text-stone-600 dark:text-stone-300">
-                  {combination.size}-Color Harmony
+                <span
+                  className={`px-2 py-0.5 text-xs font-code rounded ${
+                    isVol2
+                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300/40'
+                      : 'bg-stone-200 dark:bg-stone-800 text-stone-600 dark:text-stone-300'
+                  }`}
+                >
+                  {isVol2
+                    ? `${combination.monthName} (${combination.monthJa}) • ${combination.size} Colors`
+                    : `${combination.size}-Color Harmony`}
                 </span>
               </div>
-              <p className="text-xs text-stone-500 font-editorial">
-                {colors.map((c) => c.name).join(' • ')}
+              <p className="text-xs text-stone-500 font-editorial mt-0.5">
+                {isVol2 && combination.monthMeaning && (
+                  <span className="text-amber-800 dark:text-amber-400 font-medium mr-2">
+                    {combination.monthMeaning} —
+                  </span>
+                )}
+                {colors.map((c) => (c.ja ? `${c.name} (${c.ja})` : c.name)).join(' • ')}
               </p>
             </div>
           </div>
@@ -108,7 +124,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
 
             {/* Favorite toggle */}
             <button
-              onClick={() => onToggleFavorite(combination.id)}
+              onClick={() => onToggleFavorite(combination.id, combination.volume)}
               className={`p-2 rounded-lg transition-colors ${
                 isFavorite
                   ? 'text-rose-500 bg-rose-50 dark:bg-rose-950/40'
@@ -188,20 +204,22 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                 <div className="absolute inset-4 border border-stone-400/30 pointer-events-none" />
 
                 {/* Poster Header */}
-                <div className="flex justify-between items-start mb-8 relative z-10">
+                <div className="flex justify-between items-start mb-6 relative z-10">
                   <div>
                     <h3 className="font-editorial text-2xl font-bold tracking-widest text-[#1C1A17] uppercase">
                       A Dictionary of Color Combinations
                     </h3>
                     <p className="font-editorial text-sm text-stone-600 mt-1">
-                      和田三造 (Sanzo Wada, 1933) — 配色総鑑
+                      和田三造 (Sanzo Wada, 1933) — 配色総鑑 {isVol2 ? 'B篇 (Seasonal)' : ''}
                     </p>
-                    <div className="mt-4 flex items-baseline gap-2">
+                    <div className="mt-3 flex items-baseline gap-2">
                       <span className="font-editorial text-xl font-bold text-red-800">
-                        № {combination.id.toString().padStart(3, '0')}
+                        {isVol2 ? `Vol. 2 Card № ${combination.id}` : `№ ${combination.id.toString().padStart(3, '0')}`}
                       </span>
                       <span className="text-xs uppercase tracking-wider text-stone-500 font-code">
-                        {combination.size}-Color Harmony
+                        {isVol2
+                          ? `${combination.monthName} (${combination.monthJa})`
+                          : `${combination.size}-Color Harmony`}
                       </span>
                     </div>
                   </div>
@@ -213,18 +231,18 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                 </div>
 
                 {/* Harmonic Color Blocks Visualization */}
-                <div className="grid grid-cols-1 gap-3 my-6 relative z-10">
+                <div className="grid grid-cols-1 gap-2.5 my-5 relative z-10">
                   {colors.map((c) => {
                     const txtColor = getIdealTextColor(c.hex);
                     return (
                       <div
                         key={c.id}
                         style={{ backgroundColor: c.hex }}
-                        className="h-20 sm:h-24 rounded-lg p-4 flex items-center justify-between shadow-sm transition-transform hover:scale-[1.01]"
+                        className="min-h-[4rem] sm:min-h-[4.75rem] rounded-lg p-3 sm:p-4 flex items-center justify-between shadow-sm transition-transform hover:scale-[1.01]"
                       >
                         <div style={{ color: txtColor }}>
                           <div className="text-sm sm:text-base font-editorial font-bold">
-                            {c.name}
+                            {c.name} {c.ja && <span className="opacity-90 font-normal text-xs sm:text-sm">({c.ja})</span>}
                           </div>
                           <div className="text-xs font-code opacity-85 uppercase">
                             {c.hex}
@@ -244,7 +262,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                 </div>
 
                 {/* Poster Footer */}
-                <div className="mt-8 pt-4 border-t border-stone-300 text-center relative z-10">
+                <div className="mt-6 pt-4 border-t border-stone-300 text-center relative z-10">
                   <p className="text-[11px] font-editorial text-stone-500 tracking-wider">
                     Published by the Japan Standard Color Association • Showa Era Masterwork
                   </p>
@@ -295,7 +313,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                 <div className="flex items-center gap-4 flex-wrap text-xs">
                   {/* Background Picker */}
                   <div className="flex items-center gap-1.5">
-                    <span className="text-stone-500">Page Background:</span>
+                    <span className="text-stone-500">Background:</span>
                     <select
                       value={bgIndex}
                       onChange={(e) => setBgIndex(Number(e.target.value))}
@@ -311,7 +329,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
 
                   {/* Surface Picker */}
                   <div className="flex items-center gap-1.5">
-                    <span className="text-stone-500">Card Surface:</span>
+                    <span className="text-stone-500">Surface:</span>
                     <select
                       value={surfaceIndex}
                       onChange={(e) => setSurfaceIndex(Number(e.target.value))}
@@ -327,7 +345,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
 
                   {/* Accent Picker */}
                   <div className="flex items-center gap-1.5">
-                    <span className="text-stone-500">CTA Accent:</span>
+                    <span className="text-stone-500">Accent:</span>
                     <select
                       value={accentIndex}
                       onChange={(e) => setAccentIndex(Number(e.target.value))}
@@ -387,7 +405,11 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                     className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border mb-4"
                   >
                     <Sparkles size={12} />
-                    <span>Harmony Plate № {combination.id}</span>
+                    <span>
+                      {isVol2
+                        ? `Vol. 2 • ${combination.monthName} (${combination.monthJa})`
+                        : `Harmony Plate № ${combination.id}`}
+                    </span>
                   </div>
 
                   <h4 className="text-2xl sm:text-4xl font-editorial font-bold tracking-tight leading-tight">
@@ -419,7 +441,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                 </div>
 
                 {/* Mockup Stat Cards Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pt-4">
                   {colors.map((c, i) => (
                     <div
                       key={c.id}
@@ -427,19 +449,21 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                         backgroundColor: surfaceColor.hex,
                         color: surfaceTextColor,
                       }}
-                      className="p-4 rounded-xl shadow-sm border border-current/10"
+                      className="p-3.5 rounded-xl shadow-sm border border-current/10"
                     >
                       <div className="flex items-center gap-2 mb-2">
                         <div
                           style={{ backgroundColor: c.hex }}
-                          className="w-4 h-4 rounded-full border border-black/20"
+                          className="w-4 h-4 rounded-full border border-black/20 shrink-0"
                         />
                         <span className="text-[11px] font-code opacity-75 uppercase">
                           Tone {i + 1}
                         </span>
                       </div>
-                      <div className="text-sm font-editorial font-bold truncate">{c.name}</div>
-                      <div className="text-xs font-code opacity-85 mt-1">{c.hex.toUpperCase()}</div>
+                      <div className="text-xs sm:text-sm font-editorial font-bold truncate">
+                        {c.ja ? c.ja : c.name}
+                      </div>
+                      <div className="text-[10px] font-code opacity-85 mt-0.5">{c.hex.toUpperCase()}</div>
                     </div>
                   ))}
                 </div>
@@ -461,6 +485,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                       <tr>
                         <th className="p-3">Swatch</th>
                         <th className="p-3">Name</th>
+                        <th className="p-3">Japanese</th>
                         <th className="p-3">HEX</th>
                         <th className="p-3">RGB</th>
                         <th className="p-3">CMYK (Print)</th>
@@ -478,6 +503,9 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                             />
                           </td>
                           <td className="p-3 font-editorial font-bold text-sm">{c.name}</td>
+                          <td className="p-3 font-editorial text-sm text-stone-600 dark:text-stone-400">
+                            {c.ja || '—'}
+                          </td>
                           <td className="p-3 font-code font-semibold uppercase">{c.hex}</td>
                           <td className="p-3 font-code">{c.rgb.join(', ')}</td>
                           <td className="p-3 font-code">{c.cmyk.join(', ')}</td>
@@ -521,13 +549,13 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                           <div className="flex items-center gap-2.5">
                             <div
                               style={{ backgroundColor: c1.hex }}
-                              className="w-8 h-8 rounded border border-stone-300 dark:border-stone-700 flex items-center justify-center font-bold text-xs"
+                              className="w-8 h-8 rounded border border-stone-300 dark:border-stone-700 flex items-center justify-center font-bold text-xs shrink-0"
                             >
                               <span style={{ color: c2.hex }}>Aa</span>
                             </div>
                             <div
                               style={{ backgroundColor: c2.hex }}
-                              className="w-8 h-8 rounded border border-stone-300 dark:border-stone-700 flex items-center justify-center font-bold text-xs"
+                              className="w-8 h-8 rounded border border-stone-300 dark:border-stone-700 flex items-center justify-center font-bold text-xs shrink-0"
                             >
                               <span style={{ color: c1.hex }}>Aa</span>
                             </div>
@@ -541,7 +569,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                             </div>
                           </div>
 
-                          <div className="text-right">
+                          <div className="text-right shrink-0">
                             <div className="text-sm font-code font-bold">
                               {ratio.toFixed(2)}:1
                             </div>
@@ -560,7 +588,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                                 </span>
                               ) : (
                                 <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-rose-500/15 text-rose-600 dark:text-rose-400">
-                                  Low Contrast
+                                  Low
                                 </span>
                               )}
                             </div>

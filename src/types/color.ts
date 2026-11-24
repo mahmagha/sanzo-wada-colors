@@ -1,30 +1,45 @@
 export interface ColorItem {
   id: number;
   name: string;
+  ja?: string | null;
+  reading?: string | null;
   hex: string;
   rgb: [number, number, number];
   cmyk: [number, number, number, number];
   lab: [number, number, number];
-  swatch: number;
+  swatch: number | string;
+  volume: 1 | 2;
   combinations: number[];
+  vol2Cards?: number[];
 }
 
 export interface Combination {
   id: number;
+  volume: 1 | 2;
   size: number;
+  month?: number;
+  monthName?: string;
+  monthJa?: string;
+  monthMeaning?: string;
+  cardInMonth?: number;
   colors: ColorItem[];
 }
 
 export type ThemeMode = 'washi' | 'studio' | 'dark';
 export type ViewMode = 'combinations' | 'colors';
-export type PaletteSizeFilter = 'all' | 2 | 3 | 4;
+export type VolumeFilter = 'all' | 1 | 2;
+export type PaletteSizeFilter = 'all' | 2 | 3 | 4 | 5 | 6;
 export type ToneFilter = 'all' | 'warm' | 'cool' | 'earthy' | 'pastel' | 'deep';
+export type SeasonFilter = 'all' | 'spring' | 'summer' | 'autumn' | 'winter';
 export type SortOption = 'number-asc' | 'number-desc' | 'contrast-desc' | 'popularity';
 
 export interface FilterState {
+  volume: VolumeFilter;
   searchQuery: string;
   size: PaletteSizeFilter;
   tone: ToneFilter;
+  season: SeasonFilter;
+  month: number | 'all';
   sortBy: SortOption;
   onlyFavorites: boolean;
 }

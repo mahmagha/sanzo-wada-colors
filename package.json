@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "prepare-data": "node scripts/prepare-data.mjs"
+    "prepare-data": "node scripts/build-all-data.mjs"
   },
   "keywords": [
     "sanzo-wada",

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Copy, Layers } from 'lucide-react';
+import { Copy, Layers, Sparkles } from 'lucide-react';
 import { ColorItem } from '../types/color';
 import { getIdealTextColor } from '../utils/colorUtils';
 
@@ -15,6 +15,7 @@ export const ColorSwatchCard: React.FC<ColorSwatchCardProps> = ({
   onCopyText,
 }) => {
   const textColor = getIdealTextColor(color.hex);
+  const totalCombos = (color.combinations?.length || 0) + (color.vol2Cards?.length || 0);
 
   const handleCopyHex = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -32,12 +33,19 @@ export const ColorSwatchCard: React.FC<ColorSwatchCardProps> = ({
         className="h-36 w-full relative p-3 flex flex-col justify-between transition-transform duration-300"
       >
         <div className="flex justify-between items-start">
-          <span
-            style={{ color: textColor }}
-            className="text-[11px] font-code opacity-80 uppercase tracking-widest"
-          >
-            Swatch #{color.swatch}
-          </span>
+          <div className="flex items-center gap-1">
+            <span
+              style={{ color: textColor }}
+              className="text-[10px] font-code opacity-85 uppercase tracking-wider"
+            >
+              #{color.id.toString().padStart(3, '0')}
+            </span>
+            {color.volume === 2 && (
+              <span className="px-1.5 py-0.2 rounded text-[9px] font-code font-bold bg-amber-400 text-amber-950 flex items-center gap-0.5">
+                <Sparkles size={8} /> Vol.2
+              </span>
+            )}
+          </div>
           <button
             onClick={handleCopyHex}
             style={{ color: textColor }}
@@ -49,10 +57,16 @@ export const ColorSwatchCard: React.FC<ColorSwatchCardProps> = ({
         </div>
 
         <div style={{ color: textColor }}>
-          <div className="text-base font-editorial font-bold leading-tight">
+          {color.ja && (
+            <div className="text-xs font-editorial font-semibold opacity-90">
+              {color.ja}
+              {color.reading && <span className="text-[10px] opacity-75 font-sans ml-1">({color.reading})</span>}
+            </div>
+          )}
+          <div className="text-sm sm:text-base font-editorial font-bold leading-tight">
             {color.name}
           </div>
-          <div className="text-xs font-code opacity-90 uppercase">
+          <div className="text-xs font-code opacity-85 uppercase">
             {color.hex}
           </div>
         </div>
@@ -71,10 +85,10 @@ export const ColorSwatchCard: React.FC<ColorSwatchCardProps> = ({
         <div className="flex items-center justify-between pt-1 border-t border-stone-100 dark:border-stone-800">
           <span className="flex items-center gap-1 text-amber-900 dark:text-amber-400 font-medium text-[11px]">
             <Layers size={12} />
-            <span>Used in {color.combinations.length} palettes</span>
+            <span>Used in {totalCombos} palettes</span>
           </span>
           <span className="text-[10px] text-stone-400 underline group-hover:text-stone-700 dark:group-hover:text-stone-200">
-            View Palettes →
+            View →
           </span>
         </div>
       </div>

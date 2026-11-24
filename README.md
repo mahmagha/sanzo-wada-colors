@@ -1,28 +1,35 @@
-# 和田三造 Sanzo Wada — A Dictionary of Color Combinations (1933)
+# 和田三造 Sanzo Wada — A Dictionary of Color Combinations (Volumes 1 & 2)
 
-An interactive, responsive digital viewer and color harmony studio for **Sanzo Wada's** (1883–1967) seminal 1930s work, ***Haishoku Sōkan* (配色総鑑 / *A Dictionary of Color Combinations*)**.
+An interactive, responsive digital viewer and color harmony studio for **Sanzo Wada's** (1883–1967) seminal works:
+- ***Haishoku Sōkan* (配色総鑑 / *A Dictionary of Color Combinations Vol. 1*, 1933)**
+- ***Haishoku Sōkan B-hen* (配色総鑑 B篇 / *A Dictionary of Color Combinations Vol. 2: Seasonal*, 1934–1935)**
 
-Digitized from the canonical archive of **159 master colors** and **348 harmony palettes** (2-color, 3-color, and 4-color combinations).
+Digitized archive containing:
+- **420 Color Combinations** (348 Vol. 1 harmonies + 72 Vol. 2 seasonal plates across the 12 calendar months)
+- **171 Master Colors** (159 Vol. 1 swatches + 12 newly introduced in Vol. 2) with English & Japanese names (*Kanji* and *Romaji*).
 
 ---
 
 ## ✨ Features
 
-- **348 Color Combinations**:
-  - Filter by palette size: **2-Color (160)**, **3-Color (114)**, or **4-Color (74)** combinations.
-  - Filter by tone: *Warm*, *Cool*, *Earthy*, *Pastel*, or *Deep*.
-  - Sort by original plate number (#1 to #348), contrast ratio, or color frequency.
-- **159 Master Color Swatches**:
-  - Browse all 159 original swatches with full color values: **HEX**, **RGB**, **CMYK** (for print), and **CIE-LAB** (perceptual color space).
-  - Inspect which combinations each color belongs to.
+- **420 Combinations Across Both Volumes**:
+  - **Volume Filter**: Switch between **All Volumes (420)**, **Vol. 1: Harmony (348)**, or **Vol. 2: Seasonal (72)**.
+  - **Seasonal / Month Filtering (Vol. 2)**: Filter by season (🌸 Spring, 🌿 Summer, 🍁 Autumn, ❄️ Winter) or explore all 12 Japanese calendar months (*睦月 Mutsuki*, *如月 Kisaragi*, *弥生 Yayoi*, etc.).
+  - **Color Count**: Filter by 2-color, 3-color, 4-color, and 5+ color combinations (up to 7 colors on Vol. 2 seasonal plates).
+  - **Tone Filter**: *Warm*, *Cool*, *Earthy*, *Pastel*, or *Deep*.
+  - **Sort Options**: By plate number, contrast ratio, or color frequency.
+- **171 Master Color Swatches**:
+  - Full color space profiles: **HEX**, **RGB**, **CMYK** (for print reproduction), and **CIE-LAB** (perceptual color space).
+  - Japanese names (Kanji and reading) alongside Ridgway/Wada English nomenclature.
+  - Reverse lookup: Inspect every combination in Vol. 1 and Vol. 2 that uses a specific swatch.
 - **Deep Inspection Studio (Modal)**:
-  - **Showa Art Print**: Authentic 1930s Japanese editorial poster with vertical kanji typography (*配色総鑑*), Wada Sanzo seal (*三造*), and SVG card export.
-  - **Live UI Component Mockup**: See the palette applied to a real interactive web interface (Hero, Navbar, Stat cards, Badges) with a live **Color Role Switcher** (shuffle or re-assign background, surface, and CTA accent colors).
-  - **Color Science & WCAG Contrast**: Full pairwise accessibility matrix with **AAA**, **AA**, and **Large Text** readability badges.
+  - **Showa Art Print**: Authentic Japanese editorial poster with vertical kanji (*配色総鑑*), Wada Sanzo hanko seal (*三造*), seasonal metadata, and print-ready **SVG Card Export**.
+  - **Live UI Component Mockup**: See the palette applied to a real interactive web interface (Hero, Navbar, Action Buttons, KPI metric cards, Badges) with a live **Color Role Switcher** to reassign or shuffle background, surface, and CTA accent colors.
+  - **Color Science & WCAG Contrast**: Full pairwise accessibility matrix displaying contrast ratios and **WCAG 2.1 AAA / AA** compliance badges.
   - **Developer Export**: One-click copy for **CSS custom properties (`:root`)**, **Tailwind CSS config**, and **JSON**.
 - **Delightful Details**:
   - **Surprise Me / Randomizer**: Rolls a random palette with celebratory confetti.
-  - **Theme Switcher**: Switch between **Washi Paper** (textured cream background), **Clean Studio** (gallery white), and **Dark Gallery** (obsidian museum mode).
+  - **Three Themes**: **Washi Paper** (textured cream background `#F7F4EC`), **Clean Studio** (gallery white), and **Dark Gallery** (obsidian `#121214`).
   - **Favorites**: Star favorite combinations saved automatically to `localStorage`.
 
 ---
@@ -37,31 +44,16 @@ npm install
 npm run dev
 ```
 
-Visit the local URL shown in your terminal (usually `http://localhost:5173`).
+Visit `http://localhost:5173` in your browser.
 
 ---
 
-## 🌐 Deploy to GitHub Pages (Automated & Painless)
+## 🌐 Deploy to GitHub Pages (Automated)
 
-This project is configured with `base: './'` in `vite.config.ts` and includes a ready-to-use GitHub Actions workflow.
+The project includes an automated GitHub Actions deployment workflow at [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) and is published at:
+[https://mahmagha.github.io/sanzo-wada-colors/](https://mahmagha.github.io/sanzo-wada-colors/)
 
-### Option 1: Automated Deployment via GitHub Actions (Recommended)
-
-1. Create a repository on GitHub (e.g. `colors` or `sanzo-wada-colors`).
-2. Push your project to GitHub:
-   ```bash
-   git init
-   git add .
-   git commit -m "feat: initial Sanzo Wada interactive color dictionary"
-   git branch -M main
-   git remote add origin https://github.com/<your-username>/<your-repo-name>.git
-   git push -u origin main
-   ```
-3. In your GitHub repository:
-   - Go to **Settings** → **Pages**.
-   - Under **Build and deployment** > **Source**, select **GitHub Actions**.
-4. GitHub Actions will automatically run the included [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) workflow and publish your site at:
-   `https://<your-username>.github.io/<your-repo-name>/`
+Every push to `main` triggers a build and automatically updates the live deployment.
 
 ---
 
@@ -73,10 +65,9 @@ This project is configured with `base: './'` in `vite.config.ts` and includes a 
 - **Typography**: Google Fonts (*Noto Serif JP*, *Cinzel*, *Plus Jakarta Sans*, *JetBrains Mono*)
 - **Icons**: [Lucide React](https://lucide.dev/)
 - **FX**: [Canvas Confetti](https://www.npmjs.com/package/canvas-confetti)
-- **Dataset**: Sourced and verified from Wada Sanzō's *A Dictionary of Color Combinations* (Japan Standard Color Association, 1933).
 
 ---
 
 ## 📜 License
 
-MIT License. Color combinations and research originally by Sanzo Wada (1883–1967).
+MIT License. Color research originally by Sanzo Wada (1883–1967).

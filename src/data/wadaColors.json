@@ -2,6 +2,8 @@
   {
     "id": 1,
     "name": "Hermosa Pink",
+    "ja": "鴾色",
+    "reading": "toki-iro",
     "hex": "#f9c1ce",
     "rgb": [
       249,
@@ -20,15 +22,23 @@
       1.6381322957198563
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       176,
       227,
       273
+    ],
+    "vol2Cards": [
+      4,
+      20,
+      49
     ]
   },
   {
     "id": 2,
     "name": "Corinthian Pink",
+    "ja": null,
+    "reading": null,
     "hex": "#f8b6ba",
     "rgb": [
       248,
@@ -47,6 +57,7 @@
       7.879377431906619
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       27,
       43,
@@ -60,11 +71,18 @@
       254,
       264,
       342
+    ],
+    "vol2Cards": [
+      27,
+      48,
+      66
     ]
   },
   {
     "id": 3,
     "name": "Cameo Pink",
+    "ja": null,
+    "reading": null,
     "hex": "#e0b3b6",
     "rgb": [
       224,
@@ -83,6 +101,7 @@
       4.949416342412462
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       101,
       105,
@@ -90,11 +109,18 @@
       120,
       165,
       231
+    ],
+    "vol2Cards": [
+      14,
+      30,
+      62
     ]
   },
   {
     "id": 4,
     "name": "Fawn",
+    "ja": null,
+    "reading": null,
     "hex": "#d1b0a7",
     "rgb": [
       209,
@@ -113,15 +139,25 @@
       9.38521400778211
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       18,
       125,
       308
+    ],
+    "vol2Cards": [
+      11,
+      24,
+      27,
+      28,
+      60
     ]
   },
   {
     "id": 5,
     "name": "Light Brown Drab",
+    "ja": null,
+    "reading": null,
     "hex": "#b59392",
     "rgb": [
       181,
@@ -140,6 +176,7 @@
       5.3424124513618665
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       35,
       68,
@@ -151,11 +188,17 @@
       268,
       285,
       321
+    ],
+    "vol2Cards": [
+      35,
+      54
     ]
   },
   {
     "id": 6,
     "name": "Coral Red",
+    "ja": null,
+    "reading": null,
     "hex": "#f58e84",
     "rgb": [
       245,
@@ -174,16 +217,22 @@
       23.190661478599225
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       92,
       123,
       320,
       332
+    ],
+    "vol2Cards": [
+      47
     ]
   },
   {
     "id": 7,
     "name": "Fresh Color",
+    "ja": null,
+    "reading": null,
     "hex": "#f6917e",
     "rgb": [
       246,
@@ -202,13 +251,21 @@
       27.29571984435799
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       240
+    ],
+    "vol2Cards": [
+      15,
+      35,
+      56
     ]
   },
   {
     "id": 8,
     "name": "Grenadine Pink",
+    "ja": null,
+    "reading": null,
     "hex": "#f48067",
     "rgb": [
       244,
@@ -227,6 +284,7 @@
       34.70038910505838
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       6,
       21,
@@ -238,11 +296,16 @@
       300,
       315,
       341
+    ],
+    "vol2Cards": [
+      27
     ]
   },
   {
     "id": 9,
     "name": "Eosine Pink",
+    "ja": null,
+    "reading": null,
     "hex": "#f37f94",
     "rgb": [
       243,
@@ -261,6 +324,7 @@
       10.29571984435799
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       34,
       59,
@@ -276,11 +340,19 @@
       314,
       327,
       336
+    ],
+    "vol2Cards": [
+      24,
+      25,
+      28,
+      38
     ]
   },
   {
     "id": 10,
     "name": "Spinel Red",
+    "ja": "紅梅色",
+    "reading": "kōbai-iro",
     "hex": "#f27291",
     "rgb": [
       242,
@@ -299,6 +371,7 @@
       8.291828793774329
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       14,
       147,
@@ -307,11 +380,17 @@
       195,
       224,
       277
+    ],
+    "vol2Cards": [
+      11,
+      21
     ]
   },
   {
     "id": 11,
     "name": "Old Rose",
+    "ja": null,
+    "reading": null,
     "hex": "#d46d7a",
     "rgb": [
       212,
@@ -330,16 +409,24 @@
       12.307392996108945
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       55,
       162,
       260,
       265
+    ],
+    "vol2Cards": [
+      4,
+      6,
+      36
     ]
   },
   {
     "id": 12,
     "name": "Eugenia Red | A",
+    "ja": null,
+    "reading": null,
     "hex": "#e2625e",
     "rgb": [
       226,
@@ -358,13 +445,22 @@
       28.536964980544752
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       284
+    ],
+    "vol2Cards": [
+      10,
+      18,
+      24,
+      47
     ]
   },
   {
     "id": 13,
     "name": "Eugenia Red | B",
+    "ja": null,
+    "reading": null,
     "hex": "#da525d",
     "rgb": [
       218,
@@ -383,6 +479,7 @@
       23.661478599221795
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       17,
       77,
@@ -392,11 +489,14 @@
       280,
       282,
       325
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 14,
     "name": "Raw Sienna",
+    "ja": "檜皮色",
+    "reading": "hihada-iro",
     "hex": "#bb7125",
     "rgb": [
       187,
@@ -415,6 +515,7 @@
       52.17120622568095
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       3,
       13,
@@ -435,11 +536,18 @@
       298,
       319,
       327
+    ],
+    "vol2Cards": [
+      2,
+      21,
+      56
     ]
   },
   {
     "id": 15,
     "name": "Vinaceous Tawny",
+    "ja": null,
+    "reading": null,
     "hex": "#c56127",
     "rgb": [
       197,
@@ -458,15 +566,19 @@
       50.18677042801556
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       40,
       85,
       244
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 16,
     "name": "Jasper Red",
+    "ja": null,
+    "reading": null,
     "hex": "#eb5324",
     "rgb": [
       235,
@@ -485,16 +597,23 @@
       57.630350194552534
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       155,
       194,
       216,
       219
+    ],
+    "vol2Cards": [
+      69,
+      72
     ]
   },
   {
     "id": 17,
     "name": "Spectrum Red",
+    "ja": null,
+    "reading": null,
     "hex": "#e31f26",
     "rgb": [
       227,
@@ -513,16 +632,26 @@
       50.077821011673166
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       257,
       266,
       301,
       322
+    ],
+    "vol2Cards": [
+      5,
+      11,
+      38,
+      53,
+      66
     ]
   },
   {
     "id": 18,
     "name": "Red Orange",
+    "ja": null,
+    "reading": null,
     "hex": "#dd4027",
     "rgb": [
       221,
@@ -541,17 +670,24 @@
       50.88326848249028
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       31,
       164,
       179,
       241,
       264
+    ],
+    "vol2Cards": [
+      57,
+      64
     ]
   },
   {
     "id": 19,
     "name": "Etruscan Red",
+    "ja": null,
+    "reading": null,
     "hex": "#c55347",
     "rgb": [
       197,
@@ -570,6 +706,7 @@
       31.0544747081712
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       25,
       47,
@@ -578,11 +715,16 @@
       152,
       185,
       275
+    ],
+    "vol2Cards": [
+      65
     ]
   },
   {
     "id": 20,
     "name": "Burnt Sienna",
+    "ja": null,
+    "reading": null,
     "hex": "#ae5224",
     "rgb": [
       174,
@@ -601,6 +743,7 @@
       43.7898832684825
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       198,
       242,
@@ -611,11 +754,16 @@
       312,
       333,
       343
+    ],
+    "vol2Cards": [
+      4
     ]
   },
   {
     "id": 21,
-    "name": "Ochre Red",
+    "name": "Ocher Red",
+    "ja": null,
+    "reading": null,
     "hex": "#ab544d",
     "rgb": [
       171,
@@ -634,14 +782,20 @@
       21.848249027237358
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       199,
       283
+    ],
+    "vol2Cards": [
+      17
     ]
   },
   {
     "id": 22,
     "name": "Scarlet",
+    "ja": null,
+    "reading": null,
     "hex": "#cb2f43",
     "rgb": [
       203,
@@ -660,15 +814,21 @@
       28.902723735408557
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       136,
       308,
       332
+    ],
+    "vol2Cards": [
+      15
     ]
   },
   {
     "id": 23,
     "name": "Carmine",
+    "ja": null,
+    "reading": null,
     "hex": "#cc1236",
     "rgb": [
       204,
@@ -687,6 +847,7 @@
       33.71206225680933
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       39,
       117,
@@ -696,11 +857,14 @@
       232,
       307,
       313
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 24,
     "name": "Indian Lake",
+    "ja": null,
+    "reading": null,
     "hex": "#c53c69",
     "rgb": [
       197,
@@ -719,14 +883,22 @@
       6.677042801556411
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       299,
       331
+    ],
+    "vol2Cards": [
+      11,
+      60,
+      68
     ]
   },
   {
     "id": 25,
-    "name": "Rosolanc Purple",
+    "name": "Rosolane Purple",
+    "ja": "牡丹色",
+    "reading": "botan-iro",
     "hex": "#b73f74",
     "rgb": [
       183,
@@ -745,6 +917,7 @@
       -3.159533073929964
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       48,
       144,
@@ -752,11 +925,16 @@
       204,
       277,
       346
+    ],
+    "vol2Cards": [
+      45
     ]
   },
   {
     "id": 26,
-    "name": "Pomegranite Purple",
+    "name": "Pomegranate Purple",
+    "ja": null,
+    "reading": null,
     "hex": "#b71f57",
     "rgb": [
       183,
@@ -775,14 +953,21 @@
       8.400778210116727
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       220,
       271
+    ],
+    "vol2Cards": [
+      35,
+      63
     ]
   },
   {
     "id": 27,
     "name": "Hydrangea Red",
+    "ja": null,
+    "reading": null,
     "hex": "#a94151",
     "rgb": [
       169,
@@ -801,13 +986,19 @@
       14.182879377431902
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       142
+    ],
+    "vol2Cards": [
+      49
     ]
   },
   {
     "id": 28,
     "name": "Brick Red",
+    "ja": null,
+    "reading": null,
     "hex": "#a84222",
     "rgb": [
       168,
@@ -826,17 +1017,21 @@
       40.688715953307394
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       37,
       108,
       246,
       322,
       328
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 29,
     "name": "Carmine Red",
+    "ja": null,
+    "reading": null,
     "hex": "#a62c37",
     "rgb": [
       166,
@@ -855,6 +1050,7 @@
       24.688715953307394
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       35,
       51,
@@ -868,11 +1064,16 @@
       237,
       245,
       338
+    ],
+    "vol2Cards": [
+      14
     ]
   },
   {
     "id": 30,
     "name": "Pompeian Red",
+    "ja": null,
+    "reading": null,
     "hex": "#ab2439",
     "rgb": [
       171,
@@ -891,6 +1092,7 @@
       23.844357976653697
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       30,
       71,
@@ -898,11 +1100,14 @@
       212,
       311,
       324
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 31,
     "name": "Red",
+    "ja": "赤色",
+    "reading": "aka-iro",
     "hex": "#a72144",
     "rgb": [
       167,
@@ -921,14 +1126,22 @@
       15.369649805447466
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       251,
       261
+    ],
+    "vol2Cards": [
+      4,
+      7,
+      11
     ]
   },
   {
     "id": 32,
     "name": "Brown",
+    "ja": null,
+    "reading": null,
     "hex": "#7c4226",
     "rgb": [
       124,
@@ -947,16 +1160,20 @@
       28.571984435797674
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       110,
       121,
       145,
       161
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 33,
     "name": "Hay's Russet",
+    "ja": null,
+    "reading": null,
     "hex": "#793327",
     "rgb": [
       121,
@@ -975,6 +1192,7 @@
       23.509727626459153
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       58,
       82,
@@ -987,11 +1205,14 @@
       314,
       336,
       345
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 34,
     "name": "Vandyke Red",
+    "ja": null,
+    "reading": null,
     "hex": "#82241f",
     "rgb": [
       130,
@@ -1010,17 +1231,23 @@
       27.607003891050596
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       16,
       133,
       147,
       316,
       335
+    ],
+    "vol2Cards": [
+      55
     ]
   },
   {
     "id": 35,
     "name": "Pansy Purple",
+    "ja": null,
+    "reading": null,
     "hex": "#7d133a",
     "rgb": [
       125,
@@ -1039,14 +1266,20 @@
       6.089494163424121
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       157,
       273
+    ],
+    "vol2Cards": [
+      27
     ]
   },
   {
     "id": 36,
     "name": "Pale Burnt Lake",
+    "ja": "海老茶色",
+    "reading": "ebicha-iro",
     "hex": "#802626",
     "rgb": [
       128,
@@ -1065,6 +1298,7 @@
       22.712062256809332
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       124,
       171,
@@ -1074,11 +1308,16 @@
       258,
       269,
       283
+    ],
+    "vol2Cards": [
+      2
     ]
   },
   {
     "id": 37,
     "name": "Violet Red",
+    "ja": "京紫",
+    "reading": "kyō-murasaki",
     "hex": "#642d5e",
     "rgb": [
       100,
@@ -1097,13 +1336,17 @@
       -17.743190661478593
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       9
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 38,
     "name": "Vistoris Lake",
+    "ja": null,
+    "reading": null,
     "hex": "#6d4145",
     "rgb": [
       109,
@@ -1122,6 +1365,7 @@
       6.101167315175104
     ],
     "swatch": 0,
+    "volume": 1,
     "combinations": [
       63,
       91,
@@ -1129,11 +1373,19 @@
       226,
       290,
       337
+    ],
+    "vol2Cards": [
+      10,
+      28,
+      34,
+      58
     ]
   },
   {
     "id": 39,
-    "name": "Sulpher Yellow",
+    "name": "Sulphur Yellow",
+    "ja": null,
+    "reading": null,
     "hex": "#f5ecc2",
     "rgb": [
       245,
@@ -1152,6 +1404,7 @@
       21.64980544747081
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       52,
       72,
@@ -1171,11 +1424,22 @@
       320,
       321,
       326
+    ],
+    "vol2Cards": [
+      1,
+      21,
+      26,
+      40,
+      55,
+      63,
+      68
     ]
   },
   {
     "id": 40,
     "name": "Pale Lemon Yellow",
+    "ja": "淡卵色",
+    "reading": "usu-tamago-iro",
     "hex": "#ffefae",
     "rgb": [
       255,
@@ -1194,6 +1458,7 @@
       34.08560311284046
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       3,
       31,
@@ -1214,11 +1479,20 @@
       290,
       292,
       336
+    ],
+    "vol2Cards": [
+      13,
+      23,
+      54,
+      66,
+      72
     ]
   },
   {
     "id": 41,
     "name": "Naples Yellow",
+    "ja": null,
+    "reading": null,
     "hex": "#fbe6a0",
     "rgb": [
       251,
@@ -1237,6 +1511,7 @@
       36.56809338521401
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       14,
       115,
@@ -1244,11 +1519,19 @@
       193,
       303,
       325
+    ],
+    "vol2Cards": [
+      2,
+      27,
+      29,
+      47
     ]
   },
   {
     "id": 42,
     "name": "Ivory Buff",
+    "ja": null,
+    "reading": null,
     "hex": "#ebd3a2",
     "rgb": [
       235,
@@ -1267,6 +1550,7 @@
       27.268482490272362
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       11,
       50,
@@ -1284,11 +1568,21 @@
       266,
       301,
       343
+    ],
+    "vol2Cards": [
+      5,
+      12,
+      19,
+      43,
+      56,
+      64
     ]
   },
   {
     "id": 43,
     "name": "Seashell Pink",
+    "ja": null,
+    "reading": null,
     "hex": "#fdd4bd",
     "rgb": [
       253,
@@ -1307,6 +1601,7 @@
       17.268482490272362
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       45,
       84,
@@ -1317,11 +1612,20 @@
       194,
       276,
       334
+    ],
+    "vol2Cards": [
+      1,
+      14,
+      25,
+      34,
+      60
     ]
   },
   {
     "id": 44,
     "name": "Light Pinkish Cinnamon",
+    "ja": null,
+    "reading": null,
     "hex": "#fcc79b",
     "rgb": [
       252,
@@ -1340,13 +1644,21 @@
       29.809338521400775
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       317
+    ],
+    "vol2Cards": [
+      2,
+      4,
+      59
     ]
   },
   {
     "id": 45,
     "name": "Pinkish Cinnamon",
+    "ja": null,
+    "reading": null,
     "hex": "#eeb480",
     "rgb": [
       238,
@@ -1365,6 +1677,7 @@
       34.747081712062254
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       78,
       161,
@@ -1375,11 +1688,18 @@
       292,
       305,
       310
+    ],
+    "vol2Cards": [
+      2,
+      14,
+      66
     ]
   },
   {
     "id": 46,
     "name": "Cinnamon Buff",
+    "ja": null,
+    "reading": null,
     "hex": "#fdc57e",
     "rgb": [
       253,
@@ -1398,6 +1718,7 @@
       43.665369649805456
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       23,
       127,
@@ -1408,11 +1729,18 @@
       246,
       323,
       344
+    ],
+    "vol2Cards": [
+      22,
+      26,
+      45
     ]
   },
   {
     "id": 47,
     "name": "Cream Yellow",
+    "ja": "卵色",
+    "reading": "tamago-iro",
     "hex": "#fdbf68",
     "rgb": [
       253,
@@ -1431,6 +1759,7 @@
       51.97665369649806
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       122,
       192,
@@ -1446,11 +1775,16 @@
       311,
       329,
       342
+    ],
+    "vol2Cards": [
+      42
     ]
   },
   {
     "id": 48,
     "name": "Golden Yellow",
+    "ja": null,
+    "reading": null,
     "hex": "#f3a257",
     "rgb": [
       243,
@@ -1469,6 +1803,7 @@
       51.1828793774319
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       26,
       81,
@@ -1480,11 +1815,16 @@
       229,
       309,
       315
+    ],
+    "vol2Cards": [
+      18
     ]
   },
   {
     "id": 49,
     "name": "Vinaceous Cinnamon",
+    "ja": null,
+    "reading": null,
     "hex": "#eea78c",
     "rgb": [
       238,
@@ -1503,6 +1843,7 @@
       24.813229571984436
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       203,
       205,
@@ -1511,11 +1852,17 @@
       260,
       279,
       299
+    ],
+    "vol2Cards": [
+      17,
+      33
     ]
   },
   {
     "id": 50,
     "name": "Ochraceous Salmon",
+    "ja": "欵冬色",
+    "reading": "fuki-iro",
     "hex": "#d8a37b",
     "rgb": [
       216,
@@ -1534,6 +1881,7 @@
       29.101167315175104
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       32,
       71,
@@ -1545,11 +1893,16 @@
       238,
       296,
       339
+    ],
+    "vol2Cards": [
+      60
     ]
   },
   {
     "id": 51,
     "name": "Isabella Color",
+    "ja": null,
+    "reading": null,
     "hex": "#c5a56e",
     "rgb": [
       197,
@@ -1568,16 +1921,20 @@
       33.02334630350194
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       4,
       12,
       241,
       292
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 52,
     "name": "Maple",
+    "ja": null,
+    "reading": null,
     "hex": "#c59f6b",
     "rgb": [
       197,
@@ -1596,13 +1953,20 @@
       32.94941634241246
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       282
+    ],
+    "vol2Cards": [
+      6,
+      10
     ]
   },
   {
     "id": 53,
     "name": "Olive Buff",
+    "ja": null,
+    "reading": null,
     "hex": "#c1c494",
     "rgb": [
       193,
@@ -1621,17 +1985,25 @@
       23.657587548638134
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       83,
       175,
       200,
       330,
       348
+    ],
+    "vol2Cards": [
+      15,
+      33,
+      50
     ]
   },
   {
     "id": 54,
     "name": "Ecru",
+    "ja": null,
+    "reading": null,
     "hex": "#c2ae93",
     "rgb": [
       194,
@@ -1650,6 +2022,7 @@
       16.731517509727638
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       167,
       249,
@@ -1659,11 +2032,16 @@
       302,
       317,
       327
+    ],
+    "vol2Cards": [
+      3
     ]
   },
   {
     "id": 55,
     "name": "Yellow",
+    "ja": "黃色",
+    "reading": "kiiro",
     "hex": "#fff200",
     "rgb": [
       255,
@@ -1682,6 +2060,7 @@
       95.57976653696497
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       22,
       62,
@@ -1691,11 +2070,17 @@
       251,
       295,
       313
+    ],
+    "vol2Cards": [
+      20,
+      66
     ]
   },
   {
     "id": 56,
     "name": "Lemon Yellow",
+    "ja": null,
+    "reading": null,
     "hex": "#f8ed43",
     "rgb": [
       248,
@@ -1714,6 +2099,7 @@
       77.7626459143969
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       45,
       123,
@@ -1730,11 +2116,16 @@
       306,
       317,
       333
+    ],
+    "vol2Cards": [
+      33
     ]
   },
   {
     "id": 57,
     "name": "Apricot Yellow",
+    "ja": null,
+    "reading": null,
     "hex": "#ffdd00",
     "rgb": [
       255,
@@ -1753,6 +2144,7 @@
       89.45525291828793
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       107,
       129,
@@ -1764,11 +2156,16 @@
       284,
       305,
       319
+    ],
+    "vol2Cards": [
+      6
     ]
   },
   {
     "id": 58,
     "name": "Pyrite Yellow",
+    "ja": null,
+    "reading": null,
     "hex": "#cab356",
     "rgb": [
       202,
@@ -1787,16 +2184,23 @@
       49.8171206225681
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       239,
       250,
       255,
       287
+    ],
+    "vol2Cards": [
+      26,
+      29
     ]
   },
   {
     "id": 59,
     "name": "Olive Ocher",
+    "ja": null,
+    "reading": null,
     "hex": "#d6b43e",
     "rgb": [
       214,
@@ -1815,6 +2219,7 @@
       61.805447470817114
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       66,
       148,
@@ -1823,11 +2228,17 @@
       157,
       249,
       278
+    ],
+    "vol2Cards": [
+      18,
+      68
     ]
   },
   {
     "id": 60,
     "name": "Yellow Ocher",
+    "ja": null,
+    "reading": null,
     "hex": "#e2b540",
     "rgb": [
       226,
@@ -1846,6 +2257,7 @@
       62.7898832684825
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       42,
       96,
@@ -1855,11 +2267,17 @@
       191,
       222,
       325
+    ],
+    "vol2Cards": [
+      9,
+      67
     ]
   },
   {
     "id": 61,
     "name": "Orange Yellow",
+    "ja": null,
+    "reading": null,
     "hex": "#fcb315",
     "rgb": [
       252,
@@ -1878,6 +2296,7 @@
       78.21789883268482
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       114,
       148,
@@ -1887,11 +2306,14 @@
       257,
       286,
       338
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 62,
     "name": "Yellow Orange",
+    "ja": "柑子色",
+    "reading": "kōji-iro",
     "hex": "#f99d1b",
     "rgb": [
       249,
@@ -1910,6 +2332,7 @@
       72.94163424124514
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       2,
       53,
@@ -1925,11 +2348,16 @@
       312,
       319,
       335
+    ],
+    "vol2Cards": [
+      4
     ]
   },
   {
     "id": 63,
     "name": "Apricot Orange",
+    "ja": null,
+    "reading": null,
     "hex": "#f68c50",
     "rgb": [
       246,
@@ -1948,16 +2376,22 @@
       49.64980544747081
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       211,
       253,
       309,
       328
+    ],
+    "vol2Cards": [
+      60
     ]
   },
   {
     "id": 64,
     "name": "Orange",
+    "ja": "橙色",
+    "reading": "tōshoku",
     "hex": "#f37420",
     "rgb": [
       243,
@@ -1976,6 +2410,7 @@
       64.715953307393
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       7,
       46,
@@ -1984,11 +2419,17 @@
       149,
       256,
       272
+    ],
+    "vol2Cards": [
+      31,
+      42
     ]
   },
   {
     "id": 65,
     "name": "Peach Red",
+    "ja": null,
+    "reading": null,
     "hex": "#f15a30",
     "rgb": [
       241,
@@ -2007,6 +2448,7 @@
       54.35019455252919
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       115,
       250,
@@ -2016,11 +2458,16 @@
       303,
       326,
       340
+    ],
+    "vol2Cards": [
+      13
     ]
   },
   {
     "id": 66,
     "name": "English Red",
+    "ja": null,
+    "reading": null,
     "hex": "#d96629",
     "rgb": [
       217,
@@ -2039,17 +2486,24 @@
       54.361867704280144
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       1,
       131,
       190,
       308,
       339
+    ],
+    "vol2Cards": [
+      9,
+      30
     ]
   },
   {
     "id": 67,
     "name": "Cinnamon Rufous",
+    "ja": null,
+    "reading": null,
     "hex": "#c27544",
     "rgb": [
       194,
@@ -2068,6 +2522,7 @@
       40.22957198443581
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       8,
       10,
@@ -2076,11 +2531,16 @@
       172,
       204,
       206
+    ],
+    "vol2Cards": [
+      60
     ]
   },
   {
     "id": 68,
     "name": "Orange Rufous",
+    "ja": null,
+    "reading": null,
     "hex": "#c16b27",
     "rgb": [
       193,
@@ -2099,15 +2559,23 @@
       51.245136186770424
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       91,
       102,
       222
+    ],
+    "vol2Cards": [
+      39,
+      61,
+      67
     ]
   },
   {
     "id": 69,
     "name": "Sulphine Yellow",
+    "ja": null,
+    "reading": null,
     "hex": "#c19f2c",
     "rgb": [
       193,
@@ -2126,17 +2594,25 @@
       60.55252918287937
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       36,
       65,
       142,
       160,
       252
+    ],
+    "vol2Cards": [
+      8,
+      52,
+      70
     ]
   },
   {
     "id": 70,
     "name": "Khaki",
+    "ja": null,
+    "reading": null,
     "hex": "#bc892b",
     "rgb": [
       188,
@@ -2155,17 +2631,25 @@
       55.05058365758754
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       129,
       146,
       159,
       236,
       248
+    ],
+    "vol2Cards": [
+      9,
+      12,
+      32
     ]
   },
   {
     "id": 71,
     "name": "Citron Yellow",
+    "ja": null,
+    "reading": null,
     "hex": "#b2b73e",
     "rgb": [
       178,
@@ -2184,6 +2668,7 @@
       58.17509727626458
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       40,
       87,
@@ -2193,11 +2678,19 @@
       196,
       305,
       323
+    ],
+    "vol2Cards": [
+      2,
+      23,
+      36,
+      59
     ]
   },
   {
     "id": 72,
     "name": "Citrine",
+    "ja": "靑朽葉",
+    "reading": "ao-kuchiba",
     "hex": "#b09f36",
     "rgb": [
       176,
@@ -2216,17 +2709,25 @@
       54.486381322957186
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       59,
       93,
       132,
       133,
       262
+    ],
+    "vol2Cards": [
+      2,
+      7,
+      29
     ]
   },
   {
     "id": 73,
     "name": "Buffy Citrine",
+    "ja": null,
+    "reading": null,
     "hex": "#96874d",
     "rgb": [
       150,
@@ -2245,15 +2746,22 @@
       33.29961089494162
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       100,
       177,
       233
+    ],
+    "vol2Cards": [
+      14,
+      54
     ]
   },
   {
     "id": 74,
     "name": "Dark Citrine",
+    "ja": null,
+    "reading": null,
     "hex": "#8b835b",
     "rgb": [
       139,
@@ -2272,16 +2780,22 @@
       23.066147859922182
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       10,
       41,
       274,
       304
+    ],
+    "vol2Cards": [
+      3
     ]
   },
   {
     "id": 75,
     "name": "Light Grayish Olive",
+    "ja": null,
+    "reading": null,
     "hex": "#848061",
     "rgb": [
       132,
@@ -2300,14 +2814,18 @@
       17.019455252918277
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       107,
       184
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 76,
-    "name": "Krongbergs Green",
+    "name": "Kronbergs Green",
+    "ja": null,
+    "reading": null,
     "hex": "#84875e",
     "rgb": [
       132,
@@ -2326,13 +2844,19 @@
       21.509727626459153
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       29
+    ],
+    "vol2Cards": [
+      8
     ]
   },
   {
     "id": 77,
     "name": "Olive",
+    "ja": null,
+    "reading": null,
     "hex": "#837e31",
     "rgb": [
       131,
@@ -2351,6 +2875,7 @@
       41.486381322957186
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       96,
       201,
@@ -2359,11 +2884,14 @@
       277,
       310,
       334
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 78,
     "name": "Orange Citrine",
+    "ja": null,
+    "reading": null,
     "hex": "#986f2d",
     "rgb": [
       152,
@@ -2382,14 +2910,21 @@
       42.046692607003905
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       212,
       342
+    ],
+    "vol2Cards": [
+      30,
+      57
     ]
   },
   {
     "id": 79,
     "name": "Sudan Brown",
+    "ja": "丁字茶",
+    "reading": "chōji-cha",
     "hex": "#a36752",
     "rgb": [
       163,
@@ -2408,15 +2943,22 @@
       22.451361867704293
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       207,
       214,
       273
+    ],
+    "vol2Cards": [
+      15,
+      71
     ]
   },
   {
     "id": 80,
     "name": "Olive Green",
+    "ja": null,
+    "reading": null,
     "hex": "#6b7140",
     "rgb": [
       107,
@@ -2435,16 +2977,20 @@
       26.486381322957186
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       66,
       243,
       270,
       297
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 81,
     "name": "Light Brownish Olive",
+    "ja": null,
+    "reading": null,
     "hex": "#806e4b",
     "rgb": [
       128,
@@ -2463,14 +3009,22 @@
       22.194552529182886
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       199,
       318
+    ],
+    "vol2Cards": [
+      18,
+      50,
+      57
     ]
   },
   {
     "id": 82,
     "name": "Deep Grayish Olive",
+    "ja": null,
+    "reading": null,
     "hex": "#635a3a",
     "rgb": [
       99,
@@ -2489,14 +3043,18 @@
       19.94163424124514
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       146,
       343
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 83,
     "name": "Pale Raw Umber",
+    "ja": null,
+    "reading": null,
     "hex": "#71502f",
     "rgb": [
       113,
@@ -2515,17 +3073,21 @@
       24.957198443579756
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       26,
       73,
       160,
       234,
       296
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 84,
     "name": "Sepia",
+    "ja": null,
+    "reading": null,
     "hex": "#644b1e",
     "rgb": [
       100,
@@ -2544,14 +3106,21 @@
       30.23346303501947
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       24,
       288
+    ],
+    "vol2Cards": [
+      41,
+      72
     ]
   },
   {
     "id": 85,
     "name": "Madder Brown",
+    "ja": null,
+    "reading": null,
     "hex": "#762c19",
     "rgb": [
       118,
@@ -2570,6 +3139,7 @@
       29.280155642023345
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       28,
       79,
@@ -2578,11 +3148,14 @@
       237,
       275,
       323
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 86,
-    "name": "Mars Brown Tobacco",
+    "name": "Mars Brown/Tobacco",
+    "ja": null,
+    "reading": null,
     "hex": "#653514",
     "rgb": [
       101,
@@ -2601,13 +3174,19 @@
       29.836575875486375
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       19
+    ],
+    "vol2Cards": [
+      59
     ]
   },
   {
     "id": 87,
     "name": "Vandyke Brown",
+    "ja": null,
+    "reading": null,
     "hex": "#4b3317",
     "rgb": [
       75,
@@ -2626,6 +3205,7 @@
       22.101167315175104
     ],
     "swatch": 1,
+    "volume": 1,
     "combinations": [
       110,
       113,
@@ -2633,11 +3213,17 @@
       182,
       192,
       328
+    ],
+    "vol2Cards": [
+      3,
+      34
     ]
   },
   {
     "id": 88,
     "name": "Turquoise Green",
+    "ja": null,
+    "reading": null,
     "hex": "#b5decc",
     "rgb": [
       181,
@@ -2656,6 +3242,7 @@
       4.595330739299612
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       36,
       74,
@@ -2673,11 +3260,16 @@
       305,
       317,
       346
+    ],
+    "vol2Cards": [
+      20
     ]
   },
   {
     "id": 89,
     "name": "Glaucous Green",
+    "ja": null,
+    "reading": null,
     "hex": "#b4cdc2",
     "rgb": [
       180,
@@ -2696,6 +3288,7 @@
       2.2996108949416225
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       7,
       150,
@@ -2703,11 +3296,18 @@
       207,
       239,
       260
+    ],
+    "vol2Cards": [
+      1,
+      59,
+      63
     ]
   },
   {
     "id": 90,
     "name": "Dark Greenish Glaucous",
+    "ja": null,
+    "reading": null,
     "hex": "#b7c2a9",
     "rgb": [
       183,
@@ -2726,14 +3326,21 @@
       11.369649805447466
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       264,
       311
+    ],
+    "vol2Cards": [
+      51,
+      68
     ]
   },
   {
     "id": 91,
     "name": "Yellow Green",
+    "ja": "若草色",
+    "reading": "wakakusa-iro",
     "hex": "#afd472",
     "rgb": [
       175,
@@ -2752,17 +3359,23 @@
       43.91050583657588
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       111,
       141,
       276,
       326,
       334
+    ],
+    "vol2Cards": [
+      53
     ]
   },
   {
     "id": 92,
     "name": "Light Green Yellow",
+    "ja": "鶸色",
+    "reading": "hiwa-iro",
     "hex": "#c7d14f",
     "rgb": [
       199,
@@ -2781,17 +3394,21 @@
       60.55642023346303
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       61,
       289,
       291,
       311,
       346
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 93,
     "name": "Night Green",
+    "ja": null,
+    "reading": null,
     "hex": "#87c540",
     "rgb": [
       135,
@@ -2810,16 +3427,23 @@
       57.0272373540856
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       19,
       32,
       158,
       326
+    ],
+    "vol2Cards": [
+      34,
+      43
     ]
   },
   {
     "id": 94,
     "name": "Olive Yellow",
+    "ja": null,
+    "reading": null,
     "hex": "#a6a159",
     "rgb": [
       166,
@@ -2838,16 +3462,22 @@
       37.836575875486375
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       124,
       211,
       265,
       347
+    ],
+    "vol2Cards": [
+      24
     ]
   },
   {
     "id": 95,
-    "name": "Artemesia Green",
+    "name": "Artemisia Green",
+    "ja": null,
+    "reading": null,
     "hex": "#709390",
     "rgb": [
       112,
@@ -2866,14 +3496,23 @@
       -2.891050583657588
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       293,
       312
+    ],
+    "vol2Cards": [
+      29,
+      30,
+      31,
+      67
     ]
   },
   {
     "id": 96,
     "name": "Andover Green",
+    "ja": null,
+    "reading": null,
     "hex": "#6d7e77",
     "rgb": [
       109,
@@ -2892,14 +3531,21 @@
       1.5369649805447523
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       244,
       346
+    ],
+    "vol2Cards": [
+      9,
+      61
     ]
   },
   {
     "id": 97,
     "name": "Rainette Green",
+    "ja": null,
+    "reading": null,
     "hex": "#8fa071",
     "rgb": [
       143,
@@ -2918,17 +3564,21 @@
       22.44747081712063
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       73,
       162,
       188,
       266,
       301
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 98,
     "name": "Chromium Green",
+    "ja": "老綠",
+    "reading": "oi-midori",
     "hex": "#719470",
     "rgb": [
       113,
@@ -2947,16 +3597,22 @@
       14.992217898832678
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       105,
       200,
       219,
       283
+    ],
+    "vol2Cards": [
+      18
     ]
   },
   {
     "id": 99,
     "name": "Pistachio Green",
+    "ja": null,
+    "reading": null,
     "hex": "#648f7b",
     "rgb": [
       100,
@@ -2975,14 +3631,20 @@
       5.688715953307394
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       127,
       137
+    ],
+    "vol2Cards": [
+      51
     ]
   },
   {
     "id": 100,
     "name": "Sea Green",
+    "ja": null,
+    "reading": null,
     "hex": "#00b49b",
     "rgb": [
       0,
@@ -3001,6 +3663,7 @@
       0.4591439688715866
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       17,
       21,
@@ -3013,11 +3676,16 @@
       291,
       340,
       347
+    ],
+    "vol2Cards": [
+      40
     ]
   },
   {
     "id": 101,
     "name": "Benzol Green",
+    "ja": null,
+    "reading": null,
     "hex": "#00978d",
     "rgb": [
       0,
@@ -3036,6 +3704,7 @@
       -8.307392996108945
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       15,
       54,
@@ -3048,11 +3717,14 @@
       281,
       304,
       306
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 102,
     "name": "Light Porcelain Green",
+    "ja": null,
+    "reading": null,
     "hex": "#00908a",
     "rgb": [
       0,
@@ -3071,15 +3743,21 @@
       -6.832684824902728
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       44,
       193,
       328
+    ],
+    "vol2Cards": [
+      3
     ]
   },
   {
     "id": 103,
     "name": "Green",
+    "ja": "綠色",
+    "reading": "midori-iro",
     "hex": "#489b6e",
     "rgb": [
       72,
@@ -3098,15 +3776,22 @@
       15.58754863813229
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       198,
       216,
       293
+    ],
+    "vol2Cards": [
+      13,
+      22
     ]
   },
   {
     "id": 104,
     "name": "Dull Viridian Green",
+    "ja": null,
+    "reading": null,
     "hex": "#009465",
     "rgb": [
       0,
@@ -3125,16 +3810,23 @@
       14.43968871595331
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       136,
       256,
       306,
       316
+    ],
+    "vol2Cards": [
+      35,
+      65
     ]
   },
   {
     "id": 105,
     "name": "Oil Green",
+    "ja": null,
+    "reading": null,
     "hex": "#819238",
     "rgb": [
       129,
@@ -3153,15 +3845,21 @@
       43.76653696498053
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       245,
       299,
       320
+    ],
+    "vol2Cards": [
+      42
     ]
   },
   {
     "id": 106,
     "name": "Diamine Green",
+    "ja": null,
+    "reading": null,
     "hex": "#1a7444",
     "rgb": [
       26,
@@ -3180,6 +3878,7 @@
       18.56031128404669
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       38,
       146,
@@ -3187,11 +3886,16 @@
       242,
       251,
       313
+    ],
+    "vol2Cards": [
+      8
     ]
   },
   {
     "id": 107,
     "name": "Cossack Green",
+    "ja": "萠木色",
+    "reading": "moegi-iro",
     "hex": "#437742",
     "rgb": [
       67,
@@ -3210,6 +3914,7 @@
       23.44747081712063
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       5,
       135,
@@ -3220,11 +3925,17 @@
       319,
       341,
       348
+    ],
+    "vol2Cards": [
+      53,
+      70
     ]
   },
   {
     "id": 108,
     "name": "Lincoln Green",
+    "ja": null,
+    "reading": null,
     "hex": "#555832",
     "rgb": [
       85,
@@ -3243,6 +3954,7 @@
       21.182879377431902
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       70,
       121,
@@ -3250,11 +3962,17 @@
       210,
       280,
       290
+    ],
+    "vol2Cards": [
+      42,
+      65
     ]
   },
   {
     "id": 109,
     "name": "Blackish Olive",
+    "ja": null,
+    "reading": null,
     "hex": "#42533e",
     "rgb": [
       66,
@@ -3273,15 +3991,22 @@
       9.688715953307394
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       109,
       318,
       336
+    ],
+    "vol2Cards": [
+      29,
+      30
     ]
   },
   {
     "id": 110,
     "name": "Deep Slate Olive",
+    "ja": null,
+    "reading": null,
     "hex": "#253122",
     "rgb": [
       37,
@@ -3300,6 +4025,7 @@
       7.536964980544752
     ],
     "swatch": 2,
+    "volume": 1,
     "combinations": [
       189,
       229,
@@ -3311,11 +4037,16 @@
       341,
       342,
       348
+    ],
+    "vol2Cards": [
+      57
     ]
   },
   {
     "id": 111,
     "name": "Nile Blue",
+    "ja": null,
+    "reading": null,
     "hex": "#bce4e5",
     "rgb": [
       188,
@@ -3334,6 +4065,7 @@
       -5.031128404669261
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       25,
       250,
@@ -3342,11 +4074,17 @@
       306,
       330,
       345
+    ],
+    "vol2Cards": [
+      13,
+      14
     ]
   },
   {
     "id": 112,
     "name": "Pale King's Blue",
+    "ja": null,
+    "reading": null,
     "hex": "#a7d4e4",
     "rgb": [
       167,
@@ -3365,6 +4103,7 @@
       -12.883268482490266
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       16,
       49,
@@ -3375,11 +4114,19 @@
       213,
       234,
       287
+    ],
+    "vol2Cards": [
+      31,
+      32,
+      63,
+      71
     ]
   },
   {
     "id": 113,
     "name": "Light Glaucous Blue",
+    "ja": null,
+    "reading": null,
     "hex": "#a5c8d1",
     "rgb": [
       165,
@@ -3398,6 +4145,7 @@
       -8.723735408560316
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       54,
       93,
@@ -3409,11 +4157,22 @@
       320,
       339,
       341
+    ],
+    "vol2Cards": [
+      7,
+      16,
+      17,
+      23,
+      44,
+      54,
+      58
     ]
   },
   {
     "id": 114,
     "name": "Salvia Blue",
+    "ja": "空色",
+    "reading": "sora-iro",
     "hex": "#97acc8",
     "rgb": [
       151,
@@ -3432,6 +4191,7 @@
       -16.754863813229576
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       29,
       129,
@@ -3446,11 +4206,17 @@
       294,
       321,
       330
+    ],
+    "vol2Cards": [
+      33,
+      72
     ]
   },
   {
     "id": 115,
     "name": "Cobalt Green",
+    "ja": "靑磁色",
+    "reading": "seiji-iro",
     "hex": "#96d1aa",
     "rgb": [
       150,
@@ -3469,6 +4235,7 @@
       13
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       156,
       188,
@@ -3482,11 +4249,19 @@
       291,
       308,
       333
+    ],
+    "vol2Cards": [
+      5,
+      20,
+      22,
+      41
     ]
   },
   {
     "id": 116,
-    "name": "Calamine BLue",
+    "name": "Calamine Blue",
+    "ja": "淡淺葱",
+    "reading": "usu-asagi",
     "hex": "#78cdd0",
     "rgb": [
       120,
@@ -3505,6 +4280,7 @@
       -10.373540856031127
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       20,
       41,
@@ -3516,11 +4292,17 @@
       287,
       291,
       300
+    ],
+    "vol2Cards": [
+      20,
+      36
     ]
   },
   {
     "id": 117,
     "name": "Venice Green",
+    "ja": null,
+    "reading": null,
     "hex": "#62c6bf",
     "rgb": [
       98,
@@ -3539,6 +4321,7 @@
       -6.140077821011673
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       78,
       128,
@@ -3546,11 +4329,16 @@
       189,
       283,
       345
+    ],
+    "vol2Cards": [
+      7
     ]
   },
   {
     "id": 118,
-    "name": "Cerulian Blue",
+    "name": "Cerulean Blue",
+    "ja": null,
+    "reading": null,
     "hex": "#0093a5",
     "rgb": [
       0,
@@ -3569,6 +4357,7 @@
       -20.13618677042801
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       1,
       63,
@@ -3578,11 +4367,16 @@
       227,
       240,
       264
+    ],
+    "vol2Cards": [
+      16
     ]
   },
   {
     "id": 119,
     "name": "Peacock Blue",
+    "ja": null,
+    "reading": null,
     "hex": "#00939b",
     "rgb": [
       0,
@@ -3601,14 +4395,21 @@
       -17.51750972762646
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       131,
       286
+    ],
+    "vol2Cards": [
+      41,
+      45
     ]
   },
   {
     "id": 120,
     "name": "Green Blue",
+    "ja": "靑竹色",
+    "reading": "aotake-iro",
     "hex": "#099197",
     "rgb": [
       9,
@@ -3627,6 +4428,7 @@
       -12.883268482490266
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       12,
       74,
@@ -3637,11 +4439,16 @@
       259,
       271,
       330
+    ],
+    "vol2Cards": [
+      55
     ]
   },
   {
     "id": 121,
     "name": "Olympic Blue",
+    "ja": null,
+    "reading": null,
     "hex": "#5a82b3",
     "rgb": [
       90,
@@ -3660,6 +4467,7 @@
       -30.739299610894946
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       44,
       67,
@@ -3668,11 +4476,17 @@
       231,
       274,
       324
+    ],
+    "vol2Cards": [
+      24,
+      25
     ]
   },
   {
     "id": 122,
     "name": "Blue",
+    "ja": "靑色",
+    "reading": "ao-iro",
     "hex": "#006eb8",
     "rgb": [
       0,
@@ -3691,6 +4505,7 @@
       -48.77042801556421
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       49,
       51,
@@ -3704,11 +4519,17 @@
       267,
       295,
       333
+    ],
+    "vol2Cards": [
+      51,
+      52
     ]
   },
   {
     "id": 123,
-    "name": "Antwarp Blue",
+    "name": "Antwerp Blue",
+    "ja": "納戶色",
+    "reading": "nando-iro",
     "hex": "#007190",
     "rgb": [
       0,
@@ -3727,6 +4548,7 @@
       -27.727626459143963
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       85,
       106,
@@ -3741,11 +4563,14 @@
       299,
       302,
       334
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 124,
     "name": "Helvetia Blue",
+    "ja": null,
+    "reading": null,
     "hex": "#005b8d",
     "rgb": [
       0,
@@ -3764,6 +4589,7 @@
       -36.37354085603113
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       39,
       48,
@@ -3773,11 +4599,18 @@
       259,
       312,
       347
+    ],
+    "vol2Cards": [
+      16,
+      21,
+      37
     ]
   },
   {
     "id": 125,
     "name": "Dark Medici Blue",
+    "ja": null,
+    "reading": null,
     "hex": "#547076",
     "rgb": [
       84,
@@ -3796,16 +4629,23 @@
       -6.856031128404666
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       160,
       224,
       241,
       249
+    ],
+    "vol2Cards": [
+      17,
+      64
     ]
   },
   {
     "id": 126,
     "name": "Dusky Green",
+    "ja": null,
+    "reading": null,
     "hex": "#004f46",
     "rgb": [
       0,
@@ -3824,6 +4664,7 @@
       -3.2801556420233453
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       94,
       219,
@@ -3833,11 +4674,17 @@
       318,
       332,
       338
+    ],
+    "vol2Cards": [
+      51,
+      53
     ]
   },
   {
     "id": 127,
     "name": "Deep Lyons Blue",
+    "ja": "紺靑",
+    "reading": "konjō",
     "hex": "#1c4286",
     "rgb": [
       28,
@@ -3856,6 +4703,7 @@
       -42.68093385214007
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       22,
       38,
@@ -3867,11 +4715,18 @@
       247,
       314,
       344
+    ],
+    "vol2Cards": [
+      12,
+      16,
+      19
     ]
   },
   {
     "id": 128,
     "name": "Violet Blue",
+    "ja": "花色",
+    "reading": "hana-iro",
     "hex": "#40456a",
     "rgb": [
       64,
@@ -3890,6 +4745,7 @@
       -22.377431906614788
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       75,
       83,
@@ -3902,11 +4758,18 @@
       297,
       309,
       339
+    ],
+    "vol2Cards": [
+      6,
+      37,
+      39
     ]
   },
   {
     "id": 129,
-    "name": "Vandar Poel's Blue",
+    "name": "Vanderpoel's Blue",
+    "ja": null,
+    "reading": null,
     "hex": "#064f6e",
     "rgb": [
       6,
@@ -3925,6 +4788,7 @@
       -24.521400778210122
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       5,
       77,
@@ -3933,11 +4797,19 @@
       168,
       309,
       343
+    ],
+    "vol2Cards": [
+      18,
+      44,
+      48,
+      68
     ]
   },
   {
     "id": 130,
     "name": "Dark Tyrian Blue",
+    "ja": null,
+    "reading": null,
     "hex": "#12354e",
     "rgb": [
       18,
@@ -3956,6 +4828,7 @@
       -19.081712062256813
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       2,
       60,
@@ -3964,11 +4837,16 @@
       141,
       245,
       279
+    ],
+    "vol2Cards": [
+      5
     ]
   },
   {
     "id": 131,
     "name": "Dull Violet Black",
+    "ja": null,
+    "reading": null,
     "hex": "#1e0e3f",
     "rgb": [
       30,
@@ -3987,6 +4865,7 @@
       -28.813229571984436
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       95,
       106,
@@ -3996,11 +4875,22 @@
       289,
       295,
       331
+    ],
+    "vol2Cards": [
+      8,
+      21,
+      32,
+      52,
+      55,
+      67,
+      70
     ]
   },
   {
     "id": 132,
     "name": "Deep Indigo",
+    "ja": null,
+    "reading": null,
     "hex": "#051230",
     "rgb": [
       5,
@@ -4019,6 +4909,7 @@
       -21.785992217898837
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       6,
       28,
@@ -4027,11 +4918,21 @@
       182,
       211,
       232
+    ],
+    "vol2Cards": [
+      9,
+      13,
+      17,
+      38,
+      58,
+      61
     ]
   },
   {
     "id": 133,
     "name": "Deep Slate Green",
+    "ja": null,
+    "reading": null,
     "hex": "#112f2c",
     "rgb": [
       17,
@@ -4050,6 +4951,7 @@
       -2.2295719844357933
     ],
     "swatch": 3,
+    "volume": 1,
     "combinations": [
       84,
       149,
@@ -4057,11 +4959,19 @@
       271,
       318,
       325
+    ],
+    "vol2Cards": [
+      14,
+      30,
+      31,
+      36
     ]
   },
   {
     "id": 134,
     "name": "Grayish Lavender - A",
+    "ja": "藤色",
+    "reading": "fuji-iro",
     "hex": "#b5b1d8",
     "rgb": [
       181,
@@ -4080,6 +4990,7 @@
       -19.35019455252919
     ],
     "swatch": 4,
+    "volume": 1,
     "combinations": [
       8,
       15,
@@ -4088,11 +4999,22 @@
       218,
       248,
       307
+    ],
+    "vol2Cards": [
+      1,
+      6,
+      16,
+      19,
+      23,
+      39,
+      62
     ]
   },
   {
     "id": 135,
     "name": "Grayish Lavender - B",
+    "ja": null,
+    "reading": null,
     "hex": "#c0a9b3",
     "rgb": [
       192,
@@ -4111,6 +5033,7 @@
       -2.210116731517516
     ],
     "swatch": 4,
+    "volume": 1,
     "combinations": [
       47,
       56,
@@ -4120,11 +5043,16 @@
       327,
       329,
       338
+    ],
+    "vol2Cards": [
+      16
     ]
   },
   {
     "id": 136,
     "name": "Laelia Pink",
+    "ja": null,
+    "reading": null,
     "hex": "#ca92a8",
     "rgb": [
       202,
@@ -4143,16 +5071,24 @@
       -2.6614785992217946
     ],
     "swatch": 4,
+    "volume": 1,
     "combinations": [
       20,
       254,
       280,
       337
+    ],
+    "vol2Cards": [
+      22,
+      33,
+      43
     ]
   },
   {
     "id": 137,
     "name": "Lilac",
+    "ja": "鳩羽紫",
+    "reading": "hatoba-murasaki",
     "hex": "#b984af",
     "rgb": [
       185,
@@ -4171,16 +5107,24 @@
       -14.252918287937746
     ],
     "swatch": 4,
+    "volume": 1,
     "combinations": [
       143,
       162,
       282,
       347
+    ],
+    "vol2Cards": [
+      8,
+      39,
+      62
     ]
   },
   {
     "id": 138,
     "name": "Eupatorium Purple",
+    "ja": null,
+    "reading": null,
     "hex": "#bf5892",
     "rgb": [
       191,
@@ -4199,15 +5143,21 @@
       -11.723735408560316
     ],
     "swatch": 4,
+    "volume": 1,
     "combinations": [
       215,
       315,
       322
+    ],
+    "vol2Cards": [
+      15
     ]
   },
   {
     "id": 139,
     "name": "Light Mauve",
+    "ja": "淺紫",
+    "reading": "usu-murasaki",
     "hex": "#9a72aa",
     "rgb": [
       154,
@@ -4226,6 +5176,7 @@
       -23.976653696498047
     ],
     "swatch": 4,
+    "volume": 1,
     "combinations": [
       23,
       80,
@@ -4234,11 +5185,14 @@
       180,
       274,
       331
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 140,
     "name": "Aconite Violet",
+    "ja": null,
+    "reading": null,
     "hex": "#a36aa5",
     "rgb": [
       163,
@@ -4257,6 +5211,7 @@
       -22.369649805447466
     ],
     "swatch": 4,
+    "volume": 1,
     "combinations": [
       43,
       64,
@@ -4269,11 +5224,16 @@
       307,
       324,
       344
+    ],
+    "vol2Cards": [
+      11
     ]
   },
   {
     "id": 141,
     "name": "Dull Blue Violet",
+    "ja": null,
+    "reading": null,
     "hex": "#80719e",
     "rgb": [
       128,
@@ -4292,14 +5252,20 @@
       -22.4591439688716
     ],
     "swatch": 4,
+    "volume": 1,
     "combinations": [
       9,
       100
+    ],
+    "vol2Cards": [
+      12
     ]
   },
   {
     "id": 142,
     "name": "Dark Soft Violet",
+    "ja": null,
+    "reading": null,
     "hex": "#66629c",
     "rgb": [
       102,
@@ -4318,15 +5284,21 @@
       -31.171206225680933
     ],
     "swatch": 4,
+    "volume": 1,
     "combinations": [
       64,
       127,
       197
+    ],
+    "vol2Cards": [
+      16
     ]
   },
   {
     "id": 143,
     "name": "Blue Violet",
+    "ja": null,
+    "reading": null,
     "hex": "#6450a1",
     "rgb": [
       100,
@@ -4345,17 +5317,23 @@
       -41.91050583657588
     ],
     "swatch": 4,
+    "volume": 1,
     "combinations": [
       116,
       175,
       196,
       322,
       345
+    ],
+    "vol2Cards": [
+      39
     ]
   },
   {
     "id": 144,
     "name": "Purple Drab",
+    "ja": null,
+    "reading": null,
     "hex": "#84565b",
     "rgb": [
       132,
@@ -4374,13 +5352,19 @@
       5.560311284046691
     ],
     "swatch": 4,
+    "volume": 1,
     "combinations": [
       236
+    ],
+    "vol2Cards": [
+      25
     ]
   },
   {
     "id": 145,
-    "name": "Deep Violet / Plumbeous",
+    "name": "Deep Violet/Plumbeous",
+    "ja": null,
+    "reading": null,
     "hex": "#70727c",
     "rgb": [
       112,
@@ -4399,15 +5383,22 @@
       -5.906614785992218
     ],
     "swatch": 4,
+    "volume": 1,
     "combinations": [
       183,
       192,
       218
+    ],
+    "vol2Cards": [
+      3,
+      6
     ]
   },
   {
     "id": 146,
-    "name": "Veronia Purple",
+    "name": "Vernonia Purple",
+    "ja": null,
+    "reading": null,
     "hex": "#8c4c62",
     "rgb": [
       140,
@@ -4426,16 +5417,20 @@
       0.12840466926070349
     ],
     "swatch": 4,
+    "volume": 1,
     "combinations": [
       13,
       24,
       168,
       183
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 147,
     "name": "Dark Slate Purple",
+    "ja": null,
+    "reading": null,
     "hex": "#704357",
     "rgb": [
       112,
@@ -4454,14 +5449,18 @@
       -3.5525291828793826
     ],
     "swatch": 4,
+    "volume": 1,
     "combinations": [
       225,
       248
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 148,
     "name": "Taupe Brown",
+    "ja": null,
+    "reading": null,
     "hex": "#7a4456",
     "rgb": [
       122,
@@ -4480,6 +5479,7 @@
       0.06225680933852118
     ],
     "swatch": 4,
+    "volume": 1,
     "combinations": [
       57,
       123,
@@ -4488,11 +5488,16 @@
       275,
       280,
       288
+    ],
+    "vol2Cards": [
+      55
     ]
   },
   {
     "id": 149,
     "name": "Violet Carmine",
+    "ja": null,
+    "reading": null,
     "hex": "#713b4c",
     "rgb": [
       113,
@@ -4511,13 +5516,17 @@
       0.8171206225680976
     ],
     "swatch": 4,
+    "volume": 1,
     "combinations": [
       337
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 150,
     "name": "Violet",
+    "ja": "紫色",
+    "reading": "murasaki-iro",
     "hex": "#4f4086",
     "rgb": [
       79,
@@ -4536,6 +5545,7 @@
       -37.92607003891051
     ],
     "swatch": 4,
+    "volume": 1,
     "combinations": [
       42,
       56,
@@ -4549,11 +5559,14 @@
       316,
       331,
       335
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 151,
     "name": "Red Violet",
+    "ja": "菖蒲色",
+    "reading": "ayame-iro",
     "hex": "#59256a",
     "rgb": [
       89,
@@ -4572,6 +5585,7 @@
       -30.05836575875486
     ],
     "swatch": 4,
+    "volume": 1,
     "combinations": [
       4,
       37,
@@ -4581,11 +5595,14 @@
       172,
       183,
       316
-    ]
+    ],
+    "vol2Cards": []
   },
   {
     "id": 152,
     "name": "Cotinga Purple",
+    "ja": "杜若色",
+    "reading": "kakitsubata-iro",
     "hex": "#501345",
     "rgb": [
       80,
@@ -4604,6 +5621,7 @@
       -15.762645914396884
     ],
     "swatch": 4,
+    "volume": 1,
     "combinations": [
       61,
       181,
@@ -4612,11 +5630,17 @@
       307,
       329,
       348
+    ],
+    "vol2Cards": [
+      15,
+      49
     ]
   },
   {
     "id": 153,
     "name": "Dusky Madder Violet",
+    "ja": "黑紫",
+    "reading": "kokushi",
     "hex": "#4e1d4c",
     "rgb": [
       78,
@@ -4635,6 +5659,7 @@
       -18.256809338521407
     ],
     "swatch": 4,
+    "volume": 1,
     "combinations": [
       18,
       50,
@@ -4642,11 +5667,17 @@
       82,
       103,
       314
+    ],
+    "vol2Cards": [
+      26,
+      62
     ]
   },
   {
     "id": 154,
     "name": "White",
+    "ja": null,
+    "reading": null,
     "hex": "#ffffff",
     "rgb": [
       255,
@@ -4665,13 +5696,26 @@
       0
     ],
     "swatch": 5,
+    "volume": 1,
     "combinations": [
       55
+    ],
+    "vol2Cards": [
+      1,
+      7,
+      10,
+      33,
+      38,
+      41,
+      48,
+      51
     ]
   },
   {
     "id": 155,
     "name": "Neutral Gray",
+    "ja": null,
+    "reading": null,
     "hex": "#b6bfc1",
     "rgb": [
       182,
@@ -4690,6 +5734,7 @@
       -2.0311284046692606
     ],
     "swatch": 5,
+    "volume": 1,
     "combinations": [
       34,
       139,
@@ -4703,11 +5748,20 @@
       303,
       324,
       340
+    ],
+    "vol2Cards": [
+      12,
+      23,
+      37,
+      48,
+      72
     ]
   },
   {
     "id": 156,
     "name": "Mineral Gray",
+    "ja": null,
+    "reading": null,
     "hex": "#a2b0ad",
     "rgb": [
       162,
@@ -4726,14 +5780,22 @@
       -0.0972762645914429
     ],
     "swatch": 5,
+    "volume": 1,
     "combinations": [
       11,
       30
+    ],
+    "vol2Cards": [
+      10,
+      44,
+      71
     ]
   },
   {
     "id": 157,
     "name": "Warm Gray",
+    "ja": null,
+    "reading": null,
     "hex": "#a1a39a",
     "rgb": [
       161,
@@ -4752,6 +5814,7 @@
       4.743190661478593
     ],
     "swatch": 5,
+    "volume": 1,
     "combinations": [
       69,
       76,
@@ -4761,11 +5824,16 @@
       238,
       259,
       261
+    ],
+    "vol2Cards": [
+      5
     ]
   },
   {
     "id": 158,
     "name": "Slate Color",
+    "ja": null,
+    "reading": null,
     "hex": "#34454c",
     "rgb": [
       52,
@@ -4784,6 +5852,7 @@
       -6.9727626459144005
     ],
     "swatch": 5,
+    "volume": 1,
     "combinations": [
       27,
       33,
@@ -4798,11 +5867,17 @@
       296,
       329,
       335
+    ],
+    "vol2Cards": [
+      63,
+      71
     ]
   },
   {
     "id": 159,
     "name": "Black",
+    "ja": null,
+    "reading": null,
     "hex": "#111314",
     "rgb": [
       17,
@@ -4821,6 +5896,7 @@
       -1.1245136186770424
     ],
     "swatch": 5,
+    "volume": 1,
     "combinations": [
       46,
       52,
@@ -4845,6 +5921,365 @@
       337,
       340,
       344
+    ],
+    "vol2Cards": [
+      5,
+      64,
+      69
+    ]
+  },
+  {
+    "id": 160,
+    "name": "Dark Perilla Purple",
+    "ja": null,
+    "reading": null,
+    "hex": "#5a373f",
+    "rgb": [
+      90,
+      55,
+      63
+    ],
+    "cmyk": [
+      77,
+      95,
+      85,
+      20
+    ],
+    "lab": [
+      27.48,
+      16.86,
+      1.59
+    ],
+    "swatch": "Vol. 2",
+    "volume": 2,
+    "combinations": [],
+    "vol2Cards": [
+      35
+    ]
+  },
+  {
+    "id": 161,
+    "name": "Dull Citrine",
+    "ja": null,
+    "reading": null,
+    "hex": "#8f8a5d",
+    "rgb": [
+      143,
+      138,
+      93
+    ],
+    "cmyk": [
+      52,
+      45,
+      78,
+      0
+    ],
+    "lab": [
+      56.89,
+      -5.36,
+      24.81
+    ],
+    "swatch": "Vol. 2",
+    "volume": 2,
+    "combinations": [],
+    "vol2Cards": [
+      9,
+      50
+    ]
+  },
+  {
+    "id": 162,
+    "name": "Dull Purplish Black",
+    "ja": null,
+    "reading": null,
+    "hex": "#47443e",
+    "rgb": [
+      71,
+      68,
+      62
+    ],
+    "cmyk": [
+      85,
+      85,
+      90,
+      20
+    ],
+    "lab": [
+      28.96,
+      0.02,
+      4.08
+    ],
+    "swatch": "Vol. 2",
+    "volume": 2,
+    "combinations": [],
+    "vol2Cards": [
+      45,
+      47
+    ]
+  },
+  {
+    "id": 163,
+    "name": "Grape Green",
+    "ja": null,
+    "reading": null,
+    "hex": "#a8ae69",
+    "rgb": [
+      168,
+      174,
+      105
+    ],
+    "cmyk": [
+      41,
+      25,
+      74,
+      0
+    ],
+    "lab": [
+      69.2,
+      -12.86,
+      34.69
+    ],
+    "swatch": "Vol. 2",
+    "volume": 2,
+    "combinations": [],
+    "vol2Cards": [
+      40,
+      46
+    ]
+  },
+  {
+    "id": 164,
+    "name": "Pale Cinnamon-Pink",
+    "ja": null,
+    "reading": null,
+    "hex": "#f7e4d1",
+    "rgb": [
+      247,
+      228,
+      209
+    ],
+    "cmyk": [
+      3,
+      12,
+      19,
+      0
+    ],
+    "lab": [
+      91.62,
+      3.44,
+      11.61
+    ],
+    "swatch": "Vol. 2",
+    "volume": 2,
+    "combinations": [],
+    "vol2Cards": [
+      43
+    ]
+  },
+  {
+    "id": 165,
+    "name": "Pale Ecru-Drab",
+    "ja": null,
+    "reading": null,
+    "hex": "#cbbfb8",
+    "rgb": [
+      203,
+      191,
+      184
+    ],
+    "cmyk": [
+      23,
+      25,
+      27,
+      0
+    ],
+    "lab": [
+      78.12,
+      3.01,
+      5.04
+    ],
+    "swatch": "Vol. 2",
+    "volume": 2,
+    "combinations": [],
+    "vol2Cards": [
+      46,
+      49
+    ]
+  },
+  {
+    "id": 166,
+    "name": "Pale Methyl Blue",
+    "ja": null,
+    "reading": null,
+    "hex": "#5daeb8",
+    "rgb": [
+      93,
+      174,
+      184
+    ],
+    "cmyk": [
+      65,
+      12,
+      30,
+      0
+    ],
+    "lab": [
+      66.56,
+      -22.01,
+      -12.77
+    ],
+    "swatch": "Vol. 2",
+    "volume": 2,
+    "combinations": [],
+    "vol2Cards": [
+      46,
+      47
+    ]
+  },
+  {
+    "id": 167,
+    "name": "Pale Purplish Vinaceous",
+    "ja": null,
+    "reading": null,
+    "hex": "#fde6e3",
+    "rgb": [
+      253,
+      230,
+      227
+    ],
+    "cmyk": [
+      0,
+      13,
+      8,
+      0
+    ],
+    "lab": [
+      93.02,
+      7.34,
+      4.31
+    ],
+    "swatch": "Vol. 2",
+    "volume": 2,
+    "combinations": [],
+    "vol2Cards": [
+      36
+    ]
+  },
+  {
+    "id": 168,
+    "name": "Pale Turtle Green",
+    "ja": null,
+    "reading": null,
+    "hex": "#cad2a4",
+    "rgb": [
+      202,
+      210,
+      164
+    ],
+    "cmyk": [
+      25,
+      10,
+      45,
+      0
+    ],
+    "lab": [
+      82.56,
+      -10.43,
+      21.95
+    ],
+    "swatch": "Vol. 2",
+    "volume": 2,
+    "combinations": [],
+    "vol2Cards": [
+      70
+    ]
+  },
+  {
+    "id": 169,
+    "name": "Sea-foam Yellow",
+    "ja": null,
+    "reading": null,
+    "hex": "#f2ebc5",
+    "rgb": [
+      242,
+      235,
+      197
+    ],
+    "cmyk": [
+      6,
+      6,
+      29,
+      0
+    ],
+    "lab": [
+      92.72,
+      -3.71,
+      19.32
+    ],
+    "swatch": "Vol. 2",
+    "volume": 2,
+    "combinations": [],
+    "vol2Cards": [
+      44
+    ]
+  },
+  {
+    "id": 170,
+    "name": "Violet Ultramarine",
+    "ja": "濃桔梗色",
+    "reading": "koi-kikyō-iro",
+    "hex": "#562d84",
+    "rgb": [
+      86,
+      45,
+      132
+    ],
+    "cmyk": [
+      85,
+      100,
+      0,
+      0
+    ],
+    "lab": [
+      28.17,
+      37,
+      -41.95
+    ],
+    "swatch": "Vol. 2",
+    "volume": 2,
+    "combinations": [],
+    "vol2Cards": [
+      46
+    ]
+  },
+  {
+    "id": 171,
+    "name": "Pale King's Blue - B",
+    "ja": null,
+    "reading": null,
+    "hex": "#f4f7ec",
+    "rgb": [
+      244,
+      247,
+      236
+    ],
+    "cmyk": [
+      5,
+      1,
+      9,
+      0
+    ],
+    "lab": [
+      96.74,
+      -2.91,
+      4.93
+    ],
+    "swatch": "Vol. 2",
+    "volume": 2,
+    "combinations": [],
+    "vol2Cards": [
+      46,
+      69
     ]
   }
 ]

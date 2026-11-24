@@ -43,11 +43,11 @@ export const Header: React.FC<HeaderProps> = ({
                   和田三造 <span className="font-sans font-light text-stone-500 dark:text-stone-400 text-base sm:text-lg">Sanzo Wada</span>
                 </h1>
                 <span className="hidden sm:inline-block px-2 py-0.5 text-xs font-code rounded bg-amber-800/10 dark:bg-amber-400/10 text-amber-900 dark:text-amber-300 border border-amber-800/20 dark:border-amber-400/20">
-                  1933
+                  Vol. 1 & Vol. 2
                 </span>
               </div>
               <p className="text-xs sm:text-sm text-stone-600 dark:text-stone-400 tracking-wide">
-                A Dictionary of Color Combinations • 配色総鑑 (Haishoku Sōkan)
+                A Dictionary of Color Combinations • 配色総鑑 (348 Harmonies + 72 Seasonal)
               </p>
             </div>
           </div>
@@ -134,7 +134,7 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
               }`}
             >
-              Combinations <span className="text-[11px] opacity-75 font-code">(348)</span>
+              Combinations <span className="text-[11px] opacity-75 font-code">(420)</span>
             </button>
             <button
               onClick={() => onViewModeChange('colors')}
@@ -144,7 +144,7 @@ export const Header: React.FC<HeaderProps> = ({
                   : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
               }`}
             >
-              Master Colors <span className="text-[11px] opacity-75 font-code">(159)</span>
+              Master Colors <span className="text-[11px] opacity-75 font-code">(171)</span>
             </button>
           </div>
 
@@ -155,8 +155,8 @@ export const Header: React.FC<HeaderProps> = ({
               type="text"
               placeholder={
                 viewMode === 'combinations'
-                  ? 'Search by name, hex, or #number (e.g. "Coral", "#180")'
-                  : 'Search 159 master colors by name or hex...'
+                  ? 'Search by name, hex, month, or #number (e.g. "Spring", "#180")'
+                  : 'Search 171 colors by name, Japanese or hex...'
               }
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
