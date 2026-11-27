@@ -41,7 +41,8 @@ import {
   TOP_CUTS,
 } from '../utils/menswearUtils';
 import { MenswearIllustration } from './MenswearIllustration';
-import { GarmentWeave, GarmentWeaveControls } from './GarmentWeaveControls';
+import { GarmentWeaveControls } from './GarmentWeaveControls';
+import type { GarmentFabrics } from './MenswearIllustration';
 
 interface MenswearStudioProps {
   allColors: ColorItem[];
@@ -96,7 +97,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
   );
   const [chooserTab, setChooserTab] = useState<ChooserTab>('swatches');
   const [cvdMode, setCvdMode] = useState<CvdMode>('normal');
-  const [weave, setWeave] = useState<GarmentWeave>(null);
+  const [fabrics, setFabrics] = useState<GarmentFabrics>({});
   const [searchQuery, setSearchQuery] = useState('');
   const [toneFilter, setToneFilter] = useState<ToneFilter>('all');
   const [swatchSort, setSwatchSort] = useState<ColorSortOption>('hue');
@@ -378,9 +379,9 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
               cvdMode={cvdMode}
               activeSlot={activeSlot}
               onSelectSlot={setActiveSlot}
-              weave={weave}
+              fabrics={fabrics}
             />
-            <GarmentWeaveControls value={weave} onChange={setWeave} />
+            <GarmentWeaveControls value={fabrics} onChange={setFabrics} pieces={pieces} />
 
             {/* 5 Modular Garment Slot Cards (Color + Mix-and-Match Cut Selector) */}
             <div className="mt-4 space-y-2">

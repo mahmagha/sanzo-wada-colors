@@ -8,7 +8,10 @@ import {
   getSlotDisplayLabel,
   STYLE_PRESET_PIECES,
 } from '../utils/menswearUtils';
-import { WeavePattern, buildGarmentWeaveTile } from '../utils/weaveUtils';
+import { FABRICS, FabricKey, FabricSpec, buildGarmentWeaveTile } from '../utils/weaveUtils';
+
+export type ClothSlot = 'outerwear' | 'top' | 'bottom';
+export type GarmentFabrics = Partial<Record<ClothSlot, { fabric: FabricKey; scale: number }>>;
 
 interface MenswearIllustrationProps {
   style: GarmentStyle;
@@ -17,8 +20,8 @@ interface MenswearIllustrationProps {
   cvdMode?: CvdMode;
   activeSlot?: GarmentSlotKey | null;
   onSelectSlot?: (slot: GarmentSlotKey) => void;
-  /** Show cloth garments (coat, top, bottom) as woven fabric. Omit or pass null for flat color. */
-  weave?: { pattern: WeavePattern; cell: number } | null;
+  /** Per-garment fabric for coat, top and trousers. Missing or 'flat' = plain color. */
+  fabrics?: GarmentFabrics;
 }
 
 function getSeamStroke(hex: string): string {
@@ -43,7 +46,7 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
   cvdMode = 'normal',
   activeSlot = null,
   onSelectSlot,
-  weave = null,
+  fabrics = {},
 }) => {
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
   const shown = {
@@ -54,11 +57,23 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
     footwear: simulateColorVision(outfit.footwear.hex, cvdMode),
   };
 
+  const clothSlots = ['outerwear', 'top', 'bottom'] as const;
+  const fabricOf = (slot: GarmentSlotKey): FabricSpec | null => {
+    if (slot !== 'outerwear' && slot !== 'top' && slot !== 'bottom') return null;
+    const f = fabrics[slot];
+    return f && f.fabric !== 'flat' ? FABRICS[f.fabric] : null;
+  };
+  // Lighting (soft relief that follows each garment's outline and drapes) only applies to garments with a fabric.
+  const litFilter = (slot: GarmentSlotKey) => (fabricOf(slot) ? `url(#lit-${uid}-${slot}) ` : '');
+
   const interactiveProps = (slot: GarmentSlotKey) => {
     const label = `${getSlotDisplayLabel(slot, pieces)}: #${outfit[slot].id} ${outfit[slot].name} (${outfit[slot].hex})`;
     const isActive = activeSlot === slot;
     if (!onSelectSlot) {
-      return { 'aria-label': label };
+      return {
+        'aria-label': label,
+        style: litFilter(slot) ? { filter: litFilter(slot).trim() } : undefined,
+      };
     }
     return {
       role: 'button' as const,
@@ -73,30 +88,85 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
         }
       },
       style: isActive
-        ? { filter: 'drop-shadow(0 0 4px rgba(217,119,6,0.55))' }
-        : undefined,
+        ? { filter: `${litFilter(slot)}drop-shadow(0 0 4px rgba(217,119,6,0.55))`.trim() }
+        : litFilter(slot)
+          ? { filter: litFilter(slot).trim() }
+          : undefined,
       className: 'cursor-pointer focus:outline-none transition-opacity hover:opacity-95',
     };
   };
 
-  const clothSlots = ['outerwear', 'top', 'bottom'] as const;
-  const cloth = (slot: (typeof clothSlots)[number]) =>
-    weave ? `url(#wv-${uid}-${slot})` : shown[slot];
-  const weaveDefs = weave
-    ? clothSlots.map((slot) => {
-        const tile = buildGarmentWeaveTile(shown[slot], weave.pattern, weave.cell, `wg-${uid}-${slot}`);
-        return (
-          <pattern
-            key={slot}
-            id={`wv-${uid}-${slot}`}
-            patternUnits="userSpaceOnUse"
-            width={tile.size}
-            height={tile.size}
-            dangerouslySetInnerHTML={{ __html: tile.markup }}
-          />
-        );
-      })
-    : null;
+  const cloth = (slot: ClothSlot) => {
+    const spec = fabricOf(slot);
+    return spec && spec.pattern ? `url(#wv-${uid}-${slot})` : shown[slot];
+  };
+  const weaveDefs = clothSlots.map((slot) => {
+    const spec = fabricOf(slot);
+    if (!spec || !spec.pattern) return null;
+    const scale = fabrics[slot]?.scale ?? 1;
+    const tile = buildGarmentWeaveTile(shown[slot], spec.pattern, spec.cell * scale, `wg-${uid}-${slot}`, spec);
+    return (
+      <pattern
+        key={slot}
+        id={`wv-${uid}-${slot}`}
+        patternUnits="userSpaceOnUse"
+        width={tile.size}
+        height={tile.size}
+        dangerouslySetInnerHTML={{ __html: tile.markup }}
+      />
+    );
+  });
+  const lightingDefs = clothSlots.map((slot, i) => {
+    const spec = fabricOf(slot);
+    if (!spec) return null;
+    return (
+      <filter
+        key={`lit-${slot}`}
+        id={`lit-${uid}-${slot}`}
+        filterUnits="userSpaceOnUse"
+        x="0"
+        y="0"
+        width="360"
+        height="490"
+        colorInterpolationFilters="sRGB"
+      >
+        {/* Soften fuzzy yarns */}
+        <feGaussianBlur in="SourceGraphic" stdDeviation={spec.soften} result="base" />
+        {/* Contact shadow this garment throws on what sits under it (coat on shirt, shirt on trousers) */}
+        <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="sb" />
+        <feOffset in="sb" dx="0.6" dy="2.2" result="so" />
+        <feFlood floodColor="#000" floodOpacity="0.27" />
+        <feComposite in2="so" operator="in" result="shadow" />
+        {/* Height map: rounded edges from the blurred outline plus low-frequency cloth folds */}
+        <feGaussianBlur in="SourceAlpha" stdDeviation="3.6" result="edge" />
+        <feTurbulence type="fractalNoise" baseFrequency={spec.foldFreq} numOctaves="3" seed={7 + i * 5} result="foldNoise" />
+        <feColorMatrix in="foldNoise" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0.9 0 0 0 -0.2" result="foldAlpha" />
+        <feComposite in="edge" in2="foldAlpha" operator="arithmetic" k1="0" k2="1" k3={0.55 * spec.foldScale} k4="0" result="height" />
+        <feDiffuseLighting in="height" surfaceScale={spec.edgeScale + 1} diffuseConstant="1.18" lightingColor="#ffffff" result="light">
+          <feDistantLight azimuth="235" elevation="58" />
+        </feDiffuseLighting>
+        <feComposite in="light" in2="SourceAlpha" operator="in" result="lightIn" />
+        <feBlend in="base" in2="lightIn" mode="multiply" result="lit" />
+        {/* Fine fiber or grain noise */}
+        <feTurbulence type="fractalNoise" baseFrequency={spec.fiberFreq} numOctaves="2" seed={3 + i} result="fiber" />
+        <feColorMatrix in="fiber" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -1.6 1.15" result="fiberA" />
+        <feFlood floodColor="#000" floodOpacity={spec.fiberOpacity} />
+        <feComposite in2="fiberA" operator="in" result="fiberDark" />
+        <feComposite in="fiberDark" in2="SourceAlpha" operator="in" result="fiberIn" />
+        {/* Sheen (silk, leather) */}
+        <feSpecularLighting in="height" surfaceScale={spec.edgeScale + 2} specularConstant={spec.sheen} specularExponent={spec.sheenExp} lightingColor="#ffffff" result="spec">
+          <feDistantLight azimuth="235" elevation="58" />
+        </feSpecularLighting>
+        <feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn" />
+        <feMerge>
+          <feMergeNode in="shadow" />
+          <feMergeNode in="lit" />
+          <feMergeNode in="fiberIn" />
+          {spec.sheen > 0 && <feMergeNode in="specIn" />}
+        </feMerge>
+      </filter>
+    );
+  });
 
   const hasCoat = pieces.outerwear !== 'none';
   const showBareForearms = !hasCoat && pieces.top === 'camp-shirt';
@@ -117,7 +187,12 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
       role="img"
       aria-label={`Menswear lookbook illustration (${style})`}
     >
-      {weaveDefs && <defs>{weaveDefs}</defs>}
+      {(weaveDefs.some(Boolean) || lightingDefs.some(Boolean)) && (
+        <defs>
+          {weaveDefs}
+          {lightingDefs}
+        </defs>
+      )}
 
       {/* Ground Shadow */}
       <ellipse cx="180" cy="466" rx="68" ry="8" fill="rgba(0,0,0,0.08)" />
