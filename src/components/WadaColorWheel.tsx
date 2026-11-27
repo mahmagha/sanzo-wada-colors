@@ -1,7 +1,12 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { ColorItem } from '../types/color';
 import { formatOklch, getIdealTextColor } from '../utils/colorUtils';
-import { findNearestWheelNode, layoutColorWheelPoints, WheelNode } from '../utils/spectrumLayout';
+import {
+  findNearestWheelNode,
+  layoutColorWheelPoints,
+  sortNodesByWheelAngle,
+  WheelNode,
+} from '../utils/spectrumLayout';
 
 interface WadaColorWheelProps {
   colors: ColorItem[];
@@ -51,9 +56,11 @@ export const WadaColorWheel: React.FC<WadaColorWheelProps> = ({
 
   const chordNodes = useMemo(
     () =>
-      chordPolygonIds
-        .map((id) => nodeById.get(id))
-        .filter((n): n is WheelNode => Boolean(n)),
+      sortNodesByWheelAngle(
+        chordPolygonIds
+          .map((id) => nodeById.get(id))
+          .filter((n): n is WheelNode => Boolean(n))
+      ),
     [chordPolygonIds, nodeById]
   );
 

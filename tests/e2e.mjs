@@ -631,6 +631,30 @@ async function run() {
     assert.equal(await waitForText('Triadic Archival Matches:'), true);
     assert.equal(await client.eval(`document.querySelectorAll('[data-testid="wheel-harmony-spoke"]').length >= 2`), true);
 
+    // 10b-cont. Test continuity: Color Sheet -> Combination -> Step to Next Combo for that Color -> Back to Color Sheet
+    await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Open Pigment Sheet'))?.click()`);
+    assert.equal(await waitForText('Harmony Combinations:'), true);
+    assert.equal(await client.eval(`document.getElementById('color-modal-title')?.textContent?.trim()`), 'Carmine Red');
+
+    await client.eval(`document.querySelector('[role="dialog"] .grid button')?.click()`);
+    assert.equal(await waitForText('Back to #29 Carmine Red'), true);
+    assert.equal(await waitForText('1 / '), true);
+    const firstComboTitle = await client.eval(`document.getElementById('studio-modal-title')?.textContent`);
+
+    await client.eval(`document.querySelector('[role="dialog"] button[aria-label="Next combination (Right Arrow)"]')?.click()`);
+    assert.equal(await waitForText('2 / '), true);
+    assert.equal(await waitForText('for #29 Carmine Red'), true);
+    const secondComboTitle = await client.eval(`document.getElementById('studio-modal-title')?.textContent`);
+    assert.notEqual(firstComboTitle, secondComboTitle);
+    assert.equal(await client.eval(`document.querySelector('[role="dialog"]')?.innerText.includes('Carmine Red')`), true);
+
+    await client.eval(`document.querySelector('[role="dialog"] button[aria-label="Back to #29 Carmine Red"]')?.click()`);
+    assert.equal(await waitForText('Harmony Combinations:'), true);
+    assert.equal(await client.eval(`document.getElementById('color-modal-title')?.textContent?.trim()`), 'Carmine Red');
+    await client.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape' });
+    await new Promise((r) => setTimeout(r, 80));
+    assert.equal(await client.eval(`document.getElementById('color-modal-title')`), null);
+
     // 10c. Navigate to the separate Menswear page (?view=menswear) — verify personalization, patterns, URL sync & exports
     await client.eval(`Array.from(document.querySelectorAll('header button[role="tab"]')).find(b => b.textContent.includes('Menswear')).click()`);
     assert.equal(await waitForText('Menswear Garment Color Chooser'), true);

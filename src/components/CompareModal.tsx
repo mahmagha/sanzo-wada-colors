@@ -174,10 +174,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        onClick={() => {
-                          onClose();
-                          onSelectCombo(combo);
-                        }}
+                        onClick={() => onSelectCombo(combo)}
                         className="flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-amber-900 text-amber-50 hover:bg-amber-800 transition-colors cursor-pointer"
                       >
                         <Sliders size={13} />

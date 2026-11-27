@@ -21,6 +21,7 @@ interface ColorDetailModalProps {
   onSelectCombination: (combo: Combination) => void;
   onCopyText: (text: string, label: string) => void;
   onBackToCombo?: () => void;
+  backLabel?: string;
   onShareLink?: (color: ColorItem) => void;
   onFilterBySwatch?: (color: ColorItem) => void;
   onAddToCustom?: (color: ColorItem) => void;
@@ -33,6 +34,7 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
   onSelectCombination,
   onCopyText,
   onBackToCombo,
+  backLabel,
   onShareLink,
   onFilterBySwatch,
   onAddToCustom,
@@ -83,7 +85,7 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
                   className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/20 hover:bg-black/35 backdrop-blur-xs text-xs font-medium transition-colors cursor-pointer"
                 >
                   <ArrowLeft size={13} />
-                  <span>Back to Palette</span>
+                  <span>{backLabel || 'Back to Palette'}</span>
                 </button>
               )}
               <span className="text-xs font-code uppercase tracking-widest opacity-85">
@@ -229,10 +231,7 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
                 <button
                   type="button"
                   key={`${combo.volume}-${combo.id}`}
-                  onClick={() => {
-                    onClose();
-                    onSelectCombination(combo);
-                  }}
+                  onClick={() => onSelectCombination(combo)}
                   className="group p-3 rounded-xl border border-stone-200 dark:border-stone-800 hover:border-amber-800/40 dark:hover:border-amber-500/40 bg-stone-50/50 dark:bg-stone-900/40 hover:bg-white dark:hover:bg-stone-800 transition-all cursor-pointer flex items-center justify-between text-left"
                 >
                   <div className="flex items-center gap-3 min-w-0">

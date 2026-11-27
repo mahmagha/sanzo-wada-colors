@@ -28,7 +28,7 @@ interface ColorWheelPageProps {
   kanjiTotalCount: number;
   onResetFilters: () => void;
   onSelectColorModal: (color: ColorItem) => void;
-  onSelectCombo: (combo: Combination) => void;
+  onSelectCombo: (combo: Combination, sourceColor?: ColorItem) => void;
   onAddToCustom: (color: ColorItem) => void;
 }
 
@@ -350,7 +350,7 @@ export const ColorWheelPage: React.FC<ColorWheelPageProps> = ({
                           <button
                             type="button"
                             key={`${combo.volume}-${combo.id}`}
-                            onClick={() => onSelectCombo(combo)}
+                            onClick={() => onSelectCombo(combo, activeColor ?? undefined)}
                             onMouseEnter={() => setHoveredCombo(combo)}
                             onMouseLeave={() => setHoveredCombo(null)}
                             onFocus={() => setHoveredCombo(combo)}

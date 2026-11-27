@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
+  ArrowLeft,
   X,
   Heart,
   Download,
@@ -69,6 +70,9 @@ interface ModalStudioProps {
   onNext?: () => void;
   hasPrev?: boolean;
   hasNext?: boolean;
+  onBack?: () => void;
+  backLabel?: string;
+  stepContextLabel?: string;
   onShareLink?: (combo: Combination) => void;
 }
 
@@ -127,6 +131,9 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
   onNext,
   hasPrev = false,
   hasNext = false,
+  onBack,
+  backLabel,
+  stepContextLabel,
   onShareLink,
 }) => {
   const [activeTab, setActiveTab] = useState<StudioTab>('art-print');
@@ -371,6 +378,30 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
         className="relative w-full max-w-5xl max-h-[92vh] flex flex-col rounded-2xl shadow-2xl overflow-hidden border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:outline-none"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Optional Context Return & Scoped Stepping Breadcrumb Bar */}
+        {(onBack || stepContextLabel) && (
+          <div className="flex items-center justify-between gap-2 px-4 sm:px-6 py-2 bg-stone-100/80 dark:bg-stone-950/70 border-b border-stone-200 dark:border-stone-800 text-xs shrink-0 flex-wrap">
+            {onBack ? (
+              <button
+                type="button"
+                onClick={onBack}
+                aria-label={backLabel || 'Go back to previous view'}
+                className="inline-flex items-center gap-1.5 font-medium text-amber-900 dark:text-amber-300 hover:underline cursor-pointer"
+              >
+                <ArrowLeft size={13} />
+                <span>{backLabel || 'Back'}</span>
+              </button>
+            ) : (
+              <span />
+            )}
+            {stepContextLabel && (
+              <span className="font-code text-[11px] text-stone-500 dark:text-stone-400">
+                {stepContextLabel}
+              </span>
+            )}
+          </div>
+        )}
+
         {/* Studio Modal Header */}
         <div className="flex items-center justify-between gap-2 px-4 sm:px-6 py-4 border-b border-stone-200 dark:border-stone-800 bg-stone-50/70 dark:bg-stone-900/90 shrink-0">
           <div className="flex items-center gap-3 min-w-0">
@@ -420,7 +451,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
 
           {/* Quick Header Actions (including mobile Prev/Next stepping) */}
           <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-            {!isCustom && (onPrev || onNext) && (
+            {(onPrev || onNext) && (hasPrev || hasNext || !isCustom) && (
               <div className="flex items-center border border-stone-300 dark:border-stone-700 rounded-lg overflow-hidden mr-0.5">
                 <button
                   type="button"

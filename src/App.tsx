@@ -91,6 +91,26 @@ function getComboKey(id: number, volume: number): string {
   return `v${volume}-${id}`;
 }
 
+type ModalReturnEntry =
+  | { type: 'color'; color: ColorItem }
+  | { type: 'combo'; combo: Combination; steppingColor: ColorItem | null }
+  | { type: 'compare' }
+  | { type: 'custom' };
+
+function formatModalBackLabel(entry: ModalReturnEntry): string {
+  if (entry.type === 'color') {
+    return `Back to #${entry.color.id} ${entry.color.name}`;
+  }
+  if (entry.type === 'combo') {
+    if (entry.combo.id === 0) return 'Back to Custom Mix';
+    return entry.combo.volume === 2
+      ? `Back to Vol. 2 № ${entry.combo.id}`
+      : `Back to Vol. 1 № ${entry.combo.id}`;
+  }
+  if (entry.type === 'compare') return 'Back to Palette Compare';
+  return 'Back to Mix Composer';
+}
+
 function resolveCompareCombo(key: string): HydratedCombination | null {
   const existing = comboByKey.get(key);
   if (existing) return existing;
@@ -255,7 +275,8 @@ export const App: React.FC = () => {
   const [selectedColor, setSelectedColor] = useState<ColorItem | null>(() =>
     initialUrl.colorId !== null ? colorById.get(initialUrl.colorId) ?? null : null
   );
-  const [returnCombo, setReturnCombo] = useState<Combination | null>(null);
+  const [modalHistory, setModalHistory] = useState<ModalReturnEntry[]>([]);
+  const [comboSteppingColor, setComboSteppingColor] = useState<ColorItem | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const favoriteSet = useMemo(() => new Set(favorites), [favorites]);
@@ -464,7 +485,8 @@ export const App: React.FC = () => {
         setSelectedCombo(null);
       }
       setSelectedColor(parsed.colorId !== null ? colorById.get(parsed.colorId) ?? null : null);
-      setReturnCombo(null);
+      setModalHistory([]);
+      setComboSteppingColor(null);
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
@@ -689,7 +711,8 @@ export const App: React.FC = () => {
     const pool = filteredCombinations.length > 0 ? filteredCombinations : allCombinations;
     const randomIndex = Math.floor(Math.random() * pool.length);
     const randomCombo = pool[randomIndex];
-    setReturnCombo(null);
+    setModalHistory([]);
+    setComboSteppingColor(null);
     setSelectedColor(null);
     setSelectedCombo(randomCombo);
 
@@ -710,22 +733,94 @@ export const App: React.FC = () => {
     setToastMessage(`Selected random combination ${volLabel}!`);
   };
 
-  // Studio Prev/Next stepping
-  const comboListForStepping =
-    selectedCombo &&
-    selectedCombo.id > 0 &&
-    filteredCombinations.some(
-      (c) => c.id === selectedCombo.id && c.volume === selectedCombo.volume
-    )
-      ? filteredCombinations
-      : allCombinations;
+  const closeAllModals = useCallback(() => {
+    setSelectedCombo(null);
+    setSelectedColor(null);
+    setCompareOpen(false);
+    setCustomOpen(false);
+    setModalHistory([]);
+    setComboSteppingColor(null);
+  }, []);
 
-  const currentStepIndex =
-    selectedCombo && selectedCombo.id > 0
-      ? comboListForStepping.findIndex(
+  const topModalReturn = modalHistory[modalHistory.length - 1] ?? null;
+
+  const handleModalBack = useCallback(() => {
+    if (modalHistory.length === 0) return;
+    const prevEntry = modalHistory[modalHistory.length - 1];
+    setModalHistory((prev) => prev.slice(0, -1));
+    setSelectedCombo(null);
+    setSelectedColor(null);
+    setCompareOpen(false);
+    setCustomOpen(false);
+
+    if (prevEntry.type === 'color') {
+      setComboSteppingColor(null);
+      setSelectedColor(prevEntry.color);
+    } else if (prevEntry.type === 'combo') {
+      setComboSteppingColor(prevEntry.steppingColor);
+      setSelectedCombo(prevEntry.combo);
+    } else if (prevEntry.type === 'compare') {
+      setComboSteppingColor(null);
+      setCompareOpen(true);
+    } else if (prevEntry.type === 'custom') {
+      setComboSteppingColor(null);
+      setCustomOpen(true);
+    }
+  }, [modalHistory]);
+
+  // Studio Prev/Next stepping (scoped to color's matched harmonies, Compare tray, or active grid)
+  const isCompareStepping = topModalReturn?.type === 'compare';
+  const comboListForStepping: Combination[] = useMemo(() => {
+    if (!selectedCombo) return allCombinations;
+    if (isCompareStepping && comparedCombinations.length > 0) {
+      return comparedCombinations;
+    }
+    if (comboSteppingColor && selectedCombo.id > 0) {
+      const colorMatched = allCombinations.filter(
+        (c) =>
+          (c.volume === 1 && comboSteppingColor.combinations?.includes(c.id)) ||
+          (c.volume === 2 && comboSteppingColor.vol2Cards?.includes(c.id))
+      );
+      if (
+        colorMatched.some(
           (c) => c.id === selectedCombo.id && c.volume === selectedCombo.volume
         )
+      ) {
+        return colorMatched;
+      }
+    }
+    if (
+      selectedCombo.id > 0 &&
+      filteredCombinations.some(
+        (c) => c.id === selectedCombo.id && c.volume === selectedCombo.volume
+      )
+    ) {
+      return filteredCombinations;
+    }
+    return allCombinations;
+  }, [
+    selectedCombo,
+    isCompareStepping,
+    comparedCombinations,
+    comboSteppingColor,
+    filteredCombinations,
+  ]);
+
+  const currentStepIndex =
+    selectedCombo && (selectedCombo.id > 0 || isCompareStepping)
+      ? comboListForStepping.findIndex(
+          (c) => getCompareKey(c) === getCompareKey(selectedCombo)
+        )
       : -1;
+
+  const stepContextLabel =
+    selectedCombo && currentStepIndex >= 0
+      ? isCompareStepping
+        ? `${currentStepIndex + 1} / ${comboListForStepping.length} in Compare`
+        : comboSteppingColor
+        ? `${currentStepIndex + 1} / ${comboListForStepping.length} for #${comboSteppingColor.id} ${comboSteppingColor.name}`
+        : `${currentStepIndex + 1} / ${comboListForStepping.length}`
+      : undefined;
 
   const handlePrevCombo = () => {
     if (currentStepIndex > 0) {
@@ -813,11 +908,13 @@ export const App: React.FC = () => {
             <ColorMatcherPanel
               allColors={allColors}
               onSelectColor={(color) => {
-                setReturnCombo(null);
+                setModalHistory([]);
+                setComboSteppingColor(null);
                 setSelectedColor(color);
               }}
               onOpenExtractedStudio={(combo) => {
-                setReturnCombo(null);
+                setModalHistory([]);
+                setComboSteppingColor(null);
                 setSelectedCombo(combo);
               }}
               onClose={() => setMatcherOpen(false)}
@@ -1000,7 +1097,8 @@ export const App: React.FC = () => {
                       onToggleFavorite={toggleFavorite}
                       onToggleCompare={toggleCompare}
                       onSelect={(c) => {
-                        setReturnCombo(null);
+                        setModalHistory([]);
+                        setComboSteppingColor(null);
                         setSelectedCombo(c);
                       }}
                       onCopyText={handleCopyText}
@@ -1060,7 +1158,8 @@ export const App: React.FC = () => {
                   <SpectrumMap
                     colors={filteredColors}
                     onSelectColor={(c) => {
-                      setReturnCombo(null);
+                      setModalHistory([]);
+                      setComboSteppingColor(null);
                       setSelectedColor(c);
                     }}
                   />
@@ -1072,7 +1171,8 @@ export const App: React.FC = () => {
                       key={color.id}
                       color={color}
                       onSelectColor={(c) => {
-                        setReturnCombo(null);
+                        setModalHistory([]);
+                        setComboSteppingColor(null);
                         setSelectedColor(c);
                       }}
                       onCopyText={handleCopyText}
@@ -1123,11 +1223,13 @@ export const App: React.FC = () => {
                 setHasKanjiOnly(false);
               }}
               onSelectColorModal={(c) => {
-                setReturnCombo(null);
+                setModalHistory([]);
+                setComboSteppingColor(null);
                 setSelectedColor(c);
               }}
-              onSelectCombo={(combo) => {
-                setReturnCombo(null);
+              onSelectCombo={(combo, sourceColor) => {
+                setModalHistory([]);
+                setComboSteppingColor(sourceColor ?? null);
                 setSelectedCombo(combo);
               }}
               onAddToCustom={addColorToCustomMix}
@@ -1160,11 +1262,13 @@ export const App: React.FC = () => {
               onPinCompare={toggleCompare}
               compareSet={compareSet}
               onSelectCombo={(combo) => {
-                setReturnCombo(null);
+                setModalHistory([]);
+                setComboSteppingColor(null);
                 setSelectedCombo(combo);
               }}
               onSelectColorDetail={(color) => {
-                setReturnCombo(null);
+                setModalHistory([]);
+                setComboSteppingColor(null);
                 setSelectedColor(color);
               }}
               onCopyText={handleCopyText}
@@ -1247,7 +1351,7 @@ export const App: React.FC = () => {
         {selectedCombo && (
           <ModalStudio
             combination={selectedCombo}
-            onClose={() => setSelectedCombo(null)}
+            onClose={closeAllModals}
             isFavorite={
               selectedCombo.id > 0 &&
               favoriteSet.has(getComboKey(selectedCombo.id, selectedCombo.volume))
@@ -1257,13 +1361,16 @@ export const App: React.FC = () => {
             onToggleCompare={toggleCompare}
             onCopyText={handleCopyText}
             onSelectColor={(color) => {
-              setReturnCombo(selectedCombo);
+              setModalHistory((prev) => [
+                ...prev,
+                { type: 'combo', combo: selectedCombo, steppingColor: comboSteppingColor },
+              ]);
               setSelectedCombo(null);
               setSelectedColor(color);
             }}
             onOpenInMenswear={(_combo, outfit, style) => {
               const nextPieces = { ...STYLE_PRESET_PIECES[style] };
-              setSelectedCombo(null);
+              closeAllModals();
               setMenswearOutfit(outfit);
               setMenswearStyle(style);
               setMenswearPieces(nextPieces);
@@ -1275,6 +1382,9 @@ export const App: React.FC = () => {
             onNext={handleNextCombo}
             hasPrev={currentStepIndex > 0}
             hasNext={currentStepIndex >= 0 && currentStepIndex < comboListForStepping.length - 1}
+            onBack={topModalReturn ? handleModalBack : undefined}
+            backLabel={topModalReturn ? formatModalBackLabel(topModalReturn) : undefined}
+            stepContextLabel={stepContextLabel}
             onShareLink={handleShareCombo}
           />
         )}
@@ -1282,29 +1392,20 @@ export const App: React.FC = () => {
         {selectedColor && (
           <ColorDetailModal
             color={selectedColor}
-            onClose={() => {
-              setSelectedColor(null);
-              setReturnCombo(null);
-            }}
+            onClose={closeAllModals}
             allCombinations={allCombinations}
             onSelectCombination={(combo) => {
-              setReturnCombo(null);
+              setModalHistory((prev) => [...prev, { type: 'color', color: selectedColor }]);
+              setComboSteppingColor(selectedColor);
+              setSelectedColor(null);
               setSelectedCombo(combo);
             }}
             onCopyText={handleCopyText}
-            onBackToCombo={
-              returnCombo
-                ? () => {
-                    const back = returnCombo;
-                    setSelectedColor(null);
-                    setReturnCombo(null);
-                    setSelectedCombo(back);
-                  }
-                : undefined
-            }
+            onBackToCombo={topModalReturn ? handleModalBack : undefined}
+            backLabel={topModalReturn ? formatModalBackLabel(topModalReturn) : undefined}
             onShareLink={handleShareColor}
             onFilterBySwatch={(color) => {
-              setReturnCombo(null);
+              closeAllModals();
               setViewMode('combinations');
               setVolumeFilter('all');
               setSeasonFilter('all');
@@ -1318,13 +1419,18 @@ export const App: React.FC = () => {
         {compareOpen && (
           <CompareModal
             combinations={comparedCombinations}
-            onClose={() => setCompareOpen(false)}
+            onClose={() => {
+              setCompareOpen(false);
+              setModalHistory([]);
+            }}
             onRemove={(combo) =>
               setCompareKeys((prev) => prev.filter((k) => k !== getCompareKey(combo)))
             }
             onClearAll={() => setCompareKeys([])}
             onSelectCombo={(combo) => {
-              setReturnCombo(null);
+              setModalHistory((prev) => [...prev, { type: 'compare' }]);
+              setComboSteppingColor(null);
+              setCompareOpen(false);
               setSelectedCombo(combo);
             }}
             onCopyText={handleCopyText}
@@ -1337,11 +1443,16 @@ export const App: React.FC = () => {
             allColors={allColors}
             selectedIds={customIds}
             onChangeIds={setCustomIds}
-            onClose={() => setCustomOpen(false)}
+            onClose={() => {
+              setCustomOpen(false);
+              setModalHistory([]);
+            }}
             onPinCompare={toggleCompare}
             compareSet={compareSet}
             onLaunchStudio={(combo) => {
-              setReturnCombo(null);
+              setModalHistory((prev) => [...prev, { type: 'custom' }]);
+              setComboSteppingColor(null);
+              setCustomOpen(false);
               setSelectedCombo(combo);
             }}
           />

@@ -172,6 +172,23 @@ export function findNearestWheelNode(
   return best;
 }
 
+/**
+ * Order wheel nodes clockwise around center (50, 50) by polar angle (breaking ties by radius)
+ * so polygon chords never self-intersect when connecting unordered pigment IDs.
+ */
+export function sortNodesByWheelAngle(nodes: WheelNode[]): WheelNode[] {
+  return [...nodes].sort((a, b) => {
+    const angleA = Math.atan2(a.yPct - 50, a.xPct - 50);
+    const angleB = Math.atan2(b.yPct - 50, b.xPct - 50);
+    if (Math.abs(angleA - angleB) > 1e-6) {
+      return angleA - angleB;
+    }
+    const rA = Math.hypot(a.xPct - 50, a.yPct - 50);
+    const rB = Math.hypot(b.xPct - 50, b.yPct - 50);
+    return rA - rB;
+  });
+}
+
 export type HarmonyRule = 'none' | 'complementary' | 'split' | 'triadic' | 'analogous';
 
 export const HARMONY_RULE_META: Record<

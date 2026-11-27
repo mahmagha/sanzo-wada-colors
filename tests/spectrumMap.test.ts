@@ -7,6 +7,7 @@ import {
   findNearestWheelNode,
   layoutColorWheelPoints,
   layoutSpectrumPoints,
+  sortNodesByWheelAngle,
 } from '../src/utils/spectrumLayout';
 
 const masterColors = colorsData as ColorItem[];
@@ -77,5 +78,32 @@ describe('SpectrumMap deterministic layout', () => {
 
     const analogous = findHarmonyMatches(redAnchor, masterColors, 'analogous', 2);
     assert.equal(analogous.length, 2);
+  });
+
+  it('orders wheel chord polygon vertices by polar angle so polygon edges never self-intersect', () => {
+    const wheelNodes = layoutColorWheelPoints(masterColors);
+    const byId = new Map(wheelNodes.map((n) => [n.color.id, n]));
+    // Unsorted crossing-prone set (pink, lavender, yellow, neutral slate, indigo)
+    const sample = [10, 134, 57, 158, 132, 42].map((id) => byId.get(id)!);
+    const ordered = sortNodesByWheelAngle(sample);
+
+    const ccw = (ax: number, ay: number, bx: number, by: number, cx: number, cy: number) =>
+      (cy - ay) * (bx - ax) > (by - ay) * (cx - ax);
+    const segmentsIntersect = (a: typeof ordered[0], b: typeof ordered[0], c: typeof ordered[0], d: typeof ordered[0]) =>
+      ccw(a.xPct, a.yPct, c.xPct, c.yPct, d.xPct, d.yPct) !==
+        ccw(b.xPct, b.yPct, c.xPct, c.yPct, d.xPct, d.yPct) &&
+      ccw(a.xPct, a.yPct, b.xPct, b.yPct, c.xPct, c.yPct) !==
+        ccw(a.xPct, a.yPct, b.xPct, b.yPct, d.xPct, d.yPct);
+
+    for (let i = 0; i < ordered.length; i++) {
+      const a = ordered[i];
+      const b = ordered[(i + 1) % ordered.length];
+      for (let j = i + 2; j < ordered.length; j++) {
+        if (i === 0 && j === ordered.length - 1) continue;
+        const c = ordered[j];
+        const d = ordered[(j + 1) % ordered.length];
+        assert.equal(segmentsIntersect(a, b, c, d), false, `Edges ${i} and ${j} intersected`);
+      }
+    }
   });
 });

@@ -124,7 +124,6 @@ export const CustomPaletteModal: React.FC<CustomPaletteModalProps> = ({
 
   const handleOpenInStudio = () => {
     if (selectedColors.length < 2) return;
-    onClose();
     onLaunchStudio({
       id: 0,
       volume: 1,
