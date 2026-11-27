@@ -1,4 +1,4 @@
-import React, { useId } from 'react';
+import React, { useEffect, useId, useState } from 'react';
 import { ColorItem, CvdMode } from '../types/color';
 import { getLuminance, hexToRgb, simulateColorVision } from '../utils/colorUtils';
 import {
@@ -8,6 +8,7 @@ import {
   getSlotDisplayLabel,
   STYLE_PRESET_PIECES,
 } from '../utils/menswearUtils';
+import { bakedTileUnits, isBaked, shadedTileUrl } from '../utils/fabricTexture';
 import { FABRICS, FabricKey, FabricSpec, buildGarmentWeaveTile } from '../utils/weaveUtils';
 
 export type ClothSlot = 'outerwear' | 'top' | 'bottom';
@@ -58,6 +59,31 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
   };
 
   const clothSlots = ['outerwear', 'top', 'bottom'] as const;
+  const [baked, setBaked] = useState<Record<string, string>>({});
+  const bakeKey = clothSlots
+    .map((slot) => {
+      const f = fabrics[slot]?.fabric ?? 'flat';
+      return isBaked(f) ? `${slot}:${f}:${shown[slot]}` : '';
+    })
+    .join('|');
+  useEffect(() => {
+    let live = true;
+    clothSlots.forEach((slot) => {
+      const f = fabrics[slot]?.fabric ?? 'flat';
+      if (!isBaked(f)) return;
+      shadedTileUrl(f, shown[slot])
+        .then((url) => live && setBaked((b) => (b[`${slot}:${f}:${shown[slot]}`] === url ? b : { ...b, [`${slot}:${f}:${shown[slot]}`]: url })))
+        .catch(() => undefined);
+    });
+    return () => {
+      live = false;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bakeKey]);
+  const bakedUrl = (slot: ClothSlot) => {
+    const f = fabrics[slot]?.fabric ?? 'flat';
+    return isBaked(f) ? baked[`${slot}:${f}:${shown[slot]}`] : undefined;
+  };
   const fabricOf = (slot: GarmentSlotKey): FabricSpec | null => {
     if (slot !== 'outerwear' && slot !== 'top' && slot !== 'bottom') return null;
     const f = fabrics[slot];
@@ -98,8 +124,20 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
 
   const cloth = (slot: ClothSlot) => {
     const spec = fabricOf(slot);
+    if (spec && bakedUrl(slot)) return `url(#bk-${uid}-${slot})`;
     return spec && spec.pattern ? `url(#wv-${uid}-${slot})` : shown[slot];
   };
+  const bakedDefs = clothSlots.map((slot) => {
+    const f = fabrics[slot]?.fabric ?? 'flat';
+    const url = bakedUrl(slot);
+    if (!isBaked(f) || !url) return null;
+    const size = bakedTileUnits(f, fabrics[slot]?.scale ?? 1);
+    return (
+      <pattern key={`bk-${slot}`} id={`bk-${uid}-${slot}`} patternUnits="userSpaceOnUse" width={size} height={size}>
+        <image href={url} width={size} height={size} preserveAspectRatio="none" />
+      </pattern>
+    );
+  });
   const weaveDefs = clothSlots.map((slot) => {
     const spec = fabricOf(slot);
     if (!spec || !spec.pattern) return null;
@@ -190,6 +228,7 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
       {(weaveDefs.some(Boolean) || lightingDefs.some(Boolean)) && (
         <defs>
           {weaveDefs}
+          {bakedDefs}
           {lightingDefs}
         </defs>
       )}

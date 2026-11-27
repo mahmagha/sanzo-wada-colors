@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   X,
   Heart,
@@ -17,8 +17,8 @@ import {
   Columns2,
   Shirt,
   Grid3x3,
-} from 'lucide-react';
-import { ColorItem, Combination, CvdMode } from '../types/color';
+} from "lucide-react";
+import { ColorItem, Combination, CvdMode } from "../types/color";
 import {
   getContrastRatio,
   getIdealTextColor,
@@ -41,9 +41,9 @@ import {
   generateSvgPaletteSnippet,
   generateGplPalette,
   generateJsonExport,
-} from '../utils/colorUtils';
-import { useModalDialog } from '../utils/useModalDialog';
-import { MONTH_OPTIONS } from '../utils/paletteData';
+} from "../utils/colorUtils";
+import { useModalDialog } from "../utils/useModalDialog";
+import { MONTH_OPTIONS } from "../utils/paletteData";
 import {
   GARMENT_SLOT_ORDER,
   GARMENT_STYLE_META,
@@ -53,11 +53,11 @@ import {
   getSlotDisplayLabel,
   mapComboToGarmentOutfit,
   STYLE_PRESET_PIECES,
-} from '../utils/menswearUtils';
-import { MenswearIllustration } from './MenswearIllustration';
-import { WeavePreview } from './WeavePreview';
-import { GarmentWeaveControls } from './GarmentWeaveControls';
-import type { GarmentFabrics } from './MenswearIllustration';
+} from "../utils/menswearUtils";
+import { MenswearIllustration } from "./MenswearIllustration";
+import { WeavePreview } from "./WeavePreview";
+import { GarmentWeaveControls } from "./GarmentWeaveControls";
+import type { GarmentFabrics } from "./MenswearIllustration";
 
 interface ModalStudioProps {
   combination: Combination | null;
@@ -68,7 +68,11 @@ interface ModalStudioProps {
   onToggleCompare?: (combo: Combination) => void;
   onCopyText: (text: string, label: string) => void;
   onSelectColor?: (color: ColorItem) => void;
-  onOpenInMenswear?: (combo: Combination, outfit: GarmentOutfitIds, style: GarmentStyle) => void;
+  onOpenInMenswear?: (
+    combo: Combination,
+    outfit: GarmentOutfitIds,
+    style: GarmentStyle,
+  ) => void;
   onPrev?: () => void;
   onNext?: () => void;
   hasPrev?: boolean;
@@ -76,23 +80,29 @@ interface ModalStudioProps {
   onShareLink?: (combo: Combination) => void;
 }
 
-type StudioTab = 'art-print' | 'ui-mockup' | 'menswear' | 'weave' | 'contrast-matrix' | 'export';
-type MockupTemplate = 'hero' | 'dashboard' | 'editorial' | 'mobile';
+type StudioTab =
+  | "art-print"
+  | "ui-mockup"
+  | "menswear"
+  | "weave"
+  | "contrast-matrix"
+  | "export";
+type MockupTemplate = "hero" | "dashboard" | "editorial" | "mobile";
 type ExportFormat =
-  | 'css'
-  | 'tailwind-v4'
-  | 'tailwind-v3'
-  | 'design-tokens'
-  | 'svg-palette'
-  | 'gpl'
-  | 'json';
+  | "css"
+  | "tailwind-v4"
+  | "tailwind-v3"
+  | "design-tokens"
+  | "svg-palette"
+  | "gpl"
+  | "json";
 
 const CVD_OPTIONS: { id: CvdMode; label: string }[] = [
-  { id: 'normal', label: 'Normal Vision' },
-  { id: 'protanopia', label: 'Protanopia' },
-  { id: 'deuteranopia', label: 'Deuteranopia' },
-  { id: 'tritanopia', label: 'Tritanopia' },
-  { id: 'achromatopsia', label: 'Achromatopsia' },
+  { id: "normal", label: "Normal Vision" },
+  { id: "protanopia", label: "Protanopia" },
+  { id: "deuteranopia", label: "Deuteranopia" },
+  { id: "tritanopia", label: "Tritanopia" },
+  { id: "achromatopsia", label: "Achromatopsia" },
 ];
 
 function getWeightedBarHeights(count: number): number[] {
@@ -133,30 +143,36 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
   hasNext = false,
   onShareLink,
 }) => {
-  const [activeTab, setActiveTab] = useState<StudioTab>('art-print');
-  const [mockupTemplate, setMockupTemplate] = useState<MockupTemplate>('hero');
-  const [menswearStyle, setMenswearStyle] = useState<GarmentStyle>('suit');
-  const [exportFormat, setExportFormat] = useState<ExportFormat>('css');
+  const [activeTab, setActiveTab] = useState<StudioTab>("art-print");
+  const [mockupTemplate, setMockupTemplate] = useState<MockupTemplate>("hero");
+  const [menswearStyle, setMenswearStyle] = useState<GarmentStyle>("suit");
+  const [exportFormat, setExportFormat] = useState<ExportFormat>("css");
   const [cssUseOklch, setCssUseOklch] = useState(false);
-  const [cvdMode, setCvdMode] = useState<CvdMode>('normal');
+  const [cvdMode, setCvdMode] = useState<CvdMode>("normal");
   const [garmentFabrics, setGarmentFabrics] = useState<GarmentFabrics>({});
   const [weightedBars, setWeightedBars] = useState(false);
 
   const initialColors = combination?.colors ?? [];
   const initialDefaults = getDefaultRoleIndices(initialColors);
   const [posterOrder, setPosterOrder] = useState<number[]>(() =>
-    initialColors.map((c) => c.id)
+    initialColors.map((c) => c.id),
   );
   const [menswearOutfit, setMenswearOutfit] = useState<GarmentOutfitIds>(() =>
-    combination ? mapComboToGarmentOutfit(combination) : { outerwear: 1, top: 1, bottom: 1, accent: 1, footwear: 1 }
+    combination
+      ? mapComboToGarmentOutfit(combination)
+      : { outerwear: 1, top: 1, bottom: 1, accent: 1, footwear: 1 },
   );
   const [bgIndex, setBgIndex] = useState<number>(initialDefaults.bg);
-  const [surfaceIndex, setSurfaceIndex] = useState<number>(initialDefaults.surface);
-  const [accentIndex, setAccentIndex] = useState<number>(initialDefaults.accent);
+  const [surfaceIndex, setSurfaceIndex] = useState<number>(
+    initialDefaults.surface,
+  );
+  const [accentIndex, setAccentIndex] = useState<number>(
+    initialDefaults.accent,
+  );
   // -1 means Auto WCAG high-contrast text; >= 0 picks a palette color as custom Ink/Text
   const [textIndex, setTextIndex] = useState<number>(-1);
   const [showTabLabels, setShowTabLabels] = useState<boolean>(() =>
-    typeof window !== 'undefined' ? window.innerWidth >= 820 : true
+    typeof window !== "undefined" ? window.innerWidth >= 820 : true,
   );
 
   const dialogRef = useRef<HTMLDivElement>(null);
@@ -164,7 +180,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
 
   useEffect(() => {
     const el = subnavRef.current;
-    if (!el || typeof ResizeObserver === 'undefined') return;
+    if (!el || typeof ResizeObserver === "undefined") return;
     const updateFit = (width: number) => {
       setShowTabLabels(width >= 690);
     };
@@ -178,7 +194,8 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
     return () => observer.disconnect();
   }, [combination]);
 
-  const comboColorSignature = combination?.colors.map((c) => c.id).join(',') ?? '';
+  const comboColorSignature =
+    combination?.colors.map((c) => c.id).join(",") ?? "";
 
   useEffect(() => {
     if (!combination) return;
@@ -194,16 +211,16 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
   const handleStudioKeyDown = useCallback(
     (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement | null)?.tagName;
-      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      if (e.key === 'ArrowLeft' && hasPrev && onPrev) {
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+      if (e.key === "ArrowLeft" && hasPrev && onPrev) {
         e.preventDefault();
         onPrev();
-      } else if (e.key === 'ArrowRight' && hasNext && onNext) {
+      } else if (e.key === "ArrowRight" && hasNext && onNext) {
         e.preventDefault();
         onNext();
       }
     },
-    [hasPrev, hasNext, onPrev, onNext]
+    [hasPrev, hasNext, onPrev, onNext],
   );
 
   useModalDialog({
@@ -216,17 +233,23 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
   if (!combination) return null;
 
   const colors = combination.colors;
-  const safeBgIndex = bgIndex < 0 ? bgIndex : Math.min(bgIndex, Math.max(0, colors.length - 1));
+  const safeBgIndex =
+    bgIndex < 0 ? bgIndex : Math.min(bgIndex, Math.max(0, colors.length - 1));
   const safeSurfaceIndex =
-    surfaceIndex < 0 ? -1 : Math.min(surfaceIndex, Math.max(0, colors.length - 1));
-  const safeAccentIndex = Math.min(Math.max(0, accentIndex), Math.max(0, colors.length - 1));
+    surfaceIndex < 0
+      ? -1
+      : Math.min(surfaceIndex, Math.max(0, colors.length - 1));
+  const safeAccentIndex = Math.min(
+    Math.max(0, accentIndex),
+    Math.max(0, colors.length - 1),
+  );
 
   const bgRole =
     safeBgIndex === -1
-      ? { hex: '#faf7f2', name: 'Washi Paper' }
+      ? { hex: "#faf7f2", name: "Washi Paper" }
       : safeBgIndex === -2
-      ? { hex: '#18181b', name: 'Obsidian Dark' }
-      : colors[safeBgIndex] || colors[0];
+        ? { hex: "#18181b", name: "Obsidian Dark" }
+        : colors[safeBgIndex] || colors[0];
 
   const accentColor = colors[safeAccentIndex] || colors[colors.length - 1];
   const customTextColor =
@@ -241,7 +264,9 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
       ? { hex: derivedSurfaceRawHex, name: `Auto Tint (${bgRole.name})` }
       : colors[safeSurfaceIndex] || colors[0];
   const surfaceDisplayHex =
-    safeSurfaceIndex === -1 ? deriveSurfaceHex(bgDisplayHex) : simHex(surfaceRole.hex);
+    safeSurfaceIndex === -1
+      ? deriveSurfaceHex(bgDisplayHex)
+      : simHex(surfaceRole.hex);
   const accentDisplayHex = simHex(accentColor.hex);
 
   const bgTextColor = customTextColor
@@ -254,7 +279,10 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
   const badgeStyle = getAccessibleBadgeColors(accentDisplayHex, bgDisplayHex);
 
   const textBgContrast = getContrastRatio(bgDisplayHex, bgTextColor);
-  const textSurfaceContrast = getContrastRatio(surfaceDisplayHex, surfaceTextColor);
+  const textSurfaceContrast = getContrastRatio(
+    surfaceDisplayHex,
+    surfaceTextColor,
+  );
   const accentBgContrast = getContrastRatio(bgDisplayHex, accentDisplayHex);
 
   const handleShuffleRoles = () => {
@@ -267,7 +295,10 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
         { bg: -2, surface: 1, accent: 0 },
       ];
       const currentIdx = presets.findIndex(
-        (p) => p.bg === safeBgIndex && p.surface === safeSurfaceIndex && p.accent === safeAccentIndex
+        (p) =>
+          p.bg === safeBgIndex &&
+          p.surface === safeSurfaceIndex &&
+          p.accent === safeAccentIndex,
       );
       const next = presets[(currentIdx + 1) % presets.length];
       setBgIndex(next.bg);
@@ -304,10 +335,10 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
     try {
       await downloadPngCard(posterCombo, { weighted: weightedBars });
       onCopyText(
-        '',
+        "",
         isCustom
-          ? 'Downloaded 2× PNG poster for Custom Mix'
-          : `Downloaded 2× PNG poster for Vol.${combination.volume} № ${combination.id}`
+          ? "Downloaded 2× PNG poster for Custom Mix"
+          : `Downloaded 2× PNG poster for Vol.${combination.volume} № ${combination.id}`,
       );
     } catch {
       downloadSvgCard(posterCombo, { weighted: weightedBars });
@@ -315,12 +346,17 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
   };
 
   const getExportSnippet = () => {
-    if (exportFormat === 'css') return generateCssVariables(combination, cssUseOklch);
-    if (exportFormat === 'tailwind-v4') return generateTailwindV4Theme(combination);
-    if (exportFormat === 'tailwind-v3') return generateTailwindConfig(combination);
-    if (exportFormat === 'design-tokens') return generateDesignTokensJson(combination);
-    if (exportFormat === 'svg-palette') return generateSvgPaletteSnippet(combination);
-    if (exportFormat === 'gpl') return generateGplPalette(combination);
+    if (exportFormat === "css")
+      return generateCssVariables(combination, cssUseOklch);
+    if (exportFormat === "tailwind-v4")
+      return generateTailwindV4Theme(combination);
+    if (exportFormat === "tailwind-v3")
+      return generateTailwindConfig(combination);
+    if (exportFormat === "design-tokens")
+      return generateDesignTokensJson(combination);
+    if (exportFormat === "svg-palette")
+      return generateSvgPaletteSnippet(combination);
+    if (exportFormat === "gpl") return generateGplPalette(combination);
     return generateJsonExport(combination);
   };
 
@@ -387,25 +423,28 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
             </div>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <h2 id="studio-modal-title" className="text-base sm:text-lg font-editorial font-bold">
+                <h2
+                  id="studio-modal-title"
+                  className="text-base sm:text-lg font-editorial font-bold"
+                >
                   {isCustom
-                    ? 'Custom Studio Palette'
+                    ? "Custom Studio Palette"
                     : isVol2
-                    ? `Volume 2 • Card № ${combination.id.toString().padStart(2, '0')}`
-                    : `Volume 1 • Combination № ${combination.id.toString().padStart(3, '0')}`}
+                      ? `Volume 2 • Card № ${combination.id.toString().padStart(2, "0")}`
+                      : `Volume 1 • Combination № ${combination.id.toString().padStart(3, "0")}`}
                 </h2>
                 <span
                   className={`px-2 py-0.5 text-xs font-code rounded ${
                     isVol2
-                      ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300/40'
-                      : 'bg-stone-200 dark:bg-stone-800 text-stone-600 dark:text-stone-300'
+                      ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-300/40"
+                      : "bg-stone-200 dark:bg-stone-800 text-stone-600 dark:text-stone-300"
                   }`}
                 >
                   {isCustom
                     ? `${combination.size}-Color Custom Mix`
                     : isVol2
-                    ? `${combination.monthName} (${combination.monthJa}) • ${combination.size} Colors`
-                    : `${combination.size}-Color Harmony`}
+                      ? `${combination.monthName} (${combination.monthJa}) • ${combination.size} Colors`
+                      : `${combination.size}-Color Harmony`}
                 </span>
               </div>
               <p className="text-xs text-stone-500 dark:text-stone-400 font-editorial mt-0.5 truncate">
@@ -415,10 +454,12 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                     title={monthMotif}
                   >
                     {combination.monthMeaning}
-                    {monthMotif ? ` (${monthMotif})` : ''} —
+                    {monthMotif ? ` (${monthMotif})` : ""} —
                   </span>
                 )}
-                {colors.map((c) => (c.ja ? `${c.name} (${c.ja})` : c.name)).join(' • ')}
+                {colors
+                  .map((c) => (c.ja ? `${c.name} (${c.ja})` : c.name))
+                  .join(" • ")}
               </p>
             </div>
           </div>
@@ -454,13 +495,17 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
               <button
                 type="button"
                 onClick={() => onToggleCompare(combination)}
-                aria-label={isCompared ? 'Remove from comparison' : 'Pin to compare palettes'}
+                aria-label={
+                  isCompared
+                    ? "Remove from comparison"
+                    : "Pin to compare palettes"
+                }
                 aria-pressed={isCompared}
-                title={isCompared ? 'Remove from comparison' : 'Pin to compare'}
+                title={isCompared ? "Remove from comparison" : "Pin to compare"}
                 className={`p-2 rounded-lg transition-colors cursor-pointer ${
                   isCompared
-                    ? 'text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/50'
-                    : 'text-stone-400 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-stone-100 dark:hover:bg-stone-800'
+                    ? "text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/50"
+                    : "text-stone-400 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-stone-100 dark:hover:bg-stone-800"
                 }`}
               >
                 <Columns2 size={16} />
@@ -481,7 +526,9 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
 
             <button
               type="button"
-              onClick={() => downloadSvgCard(posterCombo, { weighted: weightedBars })}
+              onClick={() =>
+                downloadSvgCard(posterCombo, { weighted: weightedBars })
+              }
               aria-label="Export print-ready SVG card"
               className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
               title="Download print-ready SVG Card"
@@ -493,19 +540,26 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
             {!isCustom && (
               <button
                 type="button"
-                onClick={() => onToggleFavorite(combination.id, combination.volume)}
+                onClick={() =>
+                  onToggleFavorite(combination.id, combination.volume)
+                }
                 aria-label={
-                  isFavorite ? 'Remove combination from favorites' : 'Save combination to favorites'
+                  isFavorite
+                    ? "Remove combination from favorites"
+                    : "Save combination to favorites"
                 }
                 aria-pressed={isFavorite}
                 className={`p-2 rounded-lg transition-colors cursor-pointer ${
                   isFavorite
-                    ? 'text-rose-500 bg-rose-50 dark:bg-rose-950/40'
-                    : 'text-stone-400 hover:text-rose-500 hover:bg-stone-100 dark:hover:bg-stone-800'
+                    ? "text-rose-500 bg-rose-50 dark:bg-rose-950/40"
+                    : "text-stone-400 hover:text-rose-500 hover:bg-stone-100 dark:hover:bg-stone-800"
                 }`}
-                title={isFavorite ? 'Remove favorite' : 'Add to favorites'}
+                title={isFavorite ? "Remove favorite" : "Add to favorites"}
               >
-                <Heart size={16} className={isFavorite ? 'fill-rose-500' : ''} />
+                <Heart
+                  size={16}
+                  className={isFavorite ? "fill-rose-500" : ""}
+                />
               </button>
             )}
 
@@ -532,12 +586,17 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
           >
             {(
               [
-                ['art-print', 'Art Print', 'Showa Art Print', Palette],
-                ['ui-mockup', 'UI Mockup', 'Interactive UI Mockup', Layout],
-                ['menswear', 'Menswear', 'Menswear Look', Shirt],
-                ['weave', 'Weave', 'Woven Fabric Preview', Grid3x3],
-                ['contrast-matrix', 'Contrast', 'Color Science & Contrast', Eye],
-                ['export', 'Export', 'Code & Swatch Export', FileCode],
+                ["art-print", "Art Print", "Showa Art Print", Palette],
+                ["ui-mockup", "UI Mockup", "Interactive UI Mockup", Layout],
+                ["menswear", "Menswear", "Menswear Look", Shirt],
+                ["weave", "Weave", "Woven Fabric Preview", Grid3x3],
+                [
+                  "contrast-matrix",
+                  "Contrast",
+                  "Color Science & Contrast",
+                  Eye,
+                ],
+                ["export", "Export", "Code & Swatch Export", FileCode],
               ] as const
             ).map(([key, shortLabel, fullLabel, Icon]) => (
               <button
@@ -549,22 +608,26 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                 title={fullLabel}
                 onClick={() => setActiveTab(key)}
                 className={`flex items-center justify-center gap-1.5 py-3 ${
-                  showTabLabels ? 'px-2.5 sm:px-3' : 'px-2.5 flex-1'
+                  showTabLabels ? "px-2.5 sm:px-3" : "px-2.5 flex-1"
                 } text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
                   activeTab === key
-                    ? 'border-amber-800 text-amber-900 dark:border-amber-500 dark:text-amber-400'
-                    : 'border-transparent text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
+                    ? "border-amber-800 text-amber-900 dark:border-amber-500 dark:text-amber-400"
+                    : "border-transparent text-stone-500 hover:text-stone-800 dark:hover:text-stone-200"
                 }`}
               >
                 <Icon size={16} className="shrink-0" />
-                <span className={showTabLabels ? 'inline' : 'sr-only'}>{shortLabel}</span>
+                <span className={showTabLabels ? "inline" : "sr-only"}>
+                  {shortLabel}
+                </span>
               </button>
             ))}
           </div>
 
           {/* Color Vision Deficiency Simulator */}
           <div className="flex items-center gap-1.5 text-xs shrink-0">
-            <span className="hidden sm:inline text-stone-500 font-medium">Vision:</span>
+            <span className="hidden sm:inline text-stone-500 font-medium">
+              Vision:
+            </span>
             <select
               aria-label="Simulate color vision deficiency"
               value={cvdMode}
@@ -581,15 +644,15 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
         </div>
 
         {/* CVD Active Banner */}
-        {cvdMode !== 'normal' && activeTab !== 'export' && (
+        {cvdMode !== "normal" && activeTab !== "export" && (
           <div className="px-6 py-2 bg-amber-500/10 border-b border-amber-500/20 text-xs text-amber-900 dark:text-amber-200 flex items-center justify-between gap-2 shrink-0">
             <span>
-              Simulating <strong className="capitalize">{cvdMode}</strong> color vision across
-              swatches, mockup, and contrast checks.
+              Simulating <strong className="capitalize">{cvdMode}</strong> color
+              vision across swatches, mockup, and contrast checks.
             </span>
             <button
               type="button"
-              onClick={() => setCvdMode('normal')}
+              onClick={() => setCvdMode("normal")}
               className="underline font-medium cursor-pointer"
             >
               Reset to Normal
@@ -600,7 +663,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
         {/* Tab Body (Scrollable) */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6">
           {/* TAB 1: SHOWA ART PRINT */}
-          {activeTab === 'art-print' && (
+          {activeTab === "art-print" && (
             <div className="flex flex-col items-center">
               {/* Proportions Toggle */}
               <div className="w-full max-w-xl flex items-center justify-end gap-1.5 mb-3 text-xs">
@@ -611,8 +674,8 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                   aria-pressed={!weightedBars}
                   className={`px-2.5 py-1 rounded font-medium transition-colors cursor-pointer ${
                     !weightedBars
-                      ? 'bg-amber-900 text-amber-50 dark:bg-amber-700'
-                      : 'bg-stone-200/70 dark:bg-stone-800 text-stone-600 dark:text-stone-300'
+                      ? "bg-amber-900 text-amber-50 dark:bg-amber-700"
+                      : "bg-stone-200/70 dark:bg-stone-800 text-stone-600 dark:text-stone-300"
                   }`}
                 >
                   Equal Stripes
@@ -623,15 +686,15 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                   aria-pressed={weightedBars}
                   className={`px-2.5 py-1 rounded font-medium transition-colors cursor-pointer ${
                     weightedBars
-                      ? 'bg-amber-900 text-amber-50 dark:bg-amber-700'
-                      : 'bg-stone-200/70 dark:bg-stone-800 text-stone-600 dark:text-stone-300'
+                      ? "bg-amber-900 text-amber-50 dark:bg-amber-700"
+                      : "bg-stone-200/70 dark:bg-stone-800 text-stone-600 dark:text-stone-300"
                   }`}
                 >
                   {colors.length === 2
-                    ? '70 / 30 Balance'
+                    ? "70 / 30 Balance"
                     : colors.length === 3
-                    ? '60 / 30 / 10 Balance'
-                    : 'Tiered 60 / 30 / 10'}
+                      ? "60 / 30 / 10 Balance"
+                      : "Tiered 60 / 30 / 10"}
                 </button>
               </div>
 
@@ -649,23 +712,23 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                     </h3>
                     <p className="font-editorial text-sm text-stone-600 mt-1">
                       {isCustom
-                        ? '和田三造 (Sanzo Wada) — Custom Palette Study'
-                        : `和田三造 (Sanzo Wada, 1933) — 配色総鑑 ${isVol2 ? 'B篇 (Seasonal)' : ''}`}
+                        ? "和田三造 (Sanzo Wada) — Custom Palette Study"
+                        : `和田三造 (Sanzo Wada, 1933) — 配色総鑑 ${isVol2 ? "B篇 (Seasonal)" : ""}`}
                     </p>
                     <div className="mt-3 flex items-baseline gap-2 flex-wrap">
                       <span className="font-editorial text-xl font-bold text-red-800">
                         {isCustom
-                          ? 'Custom Mix'
+                          ? "Custom Mix"
                           : isVol2
-                          ? `Vol. 2 Card № ${combination.id}`
-                          : `№ ${combination.id.toString().padStart(3, '0')}`}
+                            ? `Vol. 2 Card № ${combination.id}`
+                            : `№ ${combination.id.toString().padStart(3, "0")}`}
                       </span>
                       <span className="text-xs uppercase tracking-wider text-stone-500 font-code">
                         {isCustom
                           ? `${combination.size}-Color Custom Composition`
                           : isVol2
-                          ? `${combination.monthName} (${combination.monthJa})`
-                          : `${combination.size}-Color Harmony`}
+                            ? `${combination.monthName} (${combination.monthJa})`
+                            : `${combination.size}-Color Harmony`}
                       </span>
                     </div>
                   </div>
@@ -683,9 +746,12 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                     {posterColors.map((c, idx) => {
                       const shownHex = simHex(c.hex);
                       const txtColor = getIdealTextColor(shownHex);
-                      const barHeight = weightedBars ? weightedHeights[idx] : undefined;
+                      const barHeight = weightedBars
+                        ? weightedHeights[idx]
+                        : undefined;
                       const weightPct = proportionWeights[idx];
-                      const isCompactBar = weightedBars && (barHeight ?? 64) < 56;
+                      const isCompactBar =
+                        weightedBars && (barHeight ?? 64) < 56;
                       return (
                         <div
                           key={c.id}
@@ -694,26 +760,33 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                             minHeight: barHeight ? `${barHeight}px` : undefined,
                           }}
                           className={`group/bar relative ${
-                            weightedBars ? '' : 'min-h-[4rem] sm:min-h-[4.5rem]'
+                            weightedBars ? "" : "min-h-[4rem] sm:min-h-[4.5rem]"
                           } rounded-lg shadow-sm transition-transform hover:scale-[1.01]`}
                         >
                           <button
                             type="button"
                             onClick={() => onSelectColor?.(c)}
                             title={
-                              onSelectColor ? `Inspect ${c.name} swatch & combinations` : undefined
+                              onSelectColor
+                                ? `Inspect ${c.name} swatch & combinations`
+                                : undefined
                             }
                             className={`w-full h-full text-left flex items-center justify-between cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 rounded-lg ${
-                              isCompactBar ? 'px-3 py-2' : 'p-3 sm:p-4'
+                              isCompactBar ? "px-3 py-2" : "p-3 sm:p-4"
                             }`}
                           >
-                            <div style={{ color: txtColor }} className="min-w-0 pr-24 sm:pr-0">
+                            <div
+                              style={{ color: txtColor }}
+                              className="min-w-0 pr-24 sm:pr-0"
+                            >
                               <div
                                 className={`${
-                                  isCompactBar ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'
+                                  isCompactBar
+                                    ? "text-xs sm:text-sm"
+                                    : "text-sm sm:text-base"
                                 } font-editorial font-bold truncate`}
                               >
-                                {c.name}{' '}
+                                {c.name}{" "}
                                 {c.ja && (
                                   <span className="opacity-90 font-normal text-xs sm:text-sm">
                                     ({c.ja})
@@ -733,8 +806,10 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                               {!isCompactBar && (
                                 <div className="text-xs font-code opacity-85 uppercase">
                                   {c.hex}
-                                  {cvdMode !== 'normal' && (
-                                    <span className="ml-2 opacity-75">→ {shownHex}</span>
+                                  {cvdMode !== "normal" && (
+                                    <span className="ml-2 opacity-75">
+                                      → {shownHex}
+                                    </span>
                                   )}
                                   {onSelectColor && (
                                     <span className="ml-2 opacity-0 group-hover/bar:opacity-90 transition-opacity font-sans text-[11px] underline">
@@ -750,8 +825,8 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                                 style={{ color: txtColor }}
                                 className="text-right text-[11px] font-code opacity-75 hidden sm:block pr-4"
                               >
-                                <div>CMYK({c.cmyk.join(', ')})</div>
-                                <div>RGB({c.rgb.join(', ')})</div>
+                                <div>CMYK({c.cmyk.join(", ")})</div>
+                                <div>RGB({c.rgb.join(", ")})</div>
                               </div>
                             )}
                           </button>
@@ -777,13 +852,14 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                     aria-hidden="true"
                     className="writing-vertical hidden sm:flex items-center justify-center font-editorial font-bold text-lg tracking-[0.35em] text-stone-500 select-none border-l border-stone-300/70 pl-3"
                   >
-                    {!isCustom && isVol2 ? '配色総鑑 B篇' : '配色総鑑'}
+                    {!isCustom && isVol2 ? "配色総鑑 B篇" : "配色総鑑"}
                   </div>
                 </div>
 
                 <div className="mt-6 pt-4 border-t border-stone-300 text-center relative z-10">
                   <p className="text-[11px] font-editorial text-stone-500 tracking-wider">
-                    Published by the Japan Standard Color Association • Showa Era Masterwork
+                    Published by the Japan Standard Color Association • Showa
+                    Era Masterwork
                   </p>
                 </div>
               </div>
@@ -791,7 +867,9 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
               <div className="mt-6 flex items-center justify-center gap-3 flex-wrap">
                 <button
                   type="button"
-                  onClick={() => downloadSvgCard(posterCombo, { weighted: weightedBars })}
+                  onClick={() =>
+                    downloadSvgCard(posterCombo, { weighted: weightedBars })
+                  }
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-900 hover:bg-amber-800 text-amber-50 font-medium text-xs sm:text-sm shadow-sm transition-colors cursor-pointer"
                 >
                   <Download size={15} />
@@ -808,7 +886,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                 <button
                   type="button"
                   onClick={() => {
-                    const hexes = colors.map((c) => c.hex).join(', ');
+                    const hexes = colors.map((c) => c.hex).join(", ");
                     onCopyText(hexes, `Copied hex codes: ${hexes}`);
                   }}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-xs sm:text-sm font-medium transition-colors cursor-pointer"
@@ -821,7 +899,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
           )}
 
           {/* TAB 2: INTERACTIVE UI MOCKUP */}
-          {activeTab === 'ui-mockup' && (
+          {activeTab === "ui-mockup" && (
             <div className="space-y-5">
               {/* Role Assignment + Live Contrast Bar */}
               <div className="p-4 rounded-xl border border-stone-300 dark:border-stone-800 bg-stone-50 dark:bg-stone-950/40 space-y-3">
@@ -850,7 +928,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                               ? customTextColor.hex
                               : getIdealTextColor(bgRole.hex),
                           }),
-                          'Copied semantic UI role CSS tokens'
+                          "Copied semantic UI role CSS tokens",
                         )
                       }
                       className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
@@ -876,7 +954,9 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs pt-2 border-t border-stone-200/70 dark:border-stone-800">
                   <label className="flex flex-col gap-1">
-                    <span className="text-stone-500 font-medium">Background</span>
+                    <span className="text-stone-500 font-medium">
+                      Background
+                    </span>
                     <select
                       value={safeBgIndex}
                       onChange={(e) => setBgIndex(Number(e.target.value))}
@@ -924,7 +1004,9 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                   </label>
 
                   <label className="flex flex-col gap-1">
-                    <span className="text-stone-500 font-medium">Text / Ink</span>
+                    <span className="text-stone-500 font-medium">
+                      Text / Ink
+                    </span>
                     <select
                       value={textIndex}
                       onChange={(e) => setTextIndex(Number(e.target.value))}
@@ -940,14 +1022,16 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                   </label>
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stone-200/70 dark:border-stone-800">
-                  <span className="text-xs text-stone-500 font-medium">Template:</span>
+                  <span className="text-xs text-stone-500 font-medium">
+                    Template:
+                  </span>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {(
                       [
-                        ['hero', 'Landing Hero'],
-                        ['dashboard', 'Analytics Dashboard'],
-                        ['editorial', 'Editorial Article'],
-                        ['mobile', 'Mobile App Card'],
+                        ["hero", "Landing Hero"],
+                        ["dashboard", "Analytics Dashboard"],
+                        ["editorial", "Editorial Article"],
+                        ["mobile", "Mobile App Card"],
                       ] as const
                     ).map(([tplKey, tplLabel]) => (
                       <button
@@ -957,8 +1041,8 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                         aria-pressed={mockupTemplate === tplKey}
                         className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors cursor-pointer ${
                           mockupTemplate === tplKey
-                            ? 'bg-amber-900 text-amber-50 dark:bg-amber-700'
-                            : 'bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
+                            ? "bg-amber-900 text-amber-50 dark:bg-amber-700"
+                            : "bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800"
                         }`}
                       >
                         {tplLabel}
@@ -969,7 +1053,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
               </div>
 
               {/* Template 1: Landing Hero */}
-              {mockupTemplate === 'hero' && (
+              {mockupTemplate === "hero" && (
                 <div
                   style={{ backgroundColor: bgDisplayHex, color: bgTextColor }}
                   className="rounded-2xl p-6 sm:p-8 shadow-xl border border-black/10 transition-colors duration-300"
@@ -977,7 +1061,10 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                   <div className="flex items-center justify-between pb-6 border-b border-current/15">
                     <div className="flex items-center gap-2">
                       <div
-                        style={{ backgroundColor: accentDisplayHex, color: accentTextColor }}
+                        style={{
+                          backgroundColor: accentDisplayHex,
+                          color: accentTextColor,
+                        }}
                         className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm"
                       >
                         和
@@ -995,7 +1082,10 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
 
                     <button
                       type="button"
-                      style={{ backgroundColor: accentDisplayHex, color: accentTextColor }}
+                      style={{
+                        backgroundColor: accentDisplayHex,
+                        color: accentTextColor,
+                      }}
                       className="px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm hover:opacity-90 transition-opacity"
                     >
                       Explore Gallery
@@ -1010,10 +1100,10 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                       <Sparkles size={12} />
                       <span>
                         {isCustom
-                          ? 'Custom Palette Mix'
+                          ? "Custom Palette Mix"
                           : isVol2
-                          ? `Vol. 2 • ${combination.monthName} (${combination.monthJa})`
-                          : `Harmony Plate № ${combination.id}`}
+                            ? `Vol. 2 • ${combination.monthName} (${combination.monthJa})`
+                            : `Harmony Plate № ${combination.id}`}
                       </span>
                     </div>
 
@@ -1022,14 +1112,18 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                     </h4>
 
                     <p className="mt-3 text-xs sm:text-sm opacity-80 leading-relaxed font-sans">
-                      Sanzo Wada’s color compositions break away from rigid mathematical formulas,
-                      capturing the delicate tensions of 1930s Showa aesthetics.
+                      Sanzo Wada’s color compositions break away from rigid
+                      mathematical formulas, capturing the delicate tensions of
+                      1930s Showa aesthetics.
                     </p>
 
                     <div className="mt-6 flex items-center gap-3 flex-wrap">
                       <button
                         type="button"
-                        style={{ backgroundColor: accentDisplayHex, color: accentTextColor }}
+                        style={{
+                          backgroundColor: accentDisplayHex,
+                          color: accentTextColor,
+                        }}
                         className="px-5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold shadow-md hover:opacity-95 transition-opacity"
                       >
                         Apply Color System
@@ -1050,10 +1144,10 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                   <div
                     className={`grid gap-3 pt-4 ${
                       colors.length === 2
-                        ? 'grid-cols-1 sm:grid-cols-2'
+                        ? "grid-cols-1 sm:grid-cols-2"
                         : colors.length === 3
-                        ? 'grid-cols-1 sm:grid-cols-3'
-                        : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'
+                          ? "grid-cols-1 sm:grid-cols-3"
+                          : "grid-cols-2 sm:grid-cols-3 md:grid-cols-4"
                     }`}
                   >
                     {colors.map((c, i) => (
@@ -1090,23 +1184,33 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
               )}
 
               {/* Template 2: Analytics Dashboard */}
-              {mockupTemplate === 'dashboard' && (
+              {mockupTemplate === "dashboard" && (
                 <div
                   style={{ backgroundColor: bgDisplayHex, color: bgTextColor }}
                   className="rounded-2xl p-6 shadow-xl border border-black/10 space-y-5"
                 >
                   <div className="flex items-center justify-between gap-4 pb-4 border-b border-current/15">
                     <div>
-                      <div className="text-xs font-code uppercase opacity-70">Studio Analytics</div>
-                      <h4 className="text-lg font-editorial font-bold">Quarterly Pigment Usage</h4>
+                      <div className="text-xs font-code uppercase opacity-70">
+                        Studio Analytics
+                      </div>
+                      <h4 className="text-lg font-editorial font-bold">
+                        Quarterly Pigment Usage
+                      </h4>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span style={badgeStyle} className="px-2.5 py-1 rounded-full text-xs font-code border">
+                      <span
+                        style={badgeStyle}
+                        className="px-2.5 py-1 rounded-full text-xs font-code border"
+                      >
                         +18.4% YoY
                       </span>
                       <button
                         type="button"
-                        style={{ backgroundColor: accentDisplayHex, color: accentTextColor }}
+                        style={{
+                          backgroundColor: accentDisplayHex,
+                          color: accentTextColor,
+                        }}
                         className="px-3 py-1.5 rounded-lg text-xs font-semibold"
                       >
                         Export Report
@@ -1116,18 +1220,26 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
 
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div
-                      style={{ backgroundColor: surfaceDisplayHex, color: surfaceTextColor }}
+                      style={{
+                        backgroundColor: surfaceDisplayHex,
+                        color: surfaceTextColor,
+                      }}
                       className="md:col-span-2 p-4 rounded-xl border border-current/10 space-y-3"
                     >
                       <div className="flex items-center justify-between text-xs font-medium">
                         <span>Palette Distribution</span>
-                        <span className="font-code opacity-70">{colors.length} Channels</span>
+                        <span className="font-code opacity-70">
+                          {colors.length} Channels
+                        </span>
                       </div>
                       <div className="h-36 flex items-end gap-3 pt-4">
                         {colors.map((c, idx) => {
                           const hPct = 35 + ((idx * 29 + c.id * 11) % 60);
                           return (
-                            <div key={c.id} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                            <div
+                              key={c.id}
+                              className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end"
+                            >
                               <div
                                 style={{
                                   backgroundColor: simHex(c.hex),
@@ -1147,14 +1259,24 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                     </div>
 
                     <div
-                      style={{ backgroundColor: surfaceDisplayHex, color: surfaceTextColor }}
+                      style={{
+                        backgroundColor: surfaceDisplayHex,
+                        color: surfaceTextColor,
+                      }}
                       className="p-4 rounded-xl border border-current/10 flex flex-col justify-between gap-3"
                     >
-                      <div className="text-xs font-medium opacity-75">Contrast Readiness</div>
-                      <div className="text-3xl font-code font-bold">{textBgContrast.toFixed(1)}:1</div>
+                      <div className="text-xs font-medium opacity-75">
+                        Contrast Readiness
+                      </div>
+                      <div className="text-3xl font-code font-bold">
+                        {textBgContrast.toFixed(1)}:1
+                      </div>
                       <div className="space-y-2 text-xs">
                         {colors.slice(0, 3).map((c) => (
-                          <div key={c.id} className="flex items-center justify-between gap-2">
+                          <div
+                            key={c.id}
+                            className="flex items-center justify-between gap-2"
+                          >
                             <span className="flex items-center gap-2 truncate">
                               <span
                                 style={{
@@ -1165,7 +1287,9 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                               />
                               <span className="truncate">{c.name}</span>
                             </span>
-                            <span className="font-code opacity-75">{c.hex}</span>
+                            <span className="font-code opacity-75">
+                              {c.hex}
+                            </span>
                           </div>
                         ))}
                       </div>
@@ -1175,7 +1299,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
               )}
 
               {/* Template 3: Editorial Article */}
-              {mockupTemplate === 'editorial' && (
+              {mockupTemplate === "editorial" && (
                 <div
                   style={{ backgroundColor: bgDisplayHex, color: bgTextColor }}
                   className="rounded-2xl p-6 sm:p-10 shadow-xl border border-black/10 space-y-6"
@@ -1191,13 +1315,17 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                       </h4>
                       <p className="text-sm leading-relaxed opacity-85">
                         <span
-                          style={{ backgroundColor: accentDisplayHex, color: accentTextColor }}
+                          style={{
+                            backgroundColor: accentDisplayHex,
+                            color: accentTextColor,
+                          }}
                           className="float-left mr-3 mt-1 w-10 h-10 rounded-lg flex items-center justify-center font-editorial font-bold text-xl"
                         >
                           配
                         </span>
-                        Rather than isolating hues in clinical abstraction, Wada observed dyed silk,
-                        weathered wood, and seasonal blossoms—pairing muted earth tones with deliberate
+                        Rather than isolating hues in clinical abstraction, Wada
+                        observed dyed silk, weathered wood, and seasonal
+                        blossoms—pairing muted earth tones with deliberate
                         chromatic accents.
                       </p>
                       <blockquote
@@ -1208,22 +1336,33 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                         }}
                         className="p-4 rounded-r-xl border-l-4 text-xs sm:text-sm font-editorial italic"
                       >
-                        “True color harmony arises not from uniformity, but from sympathetic tension.”
+                        “True color harmony arises not from uniformity, but from
+                        sympathetic tension.”
                       </blockquote>
                     </div>
 
                     <div
-                      style={{ backgroundColor: surfaceDisplayHex, color: surfaceTextColor }}
+                      style={{
+                        backgroundColor: surfaceDisplayHex,
+                        color: surfaceTextColor,
+                      }}
                       className="p-4 rounded-xl border border-current/10 space-y-2.5"
                     >
-                      <div className="text-xs font-code uppercase opacity-70">Plate Swatches</div>
+                      <div className="text-xs font-code uppercase opacity-70">
+                        Plate Swatches
+                      </div>
                       {colors.map((c) => (
-                        <div key={c.id} className="flex items-center gap-2.5 text-xs">
+                        <div
+                          key={c.id}
+                          className="flex items-center gap-2.5 text-xs"
+                        >
                           <span
                             style={{ backgroundColor: simHex(c.hex) }}
                             className="w-5 h-5 rounded border border-black/15 shrink-0"
                           />
-                          <span className="font-editorial font-medium truncate">{c.name}</span>
+                          <span className="font-editorial font-medium truncate">
+                            {c.name}
+                          </span>
                         </div>
                       ))}
                     </div>
@@ -1232,13 +1371,16 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
               )}
 
               {/* Template 4: Mobile App Card */}
-              {mockupTemplate === 'mobile' && (
+              {mockupTemplate === "mobile" && (
                 <div
                   style={{ backgroundColor: bgDisplayHex, color: bgTextColor }}
                   className="rounded-2xl p-6 shadow-xl border border-black/10 flex justify-center"
                 >
                   <div
-                    style={{ backgroundColor: surfaceDisplayHex, color: surfaceTextColor }}
+                    style={{
+                      backgroundColor: surfaceDisplayHex,
+                      color: surfaceTextColor,
+                    }}
                     className="w-full max-w-xs rounded-3xl p-5 border border-current/15 shadow-2xl space-y-4"
                   >
                     <div className="flex items-center justify-between text-xs font-code opacity-75">
@@ -1250,23 +1392,37 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                       style={{ borderColor: `${surfaceTextColor}30` }}
                     >
                       {colors.map((c) => (
-                        <div key={c.id} style={{ backgroundColor: simHex(c.hex) }} className="flex-1 h-full" />
+                        <div
+                          key={c.id}
+                          style={{ backgroundColor: simHex(c.hex) }}
+                          className="flex-1 h-full"
+                        />
                       ))}
                     </div>
                     <div>
-                      <span style={badgeStyle} className="px-2 py-0.5 rounded-full text-[10px] font-code border">
+                      <span
+                        style={badgeStyle}
+                        className="px-2 py-0.5 rounded-full text-[10px] font-code border"
+                      >
                         {colors.length}-Color System
                       </span>
                       <h4 className="font-editorial font-bold text-lg mt-2">
-                        {isCustom ? 'Custom Mix' : isVol2 ? combination.monthName : `Plate № ${combination.id}`}
+                        {isCustom
+                          ? "Custom Mix"
+                          : isVol2
+                            ? combination.monthName
+                            : `Plate № ${combination.id}`}
                       </h4>
                       <p className="text-xs opacity-75 mt-1">
-                        {colors.map((c) => c.name).join(' • ')}
+                        {colors.map((c) => c.name).join(" • ")}
                       </p>
                     </div>
                     <button
                       type="button"
-                      style={{ backgroundColor: accentDisplayHex, color: accentTextColor }}
+                      style={{
+                        backgroundColor: accentDisplayHex,
+                        color: accentTextColor,
+                      }}
                       className="w-full py-2.5 rounded-xl text-xs font-semibold shadow-sm"
                     >
                       Save Palette to Project
@@ -1278,27 +1434,38 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
           )}
 
           {/* TAB 2B: MENSWEAR GARMENT LOOK */}
-          {activeTab === 'menswear' && (() => {
-            const byId = new Map<number, ColorItem>(colors.map((c) => [c.id, c]));
-            const fallback = colors[0];
-            const outfitColors: Record<GarmentSlotKey, ColorItem> = {
-              outerwear: byId.get(menswearOutfit.outerwear) ?? fallback,
-              top: byId.get(menswearOutfit.top) ?? fallback,
-              bottom: byId.get(menswearOutfit.bottom) ?? fallback,
-              accent: byId.get(menswearOutfit.accent) ?? fallback,
-              footwear: byId.get(menswearOutfit.footwear) ?? fallback,
-            };
-            const pieces = STYLE_PRESET_PIECES[menswearStyle];
-            return (
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
-                <div className="md:col-span-6 p-5 rounded-2xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/60 flex flex-col items-center">
-                  <div
-                    role="group"
-                    aria-label="Modal menswear style"
-                    className="inline-flex flex-wrap justify-center rounded-lg p-0.5 bg-stone-200/70 dark:bg-stone-800 text-xs mb-3"
-                  >
-                    {(['suit', 'smart-casual', 'overcoat', 'streetwear', 'resort', 'wafuku'] as const).map(
-                      (s) => (
+          {activeTab === "menswear" &&
+            (() => {
+              const byId = new Map<number, ColorItem>(
+                colors.map((c) => [c.id, c]),
+              );
+              const fallback = colors[0];
+              const outfitColors: Record<GarmentSlotKey, ColorItem> = {
+                outerwear: byId.get(menswearOutfit.outerwear) ?? fallback,
+                top: byId.get(menswearOutfit.top) ?? fallback,
+                bottom: byId.get(menswearOutfit.bottom) ?? fallback,
+                accent: byId.get(menswearOutfit.accent) ?? fallback,
+                footwear: byId.get(menswearOutfit.footwear) ?? fallback,
+              };
+              const pieces = STYLE_PRESET_PIECES[menswearStyle];
+              return (
+                <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+                  <div className="md:col-span-6 p-5 rounded-2xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/60 flex flex-col items-center">
+                    <div
+                      role="group"
+                      aria-label="Modal menswear style"
+                      className="inline-flex flex-wrap justify-center rounded-lg p-0.5 bg-stone-200/70 dark:bg-stone-800 text-xs mb-3"
+                    >
+                      {(
+                        [
+                          "suit",
+                          "smart-casual",
+                          "overcoat",
+                          "streetwear",
+                          "resort",
+                          "wafuku",
+                        ] as const
+                      ).map((s) => (
                         <button
                           type="button"
                           key={s}
@@ -1306,104 +1473,123 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                           aria-pressed={menswearStyle === s}
                           className={`px-2 py-1 rounded font-medium cursor-pointer ${
                             menswearStyle === s
-                              ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
-                              : 'text-stone-600 dark:text-stone-400'
+                              ? "bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs"
+                              : "text-stone-600 dark:text-stone-400"
                           }`}
                         >
                           {GARMENT_STYLE_META[s].shortLabel}
                         </button>
-                      )
+                      ))}
+                    </div>
+                    <MenswearIllustration
+                      style={menswearStyle}
+                      pieces={pieces}
+                      outfit={outfitColors}
+                      cvdMode={cvdMode}
+                      fabrics={garmentFabrics}
+                    />
+                    <GarmentWeaveControls
+                      value={garmentFabrics}
+                      onChange={setGarmentFabrics}
+                      pieces={pieces}
+                      colors={{
+                        outerwear: outfitColors.outerwear.hex,
+                        top: outfitColors.top.hex,
+                        bottom: outfitColors.bottom.hex,
+                      }}
+                    />
+                  </div>
+
+                  <div className="md:col-span-6 space-y-3">
+                    <div>
+                      <h4 className="text-sm font-editorial font-bold text-stone-900 dark:text-stone-100">
+                        Palette Mapped to Male Garments
+                      </h4>
+                      <p className="text-xs text-stone-500 dark:text-stone-400">
+                        Reassign how this combination’s swatches sit across each
+                        garment, or launch the full 171-color 360° Wheel
+                        Chooser.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      {GARMENT_SLOT_ORDER.filter(
+                        (slot) =>
+                          !(
+                            slot === "outerwear" && pieces.outerwear === "none"
+                          ),
+                      ).map((slot) => {
+                        const assigned = outfitColors[slot];
+                        const slotLabel = getSlotDisplayLabel(slot, pieces);
+                        return (
+                          <div
+                            key={slot}
+                            className="flex items-center justify-between gap-2 p-2 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50/70 dark:bg-stone-950/40 text-xs"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span
+                                style={{ backgroundColor: assigned.hex }}
+                                className="w-6 h-6 rounded border border-black/20 shrink-0"
+                              />
+                              <span className="font-medium text-stone-800 dark:text-stone-200 truncate">
+                                {slotLabel}
+                              </span>
+                            </div>
+                            <select
+                              aria-label={`Assign palette color for ${slotLabel}`}
+                              value={assigned.id}
+                              onChange={(e) =>
+                                setMenswearOutfit((prev) => ({
+                                  ...prev,
+                                  [slot]: Number(e.target.value),
+                                }))
+                              }
+                              className="px-2 py-1 rounded border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 text-xs cursor-pointer max-w-[175px]"
+                            >
+                              {colors.map((c) => (
+                                <option key={c.id} value={c.id}>
+                                  #{c.id} {c.name}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {onOpenInMenswear && (
+                      <button
+                        type="button"
+                        onClick={() =>
+                          onOpenInMenswear(
+                            combination,
+                            menswearOutfit,
+                            menswearStyle,
+                          )
+                        }
+                        className="w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium bg-amber-900 text-amber-50 hover:bg-amber-800 dark:bg-amber-700 flex items-center justify-center gap-2 cursor-pointer"
+                      >
+                        <Shirt size={15} />
+                        <span>Open Full Menswear Dressing Room →</span>
+                      </button>
                     )}
                   </div>
-                  <MenswearIllustration
-                    style={menswearStyle}
-                    pieces={pieces}
-                    outfit={outfitColors}
-                    cvdMode={cvdMode}
-                    fabrics={garmentFabrics}
-                  />
-                  <GarmentWeaveControls value={garmentFabrics} onChange={setGarmentFabrics} pieces={pieces} />
                 </div>
-
-                <div className="md:col-span-6 space-y-3">
-                  <div>
-                    <h4 className="text-sm font-editorial font-bold text-stone-900 dark:text-stone-100">
-                      Palette Mapped to Male Garments
-                    </h4>
-                    <p className="text-xs text-stone-500 dark:text-stone-400">
-                      Reassign how this combination’s swatches sit across each garment, or launch the full 171-color 360° Wheel Chooser.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    {GARMENT_SLOT_ORDER.filter(
-                      (slot) => !(slot === 'outerwear' && pieces.outerwear === 'none')
-                    ).map((slot) => {
-                      const assigned = outfitColors[slot];
-                      const slotLabel = getSlotDisplayLabel(slot, pieces);
-                      return (
-                        <div
-                          key={slot}
-                          className="flex items-center justify-between gap-2 p-2 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50/70 dark:bg-stone-950/40 text-xs"
-                        >
-                          <div className="flex items-center gap-2 min-w-0">
-                            <span
-                              style={{ backgroundColor: assigned.hex }}
-                              className="w-6 h-6 rounded border border-black/20 shrink-0"
-                            />
-                            <span className="font-medium text-stone-800 dark:text-stone-200 truncate">
-                              {slotLabel}
-                            </span>
-                          </div>
-                          <select
-                            aria-label={`Assign palette color for ${slotLabel}`}
-                            value={assigned.id}
-                            onChange={(e) =>
-                              setMenswearOutfit((prev) => ({
-                                ...prev,
-                                [slot]: Number(e.target.value),
-                              }))
-                            }
-                            className="px-2 py-1 rounded border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 text-xs cursor-pointer max-w-[175px]"
-                          >
-                            {colors.map((c) => (
-                              <option key={c.id} value={c.id}>
-                                #{c.id} {c.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {onOpenInMenswear && (
-                    <button
-                      type="button"
-                      onClick={() => onOpenInMenswear(combination, menswearOutfit, menswearStyle)}
-                      className="w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium bg-amber-900 text-amber-50 hover:bg-amber-800 dark:bg-amber-700 flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <Shirt size={15} />
-                      <span>Open Full Menswear Dressing Room →</span>
-                    </button>
-                  )}
-                </div>
-              </div>
-            );
-          })()}
+              );
+            })()}
 
           {/* TAB 2C: WOVEN FABRIC PREVIEW */}
-          {activeTab === 'weave' && (
+          {activeTab === "weave" && (
             <WeavePreview
               palette={combination.colors.map((c) => simHex(c.hex))}
               exportPalette={combination.colors.map((c) => c.hex)}
-              label={`No. ${String(combination.id).padStart(3, '0')}`}
-              fileBase={`wada-${combination.volume === 2 ? 'v2-' : ''}${String(combination.id).padStart(3, '0')}`}
+              label={`No. ${String(combination.id).padStart(3, "0")}`}
+              fileBase={`wada-${combination.volume === 2 ? "v2-" : ""}${String(combination.id).padStart(3, "0")}`}
             />
           )}
 
           {/* TAB 3: COLOR SCIENCE & CONTRAST */}
-          {activeTab === 'contrast-matrix' && (
+          {activeTab === "contrast-matrix" && (
             <div className="space-y-6">
               <div>
                 <h4 className="text-sm font-semibold text-stone-800 dark:text-stone-200 mb-3">
@@ -1426,7 +1612,10 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                     </thead>
                     <tbody className="divide-y divide-stone-200 dark:divide-stone-800">
                       {colors.map((c) => (
-                        <tr key={c.id} className="hover:bg-stone-50 dark:hover:bg-stone-800/40">
+                        <tr
+                          key={c.id}
+                          className="hover:bg-stone-50 dark:hover:bg-stone-800/40"
+                        >
                           <td className="p-3">
                             <div
                               style={{ backgroundColor: simHex(c.hex) }}
@@ -1447,19 +1636,29 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                             )}
                           </td>
                           <td className="p-3 font-editorial text-sm text-stone-600 dark:text-stone-400">
-                            {c.ja || '—'}
+                            {c.ja || "—"}
                           </td>
-                          <td className="p-3 font-code font-semibold uppercase">{c.hex}</td>
-                          <td className="p-3 font-code whitespace-nowrap">{formatOklch(c.rgb)}</td>
-                          <td className="p-3 font-code whitespace-nowrap">{c.rgb.join(', ')}</td>
-                          <td className="p-3 font-code whitespace-nowrap">{c.cmyk.join(', ')}</td>
+                          <td className="p-3 font-code font-semibold uppercase">
+                            {c.hex}
+                          </td>
                           <td className="p-3 font-code whitespace-nowrap">
-                            {c.lab.map((v) => v.toFixed(1)).join(', ')}
+                            {formatOklch(c.rgb)}
+                          </td>
+                          <td className="p-3 font-code whitespace-nowrap">
+                            {c.rgb.join(", ")}
+                          </td>
+                          <td className="p-3 font-code whitespace-nowrap">
+                            {c.cmyk.join(", ")}
+                          </td>
+                          <td className="p-3 font-code whitespace-nowrap">
+                            {c.lab.map((v) => v.toFixed(1)).join(", ")}
                           </td>
                           <td className="p-3">
                             <button
                               type="button"
-                              onClick={() => onCopyText(c.hex, `Copied ${c.name} (${c.hex})`)}
+                              onClick={() =>
+                                onCopyText(c.hex, `Copied ${c.name} (${c.hex})`)
+                              }
                               aria-label={`Copy hex ${c.hex}`}
                               className="p-1 rounded hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors cursor-pointer"
                               title="Copy hex"
@@ -1477,7 +1676,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
               <div>
                 <h4 className="text-sm font-semibold text-stone-800 dark:text-stone-200 mb-3">
                   Pairwise WCAG 2.1 Contrast & Accessibility Matrix
-                  {cvdMode !== 'normal' && (
+                  {cvdMode !== "normal" && (
                     <span className="ml-2 text-xs font-normal text-amber-700 dark:text-amber-400">
                       (Under {cvdMode})
                     </span>
@@ -1518,10 +1717,12 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                             </div>
                           </div>
 
-                          <div className="text-right shrink-0">{renderWcagBadge(ratio)}</div>
+                          <div className="text-right shrink-0">
+                            {renderWcagBadge(ratio)}
+                          </div>
                         </div>
                       );
-                    })
+                    }),
                   )}
                 </div>
               </div>
@@ -1529,19 +1730,19 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
           )}
 
           {/* TAB 4: CODE & SWATCH EXPORT */}
-          {activeTab === 'export' && (
+          {activeTab === "export" && (
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div className="flex items-center gap-1.5 flex-wrap">
                   {(
                     [
-                      ['css', 'CSS Variables'],
-                      ['tailwind-v4', 'Tailwind v4'],
-                      ['tailwind-v3', 'Tailwind v3'],
-                      ['design-tokens', 'W3C / Figma Tokens'],
-                      ['svg-palette', 'SVG Palette'],
-                      ['gpl', 'GIMP (.gpl)'],
-                      ['json', 'JSON'],
+                      ["css", "CSS Variables"],
+                      ["tailwind-v4", "Tailwind v4"],
+                      ["tailwind-v3", "Tailwind v3"],
+                      ["design-tokens", "W3C / Figma Tokens"],
+                      ["svg-palette", "SVG Palette"],
+                      ["gpl", "GIMP (.gpl)"],
+                      ["json", "JSON"],
                     ] as const
                   ).map(([key, label]) => (
                     <button
@@ -1550,15 +1751,15 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                       onClick={() => setExportFormat(key)}
                       className={`px-2.5 py-1.5 text-xs font-medium rounded-lg transition-colors cursor-pointer ${
                         exportFormat === key
-                          ? 'bg-amber-900 text-amber-50 dark:bg-amber-700'
-                          : 'bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300'
+                          ? "bg-amber-900 text-amber-50 dark:bg-amber-700"
+                          : "bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300"
                       }`}
                     >
                       {label}
                     </button>
                   ))}
 
-                  {exportFormat === 'css' && (
+                  {exportFormat === "css" && (
                     <label className="flex items-center gap-1.5 text-xs text-stone-600 dark:text-stone-300 ml-1 cursor-pointer">
                       <input
                         type="checkbox"
@@ -1576,7 +1777,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                     type="button"
                     onClick={() => {
                       downloadGplPalette(combination);
-                      onCopyText('', 'Downloaded .gpl palette file');
+                      onCopyText("", "Downloaded .gpl palette file");
                     }}
                     className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
                   >
@@ -1587,7 +1788,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                     type="button"
                     onClick={() => {
                       downloadAsePalette(combination);
-                      onCopyText('', 'Downloaded Adobe Swatch (.ase) file');
+                      onCopyText("", "Downloaded Adobe Swatch (.ase) file");
                     }}
                     className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
                   >
@@ -1597,7 +1798,10 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                   <button
                     type="button"
                     onClick={() => {
-                      onCopyText(getExportSnippet(), `Copied ${exportFormat.toUpperCase()} snippet`);
+                      onCopyText(
+                        getExportSnippet(),
+                        `Copied ${exportFormat.toUpperCase()} snippet`,
+                      );
                     }}
                     className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900 hover:opacity-90 transition-opacity cursor-pointer"
                   >

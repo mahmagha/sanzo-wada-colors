@@ -6,3 +6,4 @@ import './imageQuantize.test';
 import './spectrumMap.test';
 import './menswearUtils.test';
 import './weaveUtils.test';
+import './fabricShader.test';
