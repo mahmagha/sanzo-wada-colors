@@ -943,3 +943,37 @@ export async function downloadPngCard(
     }, 'image/png');
   });
 }
+
+/** CSS gradients: a smooth blend and hard-stop stripes, ready to paste. */
+export function generateCssGradients(combo: Combination): string {
+  const prefix = getComboPrefix(combo);
+  const hexes = combo.colors.map((c) => c.hex);
+  const smooth = `linear-gradient(90deg, ${hexes.join(', ')})`;
+  const step = 100 / hexes.length;
+  const stops = hexes
+    .map((h, i) => `${h} ${(i * step).toFixed(2)}% ${((i + 1) * step).toFixed(2)}%`)
+    .join(', ');
+  return `/* ${getComboTitle(combo)} */\n.${prefix}-smooth {\n  background: ${smooth};\n}\n\n.${prefix}-stripes {\n  background: linear-gradient(90deg, ${stops});\n}`;
+}
+
+/** Android res/values/colors.xml entries. */
+export function generateAndroidColorsXml(combo: Combination): string {
+  const prefix = getComboPrefix(combo).replace(/-/g, '_');
+  const lines = combo.colors.map(
+    (c, i) => `    <color name="${prefix}_color_${i + 1}">#FF${c.hex.slice(1).toUpperCase()}</color> <!-- ${escapeXml(c.name)} -->`
+  );
+  return `<?xml version="1.0" encoding="utf-8"?>\n<!-- ${escapeXml(getComboTitle(combo))} -->\n<resources>\n${lines.join('\n')}\n</resources>`;
+}
+
+/** SwiftUI Color extension (sRGB). */
+export function generateSwiftUiColors(combo: Combination): string {
+  const base = getComboPrefix(combo)
+    .split('-')
+    .map((p, i) => (i === 0 ? p : p.charAt(0).toUpperCase() + p.slice(1)))
+    .join('');
+  const lines = combo.colors.map((c, i) => {
+    const [r, g, b] = c.rgb;
+    return `    static let ${base}Color${i + 1} = Color(.sRGB, red: ${(r / 255).toFixed(3)}, green: ${(g / 255).toFixed(3)}, blue: ${(b / 255).toFixed(3)}, opacity: 1) // ${c.name}`;
+  });
+  return `import SwiftUI\n\n// ${getComboTitle(combo)}\nextension Color {\n${lines.join('\n')}\n}`;
+}

@@ -40,6 +40,9 @@ import {
   generateSvgPaletteSnippet,
   generateGplPalette,
   generateJsonExport,
+  generateCssGradients,
+  generateAndroidColorsXml,
+  generateSwiftUiColors,
 } from '../utils/colorUtils';
 import { useModalDialog } from '../utils/useModalDialog';
 import { MONTH_OPTIONS } from '../utils/paletteData';
@@ -81,6 +84,9 @@ type ExportFormat =
   | 'design-tokens'
   | 'svg-palette'
   | 'gpl'
+  | 'gradients'
+  | 'android'
+  | 'swiftui'
   | 'json';
 
 const CVD_OPTIONS: { id: CvdMode; label: string }[] = [
@@ -316,6 +322,9 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
     if (exportFormat === 'design-tokens') return generateDesignTokensJson(combination);
     if (exportFormat === 'svg-palette') return generateSvgPaletteSnippet(combination);
     if (exportFormat === 'gpl') return generateGplPalette(combination);
+    if (exportFormat === 'gradients') return generateCssGradients(combination);
+    if (exportFormat === 'android') return generateAndroidColorsXml(combination);
+    if (exportFormat === 'swiftui') return generateSwiftUiColors(combination);
     return generateJsonExport(combination);
   };
 
@@ -1523,6 +1532,9 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                       ['design-tokens', 'W3C / Figma Tokens'],
                       ['svg-palette', 'SVG Palette'],
                       ['gpl', 'GIMP (.gpl)'],
+                      ['gradients', 'CSS Gradients'],
+                      ['android', 'Android XML'],
+                      ['swiftui', 'SwiftUI'],
                       ['json', 'JSON'],
                     ] as const
                   ).map(([key, label]) => (
