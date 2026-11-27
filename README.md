@@ -8,6 +8,13 @@ Digitized archive containing:
 - **420 Color Combinations** (348 Vol. 1 harmonies + 72 Vol. 2 seasonal plates across the 12 calendar months)
 - **171 Master Colors** (159 Vol. 1 swatches + 12 newly introduced in Vol. 2), including verified Japanese kanji & romaji readings (**44 of 171** documented via upstream data + verified overrides).
 
+
+![Home, desktop](docs/screenshots/home-desktop.png)
+
+| Color Wheel | Menswear | Mobile |
+| --- | --- | --- |
+| ![Wheel](docs/screenshots/wheel-desktop.png) | ![Menswear](docs/screenshots/menswear-desktop.png) | ![Mobile home](docs/screenshots/home-mobile.png) |
+
 ---
 
 ## ✨ Features

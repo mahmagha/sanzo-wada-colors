@@ -61,7 +61,7 @@ export const FiltersBar: React.FC<FiltersBarProps> = ({
       {/* Top Row: Volume Selector & Seasonal / Month Filters (always rendered to prevent layout jumps) */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         {/* Volume Selector Tabs */}
-        <div className="flex items-center gap-1.5 p-1 rounded-lg bg-stone-200/60 dark:bg-stone-800 border border-stone-300/40 dark:border-stone-700/60 self-start shrink-0">
+        <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-lg max-w-full bg-stone-200/60 dark:bg-stone-800 border border-stone-300/40 dark:border-stone-700/60 self-start shrink-0">
           <button
             type="button"
             onClick={() => onVolumeChange('all')}
