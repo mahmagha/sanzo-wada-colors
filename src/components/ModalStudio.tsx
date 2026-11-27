@@ -16,6 +16,7 @@ import {
   Image as ImageIcon,
   Columns2,
   Shirt,
+  Grid3x3,
 } from 'lucide-react';
 import { ColorItem, Combination, CvdMode } from '../types/color';
 import {
@@ -54,6 +55,7 @@ import {
   STYLE_PRESET_PIECES,
 } from '../utils/menswearUtils';
 import { MenswearIllustration } from './MenswearIllustration';
+import { WeavePreview } from './WeavePreview';
 
 interface ModalStudioProps {
   combination: Combination | null;
@@ -72,7 +74,7 @@ interface ModalStudioProps {
   onShareLink?: (combo: Combination) => void;
 }
 
-type StudioTab = 'art-print' | 'ui-mockup' | 'menswear' | 'contrast-matrix' | 'export';
+type StudioTab = 'art-print' | 'ui-mockup' | 'menswear' | 'weave' | 'contrast-matrix' | 'export';
 type MockupTemplate = 'hero' | 'dashboard' | 'editorial' | 'mobile';
 type ExportFormat =
   | 'css'
@@ -523,13 +525,14 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
           <div
             role="tablist"
             aria-label="Studio tools"
-            className="flex items-center gap-0.5 sm:gap-1 flex-1 min-w-0"
+            className="flex items-center gap-0.5 sm:gap-1 flex-1 min-w-0 overflow-x-auto"
           >
             {(
               [
                 ['art-print', 'Art Print', 'Showa Art Print', Palette],
                 ['ui-mockup', 'UI Mockup', 'Interactive UI Mockup', Layout],
                 ['menswear', 'Menswear', 'Menswear Look', Shirt],
+                ['weave', 'Weave', 'Woven Fabric Preview', Grid3x3],
                 ['contrast-matrix', 'Contrast', 'Color Science & Contrast', Eye],
                 ['export', 'Export', 'Code & Swatch Export', FileCode],
               ] as const
@@ -1383,6 +1386,16 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
               </div>
             );
           })()}
+
+          {/* TAB 2C: WOVEN FABRIC PREVIEW */}
+          {activeTab === 'weave' && (
+            <WeavePreview
+              palette={combination.colors.map((c) => simHex(c.hex))}
+              exportPalette={combination.colors.map((c) => c.hex)}
+              label={`No. ${String(combination.id).padStart(3, '0')}`}
+              fileBase={`wada-${combination.volume === 2 ? 'v2-' : ''}${String(combination.id).padStart(3, '0')}`}
+            />
+          )}
 
           {/* TAB 3: COLOR SCIENCE & CONTRAST */}
           {activeTab === 'contrast-matrix' && (
