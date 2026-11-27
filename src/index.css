@@ -136,3 +136,9 @@
   writing-mode: vertical-rl;
   text-orientation: upright;
 }
+
+/* Skip layout and paint for grid cards that are off screen (hundreds of cards). */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 280px;
+}

@@ -37,7 +37,7 @@ export const CombinationCard: React.FC<CombinationCardProps> = ({
     volume === 2 ? `Vol.2 № ${id.toString().padStart(2, '0')}` : `№ ${id.toString().padStart(3, '0')}`;
 
   return (
-    <article className="group relative flex flex-col rounded-xl overflow-hidden border border-stone-300/60 dark:border-stone-800 bg-white/70 dark:bg-stone-900/60 shadow-xs hover:shadow-xl hover:border-amber-800/40 dark:hover:border-amber-500/40 transition-all duration-300">
+    <article className="cv-auto group relative flex flex-col rounded-xl overflow-hidden border border-stone-300/60 dark:border-stone-800 bg-white/70 dark:bg-stone-900/60 shadow-xs hover:shadow-xl hover:border-amber-800/40 dark:hover:border-amber-500/40 transition-all duration-300">
       {/* Top Swatch Strip */}
       <div className="h-44 sm:h-48 w-full flex">
         {colors.map((color) => {

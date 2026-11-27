@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Pipette, X, ArrowRight, FileImage, Upload, Sparkles } from 'lucide-react';
+import { Pipette, X, ArrowRight, FileImage, Upload, Sparkles, Camera } from 'lucide-react';
 import { ColorItem, Combination } from '../types/color';
 import { findClosestColors, normalizeHex, getIdealTextColor } from '../utils/colorUtils';
 import {
@@ -73,6 +73,7 @@ export const ColorMatcherPanel: React.FC<ColorMatcherPanelProps> = ({
   const [extractError, setExtractError] = useState<string | null>(null);
   const [extracting, setExtracting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     return () => {
@@ -355,6 +356,28 @@ export const ColorMatcherPanel: React.FC<ColorMatcherPanelProps> = ({
                 className="hidden"
                 onChange={(e) => handleFile(e.target.files?.[0])}
               />
+              {/* On phones this opens the camera. On desktops it opens the file picker. */}
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                aria-label="Take a photo to extract Sanzo Wada palette"
+                className="hidden"
+                onChange={(e) => {
+                  handleFile(e.target.files?.[0]);
+                  e.target.value = '';
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => cameraInputRef.current?.click()}
+                disabled={extracting}
+                className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-stone-300 dark:border-stone-700 text-stone-800 dark:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
+              >
+                <Camera size={13} />
+                <span>Take Photo</span>
+              </button>
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}

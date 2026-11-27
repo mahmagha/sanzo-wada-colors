@@ -22,7 +22,7 @@ export const ColorSwatchCard: React.FC<ColorSwatchCardProps> = ({
   };
 
   return (
-    <article className="group relative flex flex-col rounded-xl overflow-hidden border border-stone-300/60 dark:border-stone-800 bg-white/70 dark:bg-stone-900/60 shadow-xs hover:shadow-lg hover:border-amber-800/40 dark:hover:border-amber-500/40 transition-all duration-300">
+    <article className="cv-auto group relative flex flex-col rounded-xl overflow-hidden border border-stone-300/60 dark:border-stone-800 bg-white/70 dark:bg-stone-900/60 shadow-xs hover:shadow-lg hover:border-amber-800/40 dark:hover:border-amber-500/40 transition-all duration-300">
       {/* Big Swatch Preview */}
       <div style={{ backgroundColor: color.hex }} className="h-36 w-full relative">
         <button
