@@ -1,16 +1,12 @@
-import { FabricKey } from "./weaveUtils";
-import {
-  FabricShadeParams,
-  hexToRgb255,
-  shadeFabricPixels,
-} from "./fabricShader";
+import { FabricKey } from './weaveUtils';
+import { FabricShadeParams, hexToRgb255, shadeFabricPixels } from './fabricShader';
 
-type Baked = Exclude<FabricKey, "flat">;
+type Baked = Exclude<FabricKey, 'flat'>;
 
-const mapUrls = import.meta.glob("../assets/fabrics/*.png", {
+const mapUrls = import.meta.glob('../assets/fabrics/*.png', {
   eager: true,
-  query: "?url",
-  import: "default",
+  query: '?url',
+  import: 'default',
 }) as Record<string, string>;
 const urlOf = (name: string) => mapUrls[`../assets/fabrics/${name}.png`];
 
@@ -33,7 +29,7 @@ const UNITS: Record<Baked, number> = {
   leather: 30,
 };
 
-const SHADE: Record<Baked, Omit<FabricShadeParams, "baseHex">> = {
+const SHADE: Record<Baked, Omit<FabricShadeParams, 'baseHex'>> = {
   cotton: {
     sheen: 0.04,
     specExp: 8,
@@ -84,9 +80,8 @@ const SHADE: Record<Baked, Omit<FabricShadeParams, "baseHex">> = {
   },
 };
 
-export const isBaked = (k: FabricKey): k is Baked => k !== "flat";
-export const bakedTileUnits = (k: Baked, scale: number) =>
-  (THREADS[k] || 1) * UNITS[k] * scale;
+export const isBaked = (k: FabricKey): k is Baked => k !== 'flat';
+export const bakedTileUnits = (k: Baked, scale: number) => (THREADS[k] || 1) * UNITS[k] * scale;
 
 const imageCache = new Map<string, Promise<ImageData>>();
 function loadMap(name: string): Promise<ImageData> {
@@ -95,11 +90,11 @@ function loadMap(name: string): Promise<ImageData> {
     p = new Promise<ImageData>((resolve, reject) => {
       const img = new Image();
       img.onload = () => {
-        const c = document.createElement("canvas");
+        const c = document.createElement('canvas');
         c.width = img.naturalWidth;
         c.height = img.naturalHeight;
-        const ctx = c.getContext("2d", { willReadFrequently: true });
-        if (!ctx) return reject(new Error("no 2d context"));
+        const ctx = c.getContext('2d', { willReadFrequently: true });
+        if (!ctx) return reject(new Error('no 2d context'));
         ctx.drawImage(img, 0, 0);
         resolve(ctx.getImageData(0, 0, c.width, c.height));
       };
@@ -117,30 +112,26 @@ export function shadedTileUrl(fabric: Baked, hex: string): Promise<string> {
   const key = `${fabric}|${hex}`;
   let p = tileCache.get(key);
   if (!p) {
-    p = Promise.all([loadMap(`${fabric}-n`), loadMap(`${fabric}-o`)]).then(
-      ([n, o]) => {
-        const c = document.createElement("canvas");
-        c.width = n.width;
-        c.height = n.height;
-        const ctx = c.getContext("2d");
-        if (!ctx) throw new Error("no 2d context");
-        const px = shadeFabricPixels(n.data, o.data, n.width * n.height, {
-          ...SHADE[fabric],
-          baseHex: hex,
-        });
-        // Keep the cloth color true to the swatch: rescale so the tile's average equals the base color.
-        const base = hexToRgb255(hex);
-        const sum = [0, 0, 0];
-        for (let i = 0; i < px.length; i += 4)
-          for (let c = 0; c < 3; c++) sum[c] += px[i + c];
-        const count = px.length / 4;
-        const gain = sum.map((t, c) => (t > 0 ? base[c] / (t / count) : 1));
-        for (let i = 0; i < px.length; i += 4)
-          for (let c = 0; c < 3; c++) px[i + c] = px[i + c] * gain[c];
-        ctx.putImageData(new ImageData(px, n.width, n.height), 0, 0);
-        return c.toDataURL("image/png");
-      },
-    );
+    p = Promise.all([loadMap(`${fabric}-n`), loadMap(`${fabric}-o`)]).then(([n, o]) => {
+      const c = document.createElement('canvas');
+      c.width = n.width;
+      c.height = n.height;
+      const ctx = c.getContext('2d');
+      if (!ctx) throw new Error('no 2d context');
+      const px = shadeFabricPixels(n.data, o.data, n.width * n.height, {
+        ...SHADE[fabric],
+        baseHex: hex,
+      });
+      // Keep the cloth color true to the swatch: rescale so the tile's average equals the base color.
+      const base = hexToRgb255(hex);
+      const sum = [0, 0, 0];
+      for (let i = 0; i < px.length; i += 4) for (let c = 0; c < 3; c++) sum[c] += px[i + c];
+      const count = px.length / 4;
+      const gain = sum.map((t, c) => (t > 0 ? base[c] / (t / count) : 1));
+      for (let i = 0; i < px.length; i += 4) for (let c = 0; c < 3; c++) px[i + c] = px[i + c] * gain[c];
+      ctx.putImageData(new ImageData(px, n.width, n.height), 0, 0);
+      return c.toDataURL('image/png');
+    });
     tileCache.set(key, p);
   }
   return p;

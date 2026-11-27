@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
-import { isBaked, shadedTileUrl } from "../utils/fabricTexture";
-import { FABRICS, FABRIC_ORDER, FabricKey } from "../utils/weaveUtils";
-import { GarmentPieces, getSlotDisplayLabel } from "../utils/menswearUtils";
-import type { ClothSlot, GarmentFabrics } from "./MenswearIllustration";
+import React, { useEffect, useState } from 'react';
+import { isBaked, shadedTileUrl } from '../utils/fabricTexture';
+import { FABRICS, FABRIC_ORDER, FabricKey } from '../utils/weaveUtils';
+import { GarmentPieces, getSlotDisplayLabel } from '../utils/menswearUtils';
+import type { ClothSlot, GarmentFabrics } from './MenswearIllustration';
 
 interface Props {
   value: GarmentFabrics;
@@ -13,10 +13,7 @@ interface Props {
 }
 
 /** Close-up of the baked yarn geometry, lit from the top left (the same maps the figure uses). */
-const Swatch: React.FC<{ fabric: FabricKey; hex: string }> = ({
-  fabric,
-  hex,
-}) => {
+const Swatch: React.FC<{ fabric: FabricKey; hex: string }> = ({ fabric, hex }) => {
   const [url, setUrl] = useState<string>();
   useEffect(() => {
     let live = true;
@@ -39,21 +36,16 @@ const Swatch: React.FC<{ fabric: FabricKey; hex: string }> = ({
       style={{
         backgroundColor: hex,
         backgroundImage: url ? `url(${url})` : undefined,
-        backgroundSize: "112px 112px",
-        backgroundPosition: "center",
+        backgroundSize: '112px 112px',
+        backgroundPosition: 'center',
       }}
     />
   );
 };
 
-const SLOTS: ClothSlot[] = ["outerwear", "top", "bottom"];
+const SLOTS: ClothSlot[] = ['outerwear', 'top', 'bottom'];
 
-export const GarmentWeaveControls: React.FC<Props> = ({
-  value,
-  onChange,
-  pieces,
-  colors,
-}) => {
+export const GarmentWeaveControls: React.FC<Props> = ({ value, onChange, pieces, colors }) => {
   const set = (slot: ClothSlot, fabric: FabricKey, scale?: number) =>
     onChange({
       ...value,
@@ -61,35 +53,19 @@ export const GarmentWeaveControls: React.FC<Props> = ({
     });
 
   return (
-    <div
-      className="mt-3 space-y-2 text-xs"
-      data-testid="garment-weave-controls"
-    >
+    <div className="mt-3 space-y-2 text-xs" data-testid="garment-weave-controls">
       <div className="flex items-center justify-between gap-2">
-        <span className="font-semibold text-stone-800 dark:text-stone-200">
-          Fabric per garment
-        </span>
-        <span className="text-[11px] text-stone-500">
-          Every garment is woven by default
-        </span>
+        <span className="font-semibold text-stone-800 dark:text-stone-200">Fabric per garment</span>
+        <span className="text-[11px] text-stone-500">Every garment is woven by default</span>
       </div>
-      {SLOTS.filter(
-        (slot) => !(slot === "outerwear" && pieces.outerwear === "none"),
-      ).map((slot) => {
-        const current = value[slot]?.fabric ?? "flat";
+      {SLOTS.filter((slot) => !(slot === 'outerwear' && pieces.outerwear === 'none')).map((slot) => {
+        const current = value[slot]?.fabric ?? 'flat';
         const spec = FABRICS[current];
         const label = getSlotDisplayLabel(slot, pieces);
         return (
-          <div
-            key={slot}
-            className="rounded-lg border border-stone-200 dark:border-stone-800 p-2 space-y-1.5"
-            data-slot={slot}
-          >
+          <div key={slot} className="rounded-lg border border-stone-200 dark:border-stone-800 p-2 space-y-1.5" data-slot={slot}>
             <div className="flex items-center justify-between gap-2">
-              <label
-                htmlFor={`fabric-${slot}`}
-                className="font-medium text-stone-700 dark:text-stone-300 truncate"
-              >
+              <label htmlFor={`fabric-${slot}`} className="font-medium text-stone-700 dark:text-stone-300 truncate">
                 {label}
               </label>
               <select
@@ -105,11 +81,9 @@ export const GarmentWeaveControls: React.FC<Props> = ({
                 ))}
               </select>
             </div>
-            {current !== "flat" && (
+            {current !== 'flat' && (
               <div className="flex items-center gap-2">
-                {colors?.[slot] && (
-                  <Swatch fabric={current} hex={colors[slot] as string} />
-                )}
+                {colors?.[slot] && <Swatch fabric={current} hex={colors[slot] as string} />}
                 <p className="text-[11px] text-stone-500">{spec.note}</p>
               </div>
             )}
