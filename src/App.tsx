@@ -1,10 +1,11 @@
 import React, { Suspense, lazy, useState, useMemo, useEffect, useCallback } from 'react';
-import { ArrowUp, Columns2, LayoutGrid, ScatterChart, X } from 'lucide-react';
+import { ArrowUp, CircleDot, Columns2, LayoutGrid, ScatterChart, X } from 'lucide-react';
 import rawCombinations from './data/wadaCombinations.json';
 import rawColors from './data/wadaColors.json';
 import {
   ColorItem,
   ColorSortOption,
+  ColorsLayout,
   Combination,
   HydratedCombination,
   RawCombination,
@@ -19,7 +20,14 @@ import {
 import { classifyColorTone } from './utils/colorUtils';
 import { hydrateCombinations, SEASON_MONTHS } from './utils/paletteData';
 import { matchesColorTokens, matchesCombinationTokens, sortMasterColors } from './utils/searchUtils';
-import { parseUrlState, serializeUrlState } from './utils/urlState';
+import { DEFAULT_URL_STATE, parseUrlState, serializeUrlState } from './utils/urlState';
+import {
+  DEFAULT_MENSWEAR_OUTFIT,
+  GarmentOutfitIds,
+  GarmentStyle,
+  outfitArrayToRecord,
+  serializeOutfitIds,
+} from './utils/menswearUtils';
 import { Header } from './components/Header';
 import { FiltersBar } from './components/FiltersBar';
 import { CombinationCard } from './components/CombinationCard';
@@ -46,6 +54,12 @@ const GuideModal = lazy(() =>
 );
 const SpectrumMap = lazy(() =>
   import('./components/SpectrumMap').then((m) => ({ default: m.SpectrumMap }))
+);
+const WadaColorWheel = lazy(() =>
+  import('./components/WadaColorWheel').then((m) => ({ default: m.WadaColorWheel }))
+);
+const MenswearStudio = lazy(() =>
+  import('./components/MenswearStudio').then((m) => ({ default: m.MenswearStudio }))
 );
 
 const PAGE_SIZE = 48;
@@ -89,7 +103,28 @@ export const App: React.FC = () => {
 
   // View & panels state
   const [viewMode, setViewMode] = useState<ViewMode>(initialUrl.viewMode);
-  const [colorsLayout, setColorsLayout] = useState<'grid' | 'map'>(initialUrl.colorsLayout);
+  const [colorsLayout, setColorsLayout] = useState<ColorsLayout>(initialUrl.colorsLayout);
+  const [menswearStyle, setMenswearStyle] = useState<GarmentStyle>(initialUrl.menswearStyle);
+  const [menswearOutfit, setMenswearOutfit] = useState<GarmentOutfitIds>(() => {
+    if (initialUrl.menswearIds.length === 5 && initialUrl.menswearIds.every((id) => colorById.has(id))) {
+      return outfitArrayToRecord(initialUrl.menswearIds);
+    }
+    try {
+      const saved = localStorage.getItem('sanzo-wada-menswear-draft-v1');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          const arr = serializeOutfitIds(parsed);
+          if (arr.every((id) => colorById.has(id))) {
+            return outfitArrayToRecord(arr);
+          }
+        }
+      }
+    } catch {
+      // Ignore storage errors
+    }
+    return DEFAULT_MENSWEAR_OUTFIT;
+  });
   const [matcherOpen, setMatcherOpen] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
@@ -238,6 +273,14 @@ export const App: React.FC = () => {
     }
   }, [customIds]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem('sanzo-wada-menswear-draft-v1', JSON.stringify(menswearOutfit));
+    } catch {
+      // Ignore storage errors
+    }
+  }, [menswearOutfit]);
+
   // Back-to-top scroll tracking
   useEffect(() => {
     const onScroll = () => {
@@ -296,6 +339,8 @@ export const App: React.FC = () => {
       comboKey,
       mixIds,
       colorId: selectedColor ? selectedColor.id : null,
+      menswearStyle: viewMode === 'menswear' ? menswearStyle : 'suit',
+      menswearIds: viewMode === 'menswear' ? serializeOutfitIds(menswearOutfit) : [],
     });
     const targetUrl = `${window.location.pathname}${query}${window.location.hash}`;
     if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== targetUrl) {
@@ -318,6 +363,8 @@ export const App: React.FC = () => {
     compareKeys,
     selectedCombo,
     selectedColor,
+    menswearStyle,
+    menswearOutfit,
   ]);
 
   // Handle browser back/forward navigation
@@ -326,6 +373,10 @@ export const App: React.FC = () => {
       const parsed = parseUrlState(window.location.search);
       setViewMode(parsed.viewMode);
       setColorsLayout(parsed.colorsLayout);
+      setMenswearStyle(parsed.menswearStyle);
+      if (parsed.menswearIds.length === 5 && parsed.menswearIds.every((id) => colorById.has(id))) {
+        setMenswearOutfit(outfitArrayToRecord(parsed.menswearIds));
+      }
       setHasKanjiOnly(parsed.hasKanjiOnly);
       setVolumeFilter(parsed.volumeFilter);
       setSeasonFilter(parsed.seasonFilter);
@@ -627,23 +678,9 @@ export const App: React.FC = () => {
   const handleShareCombo = (combo: Combination) => {
     const isCustomMix = combo.id === 0;
     const query = serializeUrlState({
-      viewMode: 'combinations',
-      colorsLayout: 'grid',
-      hasKanjiOnly: false,
-      volumeFilter: 'all',
-      seasonFilter: 'all',
-      monthFilter: 'all',
-      sizeFilter: 'all',
-      toneFilter: 'all',
-      sortBy: 'number-asc',
-      colorSort: 'id-asc',
-      swatchId: null,
-      searchQuery: '',
-      onlyFavorites: false,
-      compareKeys: [],
+      ...DEFAULT_URL_STATE,
       comboKey: isCustomMix ? null : getComboKey(combo.id, combo.volume),
       mixIds: isCustomMix ? combo.colors.map((c) => c.id) : [],
-      colorId: null,
     });
     const shareUrl = `${window.location.origin}${window.location.pathname}${query}`;
     handleCopyText(
@@ -656,26 +693,23 @@ export const App: React.FC = () => {
 
   const handleShareColor = (color: ColorItem) => {
     const query = serializeUrlState({
+      ...DEFAULT_URL_STATE,
       viewMode: 'colors',
-      colorsLayout: 'grid',
-      hasKanjiOnly: false,
-      volumeFilter: 'all',
-      seasonFilter: 'all',
-      monthFilter: 'all',
-      sizeFilter: 'all',
-      toneFilter: 'all',
-      sortBy: 'number-asc',
-      colorSort: 'id-asc',
-      swatchId: null,
-      searchQuery: '',
-      onlyFavorites: false,
-      compareKeys: [],
-      comboKey: null,
-      mixIds: [],
       colorId: color.id,
     });
     const shareUrl = `${window.location.origin}${window.location.pathname}${query}`;
     handleCopyText(shareUrl, `Copied share link for ${color.name} (#${color.id})`);
+  };
+
+  const handleShareMenswear = () => {
+    const query = serializeUrlState({
+      ...DEFAULT_URL_STATE,
+      viewMode: 'menswear',
+      menswearStyle,
+      menswearIds: serializeOutfitIds(menswearOutfit),
+    });
+    const shareUrl = `${window.location.origin}${window.location.pathname}${query}`;
+    handleCopyText(shareUrl, 'Copied share link for Menswear outfit');
   };
 
   const hasBottomTray = comparedCombinations.length > 0 && !compareOpen;
@@ -839,6 +873,19 @@ export const App: React.FC = () => {
                   <ScatterChart size={12} />
                   <span>Spectrum</span>
                 </button>
+                <button
+                  type="button"
+                  onClick={() => setColorsLayout('wheel')}
+                  aria-pressed={colorsLayout === 'wheel'}
+                  className={`flex items-center gap-1 px-2 py-1 rounded font-medium transition-colors cursor-pointer ${
+                    colorsLayout === 'wheel'
+                      ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
+                      : 'text-stone-600 dark:text-stone-400'
+                  }`}
+                >
+                  <CircleDot size={12} />
+                  <span>Wheel</span>
+                </button>
               </div>
 
               {/* Quick Volume Switcher */}
@@ -947,13 +994,23 @@ export const App: React.FC = () => {
           </>
         )}
 
-        {/* MASTER COLORS VIEW (GRID OR 2D SPECTRUM MAP) */}
+        {/* MASTER COLORS VIEW (GRID, 2D SPECTRUM MAP, OR 360° COLOR WHEEL) */}
         {viewMode === 'colors' && (
           <>
             {filteredColors.length > 0 ? (
               colorsLayout === 'map' ? (
                 <Suspense fallback={null}>
                   <SpectrumMap
+                    colors={filteredColors}
+                    onSelectColor={(c) => {
+                      setReturnCombo(null);
+                      setSelectedColor(c);
+                    }}
+                  />
+                </Suspense>
+              ) : colorsLayout === 'wheel' ? (
+                <Suspense fallback={null}>
+                  <WadaColorWheel
                     colors={filteredColors}
                     onSelectColor={(c) => {
                       setReturnCombo(null);
@@ -996,6 +1053,30 @@ export const App: React.FC = () => {
               </div>
             )}
           </>
+        )}
+
+        {/* MENSWEAR GARMENT COLOR CHOOSER VIEW */}
+        {viewMode === 'menswear' && (
+          <Suspense fallback={null}>
+            <MenswearStudio
+              allColors={allColors}
+              allCombinations={allCombinations}
+              style={menswearStyle}
+              onChangeStyle={setMenswearStyle}
+              outfitIds={menswearOutfit}
+              onChangeOutfit={setMenswearOutfit}
+              onSelectCombo={(combo) => {
+                setReturnCombo(null);
+                setSelectedCombo(combo);
+              }}
+              onSelectColorDetail={(color) => {
+                setReturnCombo(null);
+                setSelectedColor(color);
+              }}
+              onCopyText={handleCopyText}
+              onShareOutfit={handleShareMenswear}
+            />
+          </Suspense>
         )}
       </main>
 
@@ -1088,6 +1169,12 @@ export const App: React.FC = () => {
               setReturnCombo(selectedCombo);
               setSelectedCombo(null);
               setSelectedColor(color);
+            }}
+            onOpenInMenswear={(_combo, outfit, style) => {
+              setSelectedCombo(null);
+              setMenswearOutfit(outfit);
+              setMenswearStyle(style);
+              setViewMode('menswear');
             }}
             onPrev={handlePrevCombo}
             onNext={handleNextCombo}

@@ -1,9 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { X, Sparkles, Shuffle, Trash2, Check, Search, BookmarkPlus } from 'lucide-react';
+import { X, Sparkles, Shuffle, Trash2, Check, Search, BookmarkPlus, CircleDot, LayoutGrid } from 'lucide-react';
 import { ColorItem, Combination, ToneFilter } from '../types/color';
 import { classifyColorTone, getIdealTextColor } from '../utils/colorUtils';
 import { matchesColorTokens } from '../utils/searchUtils';
 import { useModalDialog } from '../utils/useModalDialog';
+import { WadaColorWheel } from './WadaColorWheel';
 
 interface SavedCustomMix {
   id: string;
@@ -33,6 +34,7 @@ export const CustomPaletteModal: React.FC<CustomPaletteModalProps> = ({
 }) => {
   const [query, setQuery] = useState('');
   const [tone, setTone] = useState<ToneFilter>('all');
+  const [pickerView, setPickerView] = useState<'grid' | 'wheel'>('grid');
   const [mixName, setMixName] = useState('');
   const [savedMixes, setSavedMixes] = useState<SavedCustomMix[]>(() => {
     try {
@@ -290,54 +292,101 @@ export const CustomPaletteModal: React.FC<CustomPaletteModalProps> = ({
             />
           </div>
 
-          <div className="flex items-center gap-1 flex-wrap text-xs">
-            {(['all', 'warm', 'cool', 'earthy', 'pastel', 'deep', 'neutral'] as const).map((t) => (
+          <div className="flex items-center gap-2 flex-wrap text-xs">
+            <div className="flex items-center gap-1 flex-wrap">
+              {(['all', 'warm', 'cool', 'earthy', 'pastel', 'deep', 'neutral'] as const).map((t) => (
+                <button
+                  type="button"
+                  key={t}
+                  onClick={() => setTone(t)}
+                  className={`px-2 py-0.5 rounded capitalize font-medium cursor-pointer ${
+                    tone === t
+                      ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900'
+                      : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+
+            <div
+              role="group"
+              aria-label="Custom mixer picker view"
+              className="flex items-center bg-stone-200/60 dark:bg-stone-800 p-0.5 rounded-lg"
+            >
               <button
                 type="button"
-                key={t}
-                onClick={() => setTone(t)}
-                className={`px-2 py-0.5 rounded capitalize font-medium cursor-pointer ${
-                  tone === t
-                    ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900'
-                    : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
+                onClick={() => setPickerView('grid')}
+                aria-pressed={pickerView === 'grid'}
+                className={`flex items-center gap-1 px-2 py-0.5 rounded font-medium cursor-pointer ${
+                  pickerView === 'grid'
+                    ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
+                    : 'text-stone-600 dark:text-stone-400'
                 }`}
               >
-                {t}
+                <LayoutGrid size={12} />
+                <span>Grid</span>
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={() => setPickerView('wheel')}
+                aria-pressed={pickerView === 'wheel'}
+                className={`flex items-center gap-1 px-2 py-0.5 rounded font-medium cursor-pointer ${
+                  pickerView === 'wheel'
+                    ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
+                    : 'text-stone-600 dark:text-stone-400'
+                }`}
+              >
+                <CircleDot size={12} />
+                <span>Wheel</span>
+              </button>
+            </div>
           </div>
         </div>
 
-        {/* Swatch Grid */}
-        <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
-          {filteredSwatches.map((c) => {
-            const isSelected = selectedIds.includes(c.id);
-            const txt = getIdealTextColor(c.hex);
-            return (
-              <button
-                type="button"
-                key={c.id}
-                onClick={() => toggleColor(c.id)}
-                disabled={!isSelected && selectedIds.length >= MAX_CUSTOM_COLORS}
-                style={{ backgroundColor: c.hex, color: txt }}
-                className={`relative h-20 rounded-xl p-2.5 flex flex-col justify-between text-left border transition-transform cursor-pointer disabled:opacity-45 ${
-                  isSelected
-                    ? 'ring-2 ring-amber-600 ring-offset-2 dark:ring-offset-stone-900 scale-[0.98]'
-                    : 'border-black/15 hover:scale-[1.02]'
-                }`}
-              >
-                <div className="flex items-center justify-between w-full">
-                  <span className="text-[10px] font-code opacity-80">#{c.id}</span>
-                  {isSelected && <Check size={14} strokeWidth={3} />}
-                </div>
-                <div className="w-full">
-                  <div className="text-xs font-editorial font-bold truncate">{c.name}</div>
-                  <div className="text-[10px] font-code opacity-80 uppercase">{c.hex}</div>
-                </div>
-              </button>
-            );
-          })}
-        </div>
+        {/* Swatch Grid or 360-degree Color Wheel */}
+        {pickerView === 'wheel' ? (
+          <div className="flex-1 overflow-y-auto p-4">
+            <WadaColorWheel
+              colors={filteredSwatches}
+              onSelectColor={(c) => toggleColor(c.id)}
+              selectedIds={selectedIds}
+              activeSlotLabel={`Custom Mix (${selectedColors.length}/${MAX_CUSTOM_COLORS} selected — click to add/remove)`}
+              compact
+            />
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 sm:grid-cols-4 md:grid-cols-5 gap-2.5">
+            {filteredSwatches.map((c) => {
+              const isSelected = selectedIds.includes(c.id);
+              const txt = getIdealTextColor(c.hex);
+              return (
+                <button
+                  type="button"
+                  key={c.id}
+                  onClick={() => toggleColor(c.id)}
+                  disabled={!isSelected && selectedIds.length >= MAX_CUSTOM_COLORS}
+                  style={{ backgroundColor: c.hex, color: txt }}
+                  className={`relative h-20 rounded-xl p-2.5 flex flex-col justify-between text-left border transition-transform cursor-pointer disabled:opacity-45 ${
+                    isSelected
+                      ? 'ring-2 ring-amber-600 ring-offset-2 dark:ring-offset-stone-900 scale-[0.98]'
+                      : 'border-black/15 hover:scale-[1.02]'
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-[10px] font-code opacity-80">#{c.id}</span>
+                    {isSelected && <Check size={14} strokeWidth={3} />}
+                  </div>
+                  <div className="w-full">
+                    <div className="text-xs font-editorial font-bold truncate">{c.name}</div>
+                    <div className="text-[10px] font-code opacity-80 uppercase">{c.hex}</div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );

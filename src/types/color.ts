@@ -45,7 +45,8 @@ export interface HydratedCombination extends Combination {
 }
 
 export type ThemeMode = 'washi' | 'studio' | 'dark';
-export type ViewMode = 'combinations' | 'colors';
+export type ViewMode = 'combinations' | 'colors' | 'menswear';
+export type ColorsLayout = 'grid' | 'map' | 'wheel';
 export type VolumeFilter = 'all' | 1 | 2;
 export type PaletteSizeFilter = 'all' | 2 | 3 | 4 | 5;
 export type ToneFilter = 'all' | 'warm' | 'cool' | 'earthy' | 'pastel' | 'deep' | 'neutral';

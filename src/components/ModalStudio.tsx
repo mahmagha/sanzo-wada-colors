@@ -15,6 +15,7 @@ import {
   Share2,
   Image as ImageIcon,
   Columns2,
+  Shirt,
 } from 'lucide-react';
 import { ColorItem, Combination, CvdMode } from '../types/color';
 import {
@@ -42,6 +43,15 @@ import {
 } from '../utils/colorUtils';
 import { useModalDialog } from '../utils/useModalDialog';
 import { MONTH_OPTIONS } from '../utils/paletteData';
+import {
+  GARMENT_SLOT_ORDER,
+  GARMENT_STYLE_CONFIG,
+  GarmentOutfitIds,
+  GarmentSlotKey,
+  GarmentStyle,
+  mapComboToGarmentOutfit,
+} from '../utils/menswearUtils';
+import { MenswearIllustration } from './MenswearIllustration';
 
 interface ModalStudioProps {
   combination: Combination | null;
@@ -52,6 +62,7 @@ interface ModalStudioProps {
   onToggleCompare?: (combo: Combination) => void;
   onCopyText: (text: string, label: string) => void;
   onSelectColor?: (color: ColorItem) => void;
+  onOpenInMenswear?: (combo: Combination, outfit: GarmentOutfitIds, style: GarmentStyle) => void;
   onPrev?: () => void;
   onNext?: () => void;
   hasPrev?: boolean;
@@ -59,7 +70,7 @@ interface ModalStudioProps {
   onShareLink?: (combo: Combination) => void;
 }
 
-type StudioTab = 'art-print' | 'ui-mockup' | 'contrast-matrix' | 'export';
+type StudioTab = 'art-print' | 'ui-mockup' | 'menswear' | 'contrast-matrix' | 'export';
 type MockupTemplate = 'hero' | 'dashboard' | 'editorial' | 'mobile';
 type ExportFormat =
   | 'css'
@@ -109,6 +120,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
   onToggleCompare,
   onCopyText,
   onSelectColor,
+  onOpenInMenswear,
   onPrev,
   onNext,
   hasPrev = false,
@@ -117,6 +129,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<StudioTab>('art-print');
   const [mockupTemplate, setMockupTemplate] = useState<MockupTemplate>('hero');
+  const [menswearStyle, setMenswearStyle] = useState<GarmentStyle>('suit');
   const [exportFormat, setExportFormat] = useState<ExportFormat>('css');
   const [cssUseOklch, setCssUseOklch] = useState(false);
   const [cvdMode, setCvdMode] = useState<CvdMode>('normal');
@@ -126,6 +139,9 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
   const initialDefaults = getDefaultRoleIndices(initialColors);
   const [posterOrder, setPosterOrder] = useState<number[]>(() =>
     initialColors.map((c) => c.id)
+  );
+  const [menswearOutfit, setMenswearOutfit] = useState<GarmentOutfitIds>(() =>
+    combination ? mapComboToGarmentOutfit(combination) : { outerwear: 1, top: 1, bottom: 1, accent: 1, footwear: 1 }
   );
   const [bgIndex, setBgIndex] = useState<number>(initialDefaults.bg);
   const [surfaceIndex, setSurfaceIndex] = useState<number>(initialDefaults.surface);
@@ -140,6 +156,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
   useEffect(() => {
     if (!combination) return;
     setPosterOrder(combination.colors.map((c) => c.id));
+    setMenswearOutfit(mapComboToGarmentOutfit(combination));
     const defaults = getDefaultRoleIndices(combination.colors);
     setBgIndex(defaults.bg);
     setSurfaceIndex(defaults.surface);
@@ -487,6 +504,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
               [
                 ['art-print', 'Showa Art Print', Palette],
                 ['ui-mockup', 'Interactive UI Mockup', Layout],
+                ['menswear', 'Menswear Look', Shirt],
                 ['contrast-matrix', 'Color Science & Contrast', Eye],
                 ['export', 'Code & Swatch Export', FileCode],
               ] as const
@@ -1223,6 +1241,113 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
               )}
             </div>
           )}
+
+          {/* TAB 2B: MENSWEAR GARMENT LOOK */}
+          {activeTab === 'menswear' && (() => {
+            const byId = new Map<number, ColorItem>(colors.map((c) => [c.id, c]));
+            const fallback = colors[0];
+            const outfitColors: Record<GarmentSlotKey, ColorItem> = {
+              outerwear: byId.get(menswearOutfit.outerwear) ?? fallback,
+              top: byId.get(menswearOutfit.top) ?? fallback,
+              bottom: byId.get(menswearOutfit.bottom) ?? fallback,
+              accent: byId.get(menswearOutfit.accent) ?? fallback,
+              footwear: byId.get(menswearOutfit.footwear) ?? fallback,
+            };
+            const styleConfig = GARMENT_STYLE_CONFIG[menswearStyle];
+            return (
+              <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
+                <div className="md:col-span-6 p-5 rounded-2xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/60 flex flex-col items-center">
+                  <div
+                    role="group"
+                    aria-label="Modal menswear style"
+                    className="inline-flex rounded-lg p-0.5 bg-stone-200/70 dark:bg-stone-800 text-xs mb-3"
+                  >
+                    {(['suit', 'casual', 'wafuku'] as const).map((s) => (
+                      <button
+                        type="button"
+                        key={s}
+                        onClick={() => setMenswearStyle(s)}
+                        aria-pressed={menswearStyle === s}
+                        className={`px-2.5 py-1 rounded font-medium cursor-pointer ${
+                          menswearStyle === s
+                            ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
+                            : 'text-stone-600 dark:text-stone-400'
+                        }`}
+                      >
+                        {GARMENT_STYLE_CONFIG[s].label}
+                      </button>
+                    ))}
+                  </div>
+                  <MenswearIllustration
+                    style={menswearStyle}
+                    outfit={outfitColors}
+                    cvdMode={cvdMode}
+                  />
+                </div>
+
+                <div className="md:col-span-6 space-y-3">
+                  <div>
+                    <h4 className="text-sm font-editorial font-bold text-stone-900 dark:text-stone-100">
+                      Palette Mapped to Male Garments
+                    </h4>
+                    <p className="text-xs text-stone-500 dark:text-stone-400">
+                      Reassign how this combination’s swatches sit across each garment, or launch the full 171-color 360° Wheel Chooser.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    {GARMENT_SLOT_ORDER.map((slot) => {
+                      const assigned = outfitColors[slot];
+                      return (
+                        <div
+                          key={slot}
+                          className="flex items-center justify-between gap-2 p-2 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50/70 dark:bg-stone-950/40 text-xs"
+                        >
+                          <div className="flex items-center gap-2 min-w-0">
+                            <span
+                              style={{ backgroundColor: assigned.hex }}
+                              className="w-6 h-6 rounded border border-black/20 shrink-0"
+                            />
+                            <span className="font-medium text-stone-800 dark:text-stone-200 truncate">
+                              {styleConfig.slots[slot].label}
+                            </span>
+                          </div>
+                          <select
+                            aria-label={`Assign palette color for ${styleConfig.slots[slot].label}`}
+                            value={assigned.id}
+                            onChange={(e) =>
+                              setMenswearOutfit((prev) => ({
+                                ...prev,
+                                [slot]: Number(e.target.value),
+                              }))
+                            }
+                            className="px-2 py-1 rounded border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 text-xs cursor-pointer max-w-[175px]"
+                          >
+                            {colors.map((c) => (
+                              <option key={c.id} value={c.id}>
+                                #{c.id} {c.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {onOpenInMenswear && (
+                    <button
+                      type="button"
+                      onClick={() => onOpenInMenswear(combination, menswearOutfit, menswearStyle)}
+                      className="w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium bg-amber-900 text-amber-50 hover:bg-amber-800 dark:bg-amber-700 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <Shirt size={15} />
+                      <span>Customize with All 171 Colors on 360° Wheel →</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* TAB 3: COLOR SCIENCE & CONTRAST */}
           {activeTab === 'contrast-matrix' && (

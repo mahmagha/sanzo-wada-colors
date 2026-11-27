@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Pipette, X, ArrowRight, FileImage, Upload, Sparkles } from 'lucide-react';
-import { ColorItem, Combination } from '../types/color';
-import { findClosestColors, normalizeHex, getIdealTextColor } from '../utils/colorUtils';
+import { Pipette, X, ArrowRight, FileImage, Upload, Sparkles, CircleDot } from 'lucide-react';
+import { ColorItem, Combination, ToneFilter } from '../types/color';
+import { classifyColorTone, findClosestColors, normalizeHex, getIdealTextColor } from '../utils/colorUtils';
 import {
   ExtractedColor,
   extractColorsFromImageFile,
   quantizeRgbSamples,
 } from '../utils/imageQuantize';
+import { WadaColorWheel } from './WadaColorWheel';
 
 interface ColorMatcherPanelProps {
   allColors: ColorItem[];
@@ -15,7 +16,7 @@ interface ColorMatcherPanelProps {
   onClose: () => void;
 }
 
-type MatcherMode = 'hex' | 'image';
+type MatcherMode = 'hex' | 'wheel' | 'image';
 
 const SAMPLE_ARTWORKS: { id: string; label: string; stops: string[] }[] = [
   {
@@ -66,6 +67,7 @@ export const ColorMatcherPanel: React.FC<ColorMatcherPanelProps> = ({
 }) => {
   const [mode, setMode] = useState<MatcherMode>('hex');
   const [hexInput, setHexInput] = useState('#c54432');
+  const [wheelTone, setWheelTone] = useState<ToneFilter>('all');
 
   const [imageName, setImageName] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -158,17 +160,21 @@ export const ColorMatcherPanel: React.FC<ColorMatcherPanelProps> = ({
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-4 border-b border-stone-200/80 dark:border-stone-800">
         <div className="flex items-center gap-3 flex-wrap">
           <div className="w-8 h-8 rounded-lg bg-amber-800/10 dark:bg-amber-500/15 text-amber-800 dark:text-amber-400 flex items-center justify-center shrink-0">
-            {mode === 'hex' ? <Pipette size={16} /> : <FileImage size={16} />}
+            {mode === 'hex' ? <Pipette size={16} /> : mode === 'wheel' ? <CircleDot size={16} /> : <FileImage size={16} />}
           </div>
           <div>
             <h2 className="text-sm sm:text-base font-editorial font-bold text-stone-900 dark:text-stone-100">
               {mode === 'hex'
                 ? 'Closest Wada Swatch Matcher (CIEDE2000)'
+                : mode === 'wheel'
+                ? 'All-171 Pigment 360° Color Wheel Chooser'
                 : 'Image-to-Sanzo-Wada Palette Extractor'}
             </h2>
             <p className="text-xs text-stone-500 dark:text-stone-400">
               {mode === 'hex'
                 ? 'Pick or enter any HEX color to rank nearest archival swatches.'
+                : mode === 'wheel'
+                ? 'Spin and click across all 171 archival pigments arranged around 360° Hue & Neutrals.'
                 : 'Extract dominant colors locally in your browser and map them to Wada’s palette.'}
             </p>
           </div>
@@ -186,6 +192,17 @@ export const ColorMatcherPanel: React.FC<ColorMatcherPanelProps> = ({
               }`}
             >
               HEX Match
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode('wheel')}
+              className={`px-2.5 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                mode === 'wheel'
+                  ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
+                  : 'text-stone-600 dark:text-stone-400'
+              }`}
+            >
+              Color Wheel
             </button>
             <button
               type="button"
@@ -297,6 +314,39 @@ export const ColorMatcherPanel: React.FC<ColorMatcherPanelProps> = ({
             </div>
           )}
         </>
+      )}
+
+      {/* ALL-171 COLOR WHEEL CHOOSER */}
+      {mode === 'wheel' && (
+        <div className="pt-4 space-y-3">
+          <div className="flex items-center gap-1.5 flex-wrap text-xs">
+            <span className="text-stone-500 font-medium">Tone filter:</span>
+            {(['all', 'warm', 'cool', 'earthy', 'pastel', 'deep', 'neutral'] as const).map((t) => (
+              <button
+                type="button"
+                key={t}
+                onClick={() => setWheelTone(t)}
+                aria-pressed={wheelTone === t}
+                className={`px-2 py-0.5 rounded capitalize font-medium cursor-pointer ${
+                  wheelTone === t
+                    ? 'bg-stone-900 text-white dark:bg-stone-100 dark:text-stone-900'
+                    : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
+                }`}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+          <WadaColorWheel
+            colors={
+              wheelTone === 'all'
+                ? allColors
+                : allColors.filter((c) => classifyColorTone(c.rgb) === wheelTone)
+            }
+            onSelectColor={onSelectColor}
+            compact
+          />
+        </div>
       )}
 
       {/* IMAGE PALETTE EXTRACTOR */}

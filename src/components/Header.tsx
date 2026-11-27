@@ -10,6 +10,7 @@ import {
   Pipette,
   Wand2,
   CircleHelp,
+  Shirt,
 } from 'lucide-react';
 import { ThemeMode, ViewMode } from '../types/color';
 
@@ -241,6 +242,20 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
             >
               Master Colors <span className="text-[11px] opacity-75 font-code">(171)</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={viewMode === 'menswear'}
+              onClick={() => onViewModeChange('menswear')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors cursor-pointer ${
+                viewMode === 'menswear'
+                  ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
+                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
+              }`}
+            >
+              <Shirt size={14} />
+              <span>Menswear</span>
             </button>
           </div>
 

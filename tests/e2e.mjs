@@ -329,9 +329,11 @@ async function run() {
     assert.equal(darkState.hasDark, true);
     assert.equal(darkState.bg, 'rgb(18, 18, 20)');
 
-    // 7. Open Color Match panel (HEX Match + From Image preset + thumbnail preview)
+    // 7. Open Color Match panel (HEX Match + Color Wheel + From Image preset + thumbnail preview)
     await client.eval(`Array.from(document.querySelectorAll('header button')).find(b => b.textContent.includes('Color Match')).click()`);
     assert.equal(await waitForText('CIEDE2000'), true);
+    await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Color Wheel').click()`);
+    assert.equal(await waitForText('All-171 Pigment 360° Color Wheel Chooser'), true);
     await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'From Image').click()`);
     assert.equal(await waitForText('Image-to-Sanzo-Wada Palette Extractor'), true);
 
@@ -343,6 +345,7 @@ async function run() {
       return img ? { complete: img.complete, naturalWidth: img.naturalWidth, alt: img.alt } : null;
     })()`);
     assert.ok(previewImgCheck && previewImgCheck.complete && previewImgCheck.naturalWidth > 0 && previewImgCheck.alt.includes('Ukiyo-e Sunset'));
+    await client.eval(`document.querySelector('button[aria-label="Close color matcher"]')?.click()`);
 
     // 7b. Open Custom Mix composer, save a named mix to localStorage, launch in Studio, test weighted reorder
     await client.eval(`document.querySelector('header button[title*="Compose a custom palette"]').click()`);
@@ -493,7 +496,7 @@ async function run() {
     await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Reset').click()`);
     await new Promise((r) => setTimeout(r, 80));
 
-    // 10. Switch to Master Colors, test Kanji (44) filter, 2D Spectrum Map, Show #IDs, and URL sync
+    // 10. Switch to Master Colors, test Kanji (44) filter, 2D Spectrum Map, 360° Color Wheel, Show #IDs, and URL sync
     await client.eval(`Array.from(document.querySelectorAll('button[role="tab"]')).find(b => b.textContent.includes('Master Colors')).click()`);
     await new Promise((r) => setTimeout(r, 100));
     await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Kanji (44)')).click()`);
@@ -511,14 +514,56 @@ async function run() {
     const node5Label = await client.eval(`document.querySelector('button[aria-label^="#5 "]')?.textContent?.trim()`);
     assert.equal(node5Label, '5');
 
+    // Switch to 360-degree Color Wheel in Master Colors and verify full 171 pigments when kanji filter cleared
+    await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Wheel').click()`);
+    assert.equal(await waitForText('360° Wada Color Wheel (44 Pigments)'), true);
+    const wheelUrl = await client.eval(`window.location.search`);
+    assert.ok(wheelUrl.includes('layout=wheel'), `Expected layout=wheel in ${wheelUrl}`);
+
+    await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Kanji (44)')).click()`);
+    assert.equal(await waitForText('360° Wada Color Wheel (171 Pigments)'), true);
+
+    // 10b. Open Menswear Garment Studio tab, select Trousers slot, pick #14 Raw Sienna on 360° Wheel, switch silhouettes & save look
+    await client.eval(`Array.from(document.querySelectorAll('header button[role="tab"]')).find(b => b.textContent.includes('Menswear')).click()`);
+    assert.equal(await waitForText('Menswear Garment Color Chooser'), true);
+    assert.equal(await waitForText('360° Wada Color Wheel (171 Pigments)'), true);
+    const menswearUrl = await client.eval(`window.location.search`);
+    assert.ok(menswearUrl.includes('view=menswear'), `Expected view=menswear in ${menswearUrl}`);
+
+    await client.eval(`Array.from(document.querySelectorAll('section[aria-label="Menswear Garment Color Studio"] button')).find(b => b.textContent.includes('Trousers'))?.click()`);
+    await new Promise((r) => setTimeout(r, 50));
+    await client.eval(`document.querySelector('section[aria-label="Menswear Garment Color Studio"] button[aria-label^="#14 "]')?.click()`);
+    assert.equal(await waitForText('#14 Raw Sienna'), true);
+
+    // Switch between Casual Coat & Knit and Haori & Kimono silhouettes
+    await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Casual Coat & Knit').click()`);
+    assert.equal(await waitForText('Chore Coat / Jacket'), true);
+    await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Haori & Kimono').click()`);
+    assert.equal(await waitForText('Haori Coat (羽織)'), true);
+
+    // Save custom menswear outfit look
+    await client.eval(`(() => {
+      const input = document.querySelector('input[aria-label="Saved menswear outfit name"]');
+      const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+      setter.call(input, 'Atelier Autumn');
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    })()`);
+    await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Save Look')).click()`);
+    assert.equal(await waitForText('Atelier Autumn'), true);
+    const savedLooksRaw = await client.eval(`localStorage.getItem('sanzo-wada-menswear-outfits-v1')`);
+    assert.ok(savedLooksRaw && savedLooksRaw.includes('Atelier Autumn'));
+
     const errorsBeforeDeepLink = await client.eval(`window.__errors`);
     assert.deepEqual(errorsBeforeDeepLink, [], `Unexpected page errors: ${JSON.stringify(errorsBeforeDeepLink)}`);
 
-    // 11. Navigate to shareable custom mix URL (?mix=1,74,134) and verify Custom Studio opens automatically
+    // 11. Navigate to shareable custom mix URL (?mix=1,74,134) and verify Custom Studio opens automatically with Menswear Look tab
     await client.send('Page.navigate', { url: `${BASE_URL}?mix=1,74,134` });
     assert.equal(await waitForText('Custom Studio Palette', 8000), true);
     assert.equal(await waitForText('3-Color Custom Mix', 3000), true);
     assert.equal(await client.eval(`document.querySelector('[role="dialog"]')?.getAttribute('aria-modal')`), 'true');
+
+    await client.eval(`Array.from(document.querySelectorAll('[role="dialog"] button[role="tab"]')).find(b => b.textContent.includes('Menswear Look')).click()`);
+    assert.equal(await waitForText('Palette Mapped to Male Garments'), true);
 
     console.log('CDP_E2E_ALL_PASSED');
   } finally {

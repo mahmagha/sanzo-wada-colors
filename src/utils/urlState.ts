@@ -1,5 +1,6 @@
 import {
   ColorSortOption,
+  ColorsLayout,
   PaletteSizeFilter,
   SeasonFilter,
   SortOption,
@@ -7,10 +8,15 @@ import {
   ViewMode,
   VolumeFilter,
 } from '../types/color';
+import {
+  DEFAULT_MENSWEAR_OUTFIT,
+  GarmentStyle,
+  serializeOutfitIds,
+} from './menswearUtils';
 
 export interface UrlAppState {
   viewMode: ViewMode;
-  colorsLayout: 'grid' | 'map';
+  colorsLayout: ColorsLayout;
   hasKanjiOnly: boolean;
   volumeFilter: VolumeFilter;
   seasonFilter: SeasonFilter;
@@ -26,6 +32,8 @@ export interface UrlAppState {
   comboKey: string | null;
   mixIds: number[];
   colorId: number | null;
+  menswearStyle: GarmentStyle;
+  menswearIds: number[];
 }
 
 const VALID_SEASONS = new Set<SeasonFilter>(['all', 'spring', 'summer', 'autumn', 'winter']);
@@ -52,15 +60,45 @@ const VALID_COLOR_SORTS = new Set<ColorSortOption>([
   'name',
 ]);
 const COMBO_KEY_RE = /^v[12]-\d+$/;
+const VALID_MENSWEAR_STYLES = new Set<GarmentStyle>(['suit', 'casual', 'wafuku']);
+const DEFAULT_OUTFIT_PARAM = serializeOutfitIds(DEFAULT_MENSWEAR_OUTFIT).join(',');
+
+export const DEFAULT_URL_STATE: UrlAppState = {
+  viewMode: 'combinations',
+  colorsLayout: 'grid',
+  hasKanjiOnly: false,
+  volumeFilter: 'all',
+  seasonFilter: 'all',
+  monthFilter: 'all',
+  sizeFilter: 'all',
+  toneFilter: 'all',
+  sortBy: 'number-asc',
+  colorSort: 'id-asc',
+  swatchId: null,
+  searchQuery: '',
+  onlyFavorites: false,
+  compareKeys: [],
+  comboKey: null,
+  mixIds: [],
+  colorId: null,
+  menswearStyle: 'suit',
+  menswearIds: [],
+};
 
 export function parseUrlState(search: string): UrlAppState {
   const params = new URLSearchParams(search);
 
   const viewParam = params.get('view');
-  const viewMode: ViewMode = viewParam === 'colors' ? 'colors' : 'combinations';
+  const viewMode: ViewMode =
+    viewParam === 'colors'
+      ? 'colors'
+      : viewParam === 'menswear'
+      ? 'menswear'
+      : 'combinations';
 
   const layoutParam = params.get('layout');
-  const colorsLayout: 'grid' | 'map' = layoutParam === 'map' ? 'map' : 'grid';
+  const colorsLayout: ColorsLayout =
+    layoutParam === 'map' ? 'map' : layoutParam === 'wheel' ? 'wheel' : 'grid';
 
   const hasKanjiOnly = params.get('kanji') === '1';
 
@@ -130,6 +168,18 @@ export function parseUrlState(search: string): UrlAppState {
   const colorParsed = colorRaw ? Number(colorRaw) : NaN;
   const colorId = Number.isInteger(colorParsed) && colorParsed > 0 ? colorParsed : null;
 
+  const mstyleRaw = params.get('mstyle') as GarmentStyle | null;
+  const menswearStyle: GarmentStyle =
+    mstyleRaw && VALID_MENSWEAR_STYLES.has(mstyleRaw) ? mstyleRaw : 'suit';
+
+  const outfitRaw = params.get('outfit') || '';
+  const parsedOutfit = outfitRaw
+    .split(',')
+    .map((s) => Number(s.trim()))
+    .filter((n) => Number.isInteger(n) && n >= 1 && n <= 171)
+    .slice(0, 5);
+  const menswearIds = parsedOutfit.length === 5 ? parsedOutfit : [];
+
   return {
     viewMode,
     colorsLayout,
@@ -148,6 +198,8 @@ export function parseUrlState(search: string): UrlAppState {
     comboKey,
     mixIds,
     colorId,
+    menswearStyle,
+    menswearIds,
   };
 }
 
@@ -171,6 +223,10 @@ export function serializeUrlState(state: UrlAppState): string {
   if (state.comboKey) params.set('combo', state.comboKey);
   if (state.mixIds.length >= 2) params.set('mix', state.mixIds.slice(0, 6).join(','));
   if (state.colorId !== null) params.set('color', String(state.colorId));
+  if (state.menswearStyle !== 'suit') params.set('mstyle', state.menswearStyle);
+  if (state.menswearIds.length === 5 && state.menswearIds.join(',') !== DEFAULT_OUTFIT_PARAM) {
+    params.set('outfit', state.menswearIds.join(','));
+  }
 
   const query = params.toString();
   return query ? `?${query}` : '';
