@@ -54,7 +54,7 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="sticky-header-surface border-b transition-colors duration-200 sm:sticky sm:top-0 z-30 backdrop-blur-md border-stone-300/40 dark:border-stone-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pb-4">
         {/* Top Branding Line (scrolls naturally on mobile to preserve screen height) */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4">
+        <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-3.5 min-w-0">
             <div
               aria-hidden="true"
@@ -81,12 +81,12 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Quick Actions */}
-          <div className="flex items-center gap-2 flex-wrap max-w-full">
+          <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap lg:flex-nowrap shrink-0 max-w-full">
             <button
               type="button"
               onClick={onToggleMatcher}
               aria-pressed={matcherOpen}
-              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border transition-colors duration-150 cursor-pointer ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border transition-colors duration-150 whitespace-nowrap cursor-pointer ${
                 matcherOpen
                   ? 'bg-amber-800 text-amber-50 border-amber-800 dark:bg-amber-700 dark:border-amber-700 shadow-xs'
                   : 'border-stone-300 dark:border-stone-700 hover:bg-stone-200/50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300'
@@ -100,7 +100,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               type="button"
               onClick={onOpenCustomComposer}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border border-stone-300 dark:border-stone-700 hover:bg-stone-200/50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 transition-colors duration-150 cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border border-stone-300 dark:border-stone-700 hover:bg-stone-200/50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 transition-colors duration-150 whitespace-nowrap cursor-pointer"
               title="Compose a custom palette from Wada's 171 pigments"
             >
               <Wand2 size={14} />
@@ -113,7 +113,7 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               type="button"
               onClick={onRandomPalette}
-              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-colors duration-150 bg-red-800 hover:bg-red-900 text-red-50 shadow-sm hover:shadow cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-colors duration-150 bg-red-800 hover:bg-red-900 text-red-50 shadow-sm hover:shadow whitespace-nowrap cursor-pointer"
               title="Roll a random combination"
             >
               <Sparkles size={15} />
@@ -124,7 +124,7 @@ export const Header: React.FC<HeaderProps> = ({
               type="button"
               onClick={onToggleOnlyFavorites}
               aria-pressed={onlyFavorites}
-              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border transition-colors duration-150 cursor-pointer ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border transition-colors duration-150 whitespace-nowrap cursor-pointer ${
                 onlyFavorites
                   ? 'bg-rose-500/15 border-rose-500/40 text-rose-600 dark:text-rose-400'
                   : 'border-stone-300 dark:border-stone-700 hover:bg-stone-200/50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300'

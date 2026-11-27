@@ -1,7 +1,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import colorsData from '../src/data/wadaColors.json';
-import { ColorItem } from '../src/types/color';
+import rawCombos from '../src/data/wadaCombinations.json';
+import { ColorItem, RawCombination } from '../src/types/color';
+import { hydrateCombinations } from '../src/utils/paletteData';
 import {
   findHarmonyMatches,
   findNearestWheelNode,
@@ -11,6 +13,7 @@ import {
 } from '../src/utils/spectrumLayout';
 
 const masterColors = colorsData as ColorItem[];
+const allCombos = hydrateCombinations(rawCombos as RawCombination[], masterColors);
 
 describe('SpectrumMap deterministic layout', () => {
   it('keeps all nodes within chart bounds and repels overlapping identical-color coordinates', () => {
@@ -80,29 +83,40 @@ describe('SpectrumMap deterministic layout', () => {
     assert.equal(analogous.length, 2);
   });
 
-  it('orders wheel chord polygon vertices by polar angle so polygon edges never self-intersect', () => {
+  it('orders wheel chord polygon vertices cleanly so none of the 420 archival combinations ever self-intersect', () => {
     const wheelNodes = layoutColorWheelPoints(masterColors);
     const byId = new Map(wheelNodes.map((n) => [n.color.id, n]));
-    // Unsorted crossing-prone set (pink, lavender, yellow, neutral slate, indigo)
-    const sample = [10, 134, 57, 158, 132, 42].map((id) => byId.get(id)!);
-    const ordered = sortNodesByWheelAngle(sample);
 
     const ccw = (ax: number, ay: number, bx: number, by: number, cx: number, cy: number) =>
       (cy - ay) * (bx - ax) > (by - ay) * (cx - ax);
-    const segmentsIntersect = (a: typeof ordered[0], b: typeof ordered[0], c: typeof ordered[0], d: typeof ordered[0]) =>
+    const segmentsIntersect = (a: typeof wheelNodes[0], b: typeof wheelNodes[0], c: typeof wheelNodes[0], d: typeof wheelNodes[0]) =>
       ccw(a.xPct, a.yPct, c.xPct, c.yPct, d.xPct, d.yPct) !==
         ccw(b.xPct, b.yPct, c.xPct, c.yPct, d.xPct, d.yPct) &&
       ccw(a.xPct, a.yPct, b.xPct, b.yPct, c.xPct, c.yPct) !==
         ccw(a.xPct, a.yPct, b.xPct, b.yPct, d.xPct, d.yPct);
 
-    for (let i = 0; i < ordered.length; i++) {
-      const a = ordered[i];
-      const b = ordered[(i + 1) % ordered.length];
-      for (let j = i + 2; j < ordered.length; j++) {
-        if (i === 0 && j === ordered.length - 1) continue;
-        const c = ordered[j];
-        const d = ordered[(j + 1) % ordered.length];
-        assert.equal(segmentsIntersect(a, b, c, d), false, `Edges ${i} and ${j} intersected`);
+    const checkNoCrossings = (ordered: typeof wheelNodes, label: string) => {
+      for (let i = 0; i < ordered.length; i++) {
+        const a = ordered[i];
+        const b = ordered[(i + 1) % ordered.length];
+        for (let j = i + 2; j < ordered.length; j++) {
+          if (i === 0 && j === ordered.length - 1) continue;
+          const c = ordered[j];
+          const d = ordered[(j + 1) % ordered.length];
+          assert.equal(segmentsIntersect(a, b, c, d), false, `${label}: edges ${i} and ${j} intersected`);
+        }
+      }
+    };
+
+    // Unsorted crossing-prone set (pink, lavender, yellow, neutral slate, indigo)
+    const sample = [10, 134, 57, 158, 132, 42].map((id) => byId.get(id)!);
+    checkNoCrossings(sortNodesByWheelAngle(sample), 'custom sample');
+
+    // Verify every multi-color combination across Vol. 1 & Vol. 2 (all 420 combinations)
+    for (const combo of allCombos) {
+      const pts = sortNodesByWheelAngle(combo.colors.map((c) => byId.get(c.id)!));
+      if (pts.length >= 4) {
+        checkNoCrossings(pts, `Vol.${combo.volume} #${combo.id}`);
       }
     }
   });

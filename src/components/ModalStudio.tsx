@@ -403,15 +403,15 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
         )}
 
         {/* Studio Modal Header */}
-        <div className="flex items-center justify-between gap-2 px-4 sm:px-6 py-4 border-b border-stone-200 dark:border-stone-800 bg-stone-50/70 dark:bg-stone-900/90 shrink-0">
-          <div className="flex items-center gap-3 min-w-0">
+        <div className="flex flex-wrap sm:flex-nowrap items-center justify-between gap-x-2 gap-y-2.5 px-4 sm:px-6 py-3.5 sm:py-4 border-b border-stone-200 dark:border-stone-800 bg-stone-50/70 dark:bg-stone-900/90 shrink-0">
+          <div className="flex items-center gap-2.5 sm:gap-3 min-w-0 flex-1 basis-[calc(100%-2.75rem)] sm:basis-auto order-1">
             <div
               aria-hidden="true"
               className="w-8 h-8 rounded border border-red-700 dark:border-red-600 flex items-center justify-center font-editorial font-bold text-red-700 dark:text-red-500 text-sm bg-red-50/50 dark:bg-red-950/20 shrink-0"
             >
               三造
             </div>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 id="studio-modal-title" className="text-base sm:text-lg font-editorial font-bold">
                   {isCustom
@@ -449,8 +449,8 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
             </div>
           </div>
 
-          {/* Quick Header Actions (including mobile Prev/Next stepping) */}
-          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
+          {/* Quick Header Actions (wraps cleanly onto full row below title on mobile) */}
+          <div className="order-3 sm:order-2 basis-full sm:basis-auto flex items-center justify-between sm:justify-end gap-1 sm:gap-1.5 pt-2 sm:pt-0 border-t border-stone-200/70 dark:border-stone-800/70 sm:border-t-0 shrink-0">
             {(onPrev || onNext) && (hasPrev || hasNext || !isCustom) && (
               <div className="flex items-center border border-stone-300 dark:border-stone-700 rounded-lg overflow-hidden mr-0.5">
                 <button
@@ -476,74 +476,76 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
               </div>
             )}
 
-            {onToggleCompare && (
+            <div className="flex items-center gap-1 sm:gap-1.5">
+              {onToggleCompare && (
+                <button
+                  type="button"
+                  onClick={() => onToggleCompare(combination)}
+                  aria-label={isCompared ? 'Remove from comparison' : 'Pin to compare palettes'}
+                  aria-pressed={isCompared}
+                  title={isCompared ? 'Remove from comparison' : 'Pin to compare'}
+                  className={`p-2 rounded-lg transition-colors cursor-pointer ${
+                    isCompared
+                      ? 'text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/50'
+                      : 'text-stone-400 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-stone-100 dark:hover:bg-stone-800'
+                  }`}
+                >
+                  <Columns2 size={16} />
+                </button>
+              )}
+
+              {onShareLink && (
+                <button
+                  type="button"
+                  onClick={() => onShareLink(combination)}
+                  aria-label="Copy shareable link to this combination"
+                  title="Copy shareable link"
+                  className="p-2 rounded-lg text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+                >
+                  <Share2 size={16} />
+                </button>
+              )}
+
               <button
                 type="button"
-                onClick={() => onToggleCompare(combination)}
-                aria-label={isCompared ? 'Remove from comparison' : 'Pin to compare palettes'}
-                aria-pressed={isCompared}
-                title={isCompared ? 'Remove from comparison' : 'Pin to compare'}
-                className={`p-2 rounded-lg transition-colors cursor-pointer ${
-                  isCompared
-                    ? 'text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/50'
-                    : 'text-stone-400 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-stone-100 dark:hover:bg-stone-800'
-                }`}
+                onClick={() => downloadSvgCard(posterCombo, { weighted: weightedBars })}
+                aria-label="Export print-ready SVG card"
+                className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+                title="Download print-ready SVG Card"
               >
-                <Columns2 size={16} />
+                <Download size={14} />
+                <span className="hidden md:inline">SVG</span>
               </button>
-            )}
 
-            {onShareLink && (
-              <button
-                type="button"
-                onClick={() => onShareLink(combination)}
-                aria-label="Copy shareable link to this combination"
-                title="Copy shareable link"
-                className="p-2 rounded-lg text-stone-500 hover:text-stone-800 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
-              >
-                <Share2 size={16} />
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={() => downloadSvgCard(posterCombo, { weighted: weightedBars })}
-              aria-label="Export print-ready SVG card"
-              className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
-              title="Download print-ready SVG Card"
-            >
-              <Download size={14} />
-              <span className="hidden md:inline">SVG</span>
-            </button>
-
-            {!isCustom && (
-              <button
-                type="button"
-                onClick={() => onToggleFavorite(combination.id, combination.volume)}
-                aria-label={
-                  isFavorite ? 'Remove combination from favorites' : 'Save combination to favorites'
-                }
-                aria-pressed={isFavorite}
-                className={`p-2 rounded-lg transition-colors cursor-pointer ${
-                  isFavorite
-                    ? 'text-rose-500 bg-rose-50 dark:bg-rose-950/40'
-                    : 'text-stone-400 hover:text-rose-500 hover:bg-stone-100 dark:hover:bg-stone-800'
-                }`}
-                title={isFavorite ? 'Remove favorite' : 'Add to favorites'}
-              >
-                <Heart size={16} className={isFavorite ? 'fill-rose-500' : ''} />
-              </button>
-            )}
-
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Close studio modal"
-              className="p-2 rounded-lg text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
-            >
-              <X size={18} />
-            </button>
+              {!isCustom && (
+                <button
+                  type="button"
+                  onClick={() => onToggleFavorite(combination.id, combination.volume)}
+                  aria-label={
+                    isFavorite ? 'Remove combination from favorites' : 'Save combination to favorites'
+                  }
+                  aria-pressed={isFavorite}
+                  className={`p-2 rounded-lg transition-colors cursor-pointer ${
+                    isFavorite
+                      ? 'text-rose-500 bg-rose-50 dark:bg-rose-950/40'
+                      : 'text-stone-400 hover:text-rose-500 hover:bg-stone-100 dark:hover:bg-stone-800'
+                  }`}
+                  title={isFavorite ? 'Remove favorite' : 'Add to favorites'}
+                >
+                  <Heart size={16} className={isFavorite ? 'fill-rose-500' : ''} />
+                </button>
+              )}
+            </div>
           </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close studio modal"
+            className="order-2 sm:order-3 p-2 -mr-1 sm:mr-0 rounded-lg text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer shrink-0 self-start sm:self-center"
+          >
+            <X size={18} />
+          </button>
         </div>
 
         {/* Studio Subnav Tabs + CVD Vision Selector */}
@@ -574,7 +576,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                 title={fullLabel}
                 onClick={() => setActiveTab(key)}
                 className={`flex items-center justify-center gap-1.5 py-3 ${
-                  showTabLabels ? 'px-2.5 sm:px-3' : 'px-2.5 flex-1'
+                  showTabLabels ? 'px-2.5 sm:px-3' : 'px-1.5 flex-1 min-w-0'
                 } text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
                   activeTab === key
                     ? 'border-amber-800 text-amber-900 dark:border-amber-500 dark:text-amber-400'
@@ -594,7 +596,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
               aria-label="Simulate color vision deficiency"
               value={cvdMode}
               onChange={(e) => setCvdMode(e.target.value as CvdMode)}
-              className="px-2 py-1 text-xs rounded border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 dark:focus-visible:ring-amber-400 cursor-pointer"
+              className="max-w-[118px] sm:max-w-none px-1.5 sm:px-2 py-1 text-xs rounded border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 dark:focus-visible:ring-amber-400 cursor-pointer"
             >
               {CVD_OPTIONS.map((opt) => (
                 <option key={opt.id} value={opt.id}>

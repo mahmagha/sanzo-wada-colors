@@ -30,10 +30,10 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
 
-  // Navigation: network-first with cached index fallback
+  // Navigation: bypass HTTP cache so deploys propagate immediately, falling back to cache offline
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
+      fetch(request.url, { cache: 'no-cache' })
         .then((response) => {
           const copy = response.clone();
           caches.open(CACHE_NAME).then((c) => c.put(request, copy)).catch(() => {});

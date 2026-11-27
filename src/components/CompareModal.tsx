@@ -50,20 +50,20 @@ export const CompareModal: React.FC<CompareModalProps> = ({
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-5xl max-h-[90vh] flex flex-col rounded-2xl shadow-2xl overflow-hidden border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:outline-none"
       >
-        <div className="flex items-center justify-between px-5 py-4 border-b border-stone-200 dark:border-stone-800 bg-stone-50/80 dark:bg-stone-900/90 shrink-0">
-          <div className="flex items-center gap-2.5">
-            <Columns2 size={18} className="text-amber-800 dark:text-amber-400" />
-            <div>
-              <h2 id="compare-modal-title" className="text-base sm:text-lg font-editorial font-bold">
+        <div className="flex items-center justify-between gap-2 px-4 sm:px-5 py-4 border-b border-stone-200 dark:border-stone-800 bg-stone-50/80 dark:bg-stone-900/90 shrink-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <Columns2 size={18} className="text-amber-800 dark:text-amber-400 shrink-0" />
+            <div className="min-w-0">
+              <h2 id="compare-modal-title" className="text-base sm:text-lg font-editorial font-bold truncate">
                 Palette Comparison ({combinations.length} / 3)
               </h2>
-              <p className="text-xs text-stone-500 dark:text-stone-400">
+              <p className="text-xs text-stone-500 dark:text-stone-400 truncate">
                 Side-by-side comparison of contrast, color balance, and swatches.
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
             <button
               type="button"
               onClick={() => {

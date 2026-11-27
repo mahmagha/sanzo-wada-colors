@@ -172,21 +172,85 @@ export function findNearestWheelNode(
   return best;
 }
 
+function crossProduct(ax: number, ay: number, bx: number, by: number, cx: number, cy: number): number {
+  return (bx - ax) * (cy - ay) - (by - ay) * (cx - ax);
+}
+
+function segmentsProperlyIntersect(a: WheelNode, b: WheelNode, c: WheelNode, d: WheelNode): boolean {
+  if (
+    Math.max(a.xPct, b.xPct) < Math.min(c.xPct, d.xPct) ||
+    Math.max(c.xPct, d.xPct) < Math.min(a.xPct, b.xPct) ||
+    Math.max(a.yPct, b.yPct) < Math.min(c.yPct, d.yPct) ||
+    Math.max(c.yPct, d.yPct) < Math.min(a.yPct, b.yPct)
+  ) {
+    return false;
+  }
+  const d1 = crossProduct(c.xPct, c.yPct, d.xPct, d.yPct, a.xPct, a.yPct);
+  const d2 = crossProduct(c.xPct, c.yPct, d.xPct, d.yPct, b.xPct, b.yPct);
+  const d3 = crossProduct(a.xPct, a.yPct, b.xPct, b.yPct, c.xPct, c.yPct);
+  const d4 = crossProduct(a.xPct, a.yPct, b.xPct, b.yPct, d.xPct, d.yPct);
+  return ((d1 > 1e-6 && d2 < -1e-6) || (d1 < -1e-6 && d2 > 1e-6)) &&
+    ((d3 > 1e-6 && d4 < -1e-6) || (d3 < -1e-6 && d4 > 1e-6));
+}
+
 /**
- * Order wheel nodes clockwise around center (50, 50) by polar angle (breaking ties by radius)
- * so polygon chords never self-intersect when connecting unordered pigment IDs.
+ * Order wheel nodes clockwise around their own centroid by polar angle, then apply
+ * 2-opt edge uncrossing so polygon chords never self-intersect—even when all swatches
+ * sit on one half of the wheel.
  */
 export function sortNodesByWheelAngle(nodes: WheelNode[]): WheelNode[] {
-  return [...nodes].sort((a, b) => {
-    const angleA = Math.atan2(a.yPct - 50, a.xPct - 50);
-    const angleB = Math.atan2(b.yPct - 50, b.xPct - 50);
+  if (nodes.length <= 2) return [...nodes];
+
+  const cx = nodes.reduce((sum, n) => sum + n.xPct, 0) / nodes.length;
+  const cy = nodes.reduce((sum, n) => sum + n.yPct, 0) / nodes.length;
+
+  const ordered = [...nodes].sort((a, b) => {
+    const angleA = Math.atan2(a.yPct - cy, a.xPct - cx);
+    const angleB = Math.atan2(b.yPct - cy, b.xPct - cx);
     if (Math.abs(angleA - angleB) > 1e-6) {
       return angleA - angleB;
     }
-    const rA = Math.hypot(a.xPct - 50, a.yPct - 50);
-    const rB = Math.hypot(b.xPct - 50, b.yPct - 50);
-    return rA - rB;
+    const rA = Math.hypot(a.xPct - cx, a.yPct - cy);
+    const rB = Math.hypot(b.xPct - cx, b.yPct - cy);
+    if (Math.abs(rA - rB) > 1e-6) {
+      return rA - rB;
+    }
+    return a.color.id - b.color.id;
   });
+
+  const n = ordered.length;
+  if (n < 4) return ordered;
+
+  // 2-opt uncrossing strictly reduces total perimeter so it always converges
+  const maxIterations = n * n * 4;
+  for (let iter = 0; iter < maxIterations; iter++) {
+    let swapped = false;
+    for (let i = 0; i < n && !swapped; i++) {
+      const a = ordered[i];
+      const b = ordered[(i + 1) % n];
+      for (let j = i + 2; j < n; j++) {
+        if (i === 0 && j === n - 1) continue;
+        const c = ordered[j];
+        const d = ordered[(j + 1) % n];
+        if (segmentsProperlyIntersect(a, b, c, d)) {
+          let left = i + 1;
+          let right = j;
+          while (left < right) {
+            const tmp = ordered[left];
+            ordered[left] = ordered[right];
+            ordered[right] = tmp;
+            left++;
+            right--;
+          }
+          swapped = true;
+          break;
+        }
+      }
+    }
+    if (!swapped) break;
+  }
+
+  return ordered;
 }
 
 export type HarmonyRule = 'none' | 'complementary' | 'split' | 'triadic' | 'analogous';

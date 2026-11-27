@@ -489,14 +489,30 @@ async function run() {
     assert.equal(desktopTabs.allVisible, true);
     assert.equal(desktopTabs.labelsVisible, true);
 
-    // Emulate narrow tablet/mobile screen and assert all 5 icon-only tabs remain visible with zero clipping
+    // Emulate narrow mobile screen (360px) and assert Studio header doesn't collide & all 5 icon-only tabs remain visible with zero clipping
     await client.send('Emulation.setDeviceMetricsOverride', {
-      width: 500,
+      width: 360,
       height: 850,
       deviceScaleFactor: 1,
       mobile: true,
     });
-    await new Promise((r) => setTimeout(r, 120));
+    await new Promise((r) => setTimeout(r, 140));
+    const mobileHeaderCheck = await client.eval(`(() => {
+      const title = document.getElementById('studio-modal-title')?.getBoundingClientRect();
+      const prevBtn = document.querySelector('button[aria-label="Previous combination (Left Arrow)"]')?.getBoundingClientRect();
+      const closeBtn = document.querySelector('button[aria-label="Close studio modal"]')?.getBoundingClientRect();
+      const overlap = (a, b) => a && b && !(a.right <= b.left + 1 || b.right <= a.left + 1 || a.bottom <= b.top + 1 || b.bottom <= a.top + 1);
+      return {
+        titleWidth: title?.width || 0,
+        overlapsPrev: overlap(title, prevBtn),
+        overlapsClose: overlap(title, closeBtn),
+        overflowsViewport: document.documentElement.scrollWidth > window.innerWidth,
+      };
+    })()`);
+    assert.ok(mobileHeaderCheck.titleWidth >= 160, `Expected readable Studio title width on 360px, got ${JSON.stringify(mobileHeaderCheck)}`);
+    assert.equal(mobileHeaderCheck.overlapsPrev, false, 'Studio title overlaps prev/next buttons on 360px');
+    assert.equal(mobileHeaderCheck.overlapsClose, false, 'Studio title overlaps close button on 360px');
+    assert.equal(mobileHeaderCheck.overflowsViewport, false);
     const narrowTabs = await client.eval(`(() => {
       const list = document.querySelector('[role="tablist"][aria-label="Studio tools"]');
       const tabs = Array.from(list.querySelectorAll('button[role="tab"]'));
