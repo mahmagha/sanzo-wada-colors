@@ -13,7 +13,7 @@ export const DEFAULT_FABRICS: GarmentFabrics = {
   top: { fabric: 'cotton', scale: 1 },
   bottom: { fabric: 'wool', scale: 1 },
   accent: { fabric: 'silk', scale: 0.8 },
-  footwear: { fabric: 'leather', scale: 0.3 },
+  footwear: { fabric: 'leather', scale: 0.12 },
 };
 export type GarmentFabrics = Partial<Record<ClothSlot, { fabric: FabricKey; scale: number }>>;
 
