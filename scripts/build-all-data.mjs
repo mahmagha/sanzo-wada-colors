@@ -97,6 +97,11 @@ async function main() {
 
   console.log(`Loaded ${mattColors.length} Vol 1 colors, ${adrianColors.length} full colors, and ${seasons.length} seasonal cards.`);
 
+  const overridesPath = path.join(__dirname, 'ja-overrides.json');
+  const jaOverrides = fs.existsSync(overridesPath)
+    ? JSON.parse(fs.readFileSync(overridesPath, 'utf8'))
+    : {};
+
   // 1. Build master list of 171 colors
   const masterColors = [];
 
@@ -125,8 +130,9 @@ async function main() {
       combinationsVol1 = [];
     }
 
-    const jaName = rem.atlas?.ja || null;
-    const jaReading = rem.atlas?.reading || null;
+    const override = jaOverrides[String(i + 1)];
+    const jaName = rem.atlas?.ja || override?.ja || null;
+    const jaReading = rem.atlas?.reading || override?.reading || null;
 
     masterColors.push({
       id: i + 1,

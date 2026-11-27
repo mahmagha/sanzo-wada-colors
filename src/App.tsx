@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useState, useMemo, useEffect, useCallback } from 'react';
-import { Columns2, X } from 'lucide-react';
+import { ArrowUp, Columns2, LayoutGrid, ScatterChart, X } from 'lucide-react';
 import rawCombinations from './data/wadaCombinations.json';
 import rawColors from './data/wadaColors.json';
 import {
@@ -38,6 +38,15 @@ const ColorMatcherPanel = lazy(() =>
 const CompareModal = lazy(() =>
   import('./components/CompareModal').then((m) => ({ default: m.CompareModal }))
 );
+const CustomPaletteModal = lazy(() =>
+  import('./components/CustomPaletteModal').then((m) => ({ default: m.CustomPaletteModal }))
+);
+const GuideModal = lazy(() =>
+  import('./components/GuideModal').then((m) => ({ default: m.GuideModal }))
+);
+const SpectrumMap = lazy(() =>
+  import('./components/SpectrumMap').then((m) => ({ default: m.SpectrumMap }))
+);
 
 const PAGE_SIZE = 48;
 const MAX_COMPARE = 3;
@@ -47,6 +56,7 @@ const allCombinations: HydratedCombination[] = hydrateCombinations(
   rawCombinations as RawCombination[],
   allColors
 );
+const kanjiTotalCount = allColors.filter((c) => Boolean(c.ja)).length;
 
 const colorById = new Map<number, ColorItem>(allColors.map((c) => [c.id, c]));
 const comboByKey = new Map<string, HydratedCombination>(
@@ -65,21 +75,25 @@ function getInitialUrlState() {
 export const App: React.FC = () => {
   const initialUrl = useMemo(getInitialUrlState, []);
 
-  // Theme state (respects saved preference, falls back to OS dark preference or Washi)
+  // Theme state
   const [theme, setTheme] = useState<ThemeMode>(() => {
     try {
       const saved = localStorage.getItem('sanzo-wada-theme');
       if (saved === 'washi' || saved === 'studio' || saved === 'dark') return saved;
       if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) return 'dark';
     } catch {
-      // Ignore storage / matchMedia errors
+      // Ignore storage errors
     }
     return 'washi';
   });
 
   // View & panels state
   const [viewMode, setViewMode] = useState<ViewMode>(initialUrl.viewMode);
+  const [colorsLayout, setColorsLayout] = useState<'grid' | 'map'>('grid');
   const [matcherOpen, setMatcherOpen] = useState(false);
+  const [customOpen, setCustomOpen] = useState(false);
+  const [guideOpen, setGuideOpen] = useState(false);
+  const [showScrollTop, setShowScrollTop] = useState(false);
 
   // Favorites state
   const [favorites, setFavorites] = useState<string[]>(() => {
@@ -97,8 +111,38 @@ export const App: React.FC = () => {
     }
   });
 
-  // Compare state (up to 3 combination keys)
-  const [compareKeys, setCompareKeys] = useState<string[]>([]);
+  // Custom palette draft state
+  const [customIds, setCustomIds] = useState<number[]>(() => {
+    try {
+      const saved = localStorage.getItem('sanzo-wada-custom-palette');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((id) => typeof id === 'number' && colorById.has(id)).slice(0, 6);
+        }
+      }
+    } catch {
+      // Ignore storage errors
+    }
+    return [1, 74, 134];
+  });
+
+  // Compare state (persisted to URL & localStorage)
+  const [compareKeys, setCompareKeys] = useState<string[]>(() => {
+    if (initialUrl.compareKeys.length > 0) return initialUrl.compareKeys;
+    try {
+      const saved = localStorage.getItem('sanzo-wada-compare-v1');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          return parsed.filter((k) => typeof k === 'string' && comboByKey.has(k)).slice(0, MAX_COMPARE);
+        }
+      }
+    } catch {
+      // Ignore storage errors
+    }
+    return [];
+  });
   const [compareOpen, setCompareOpen] = useState(false);
 
   // Filters state
@@ -158,7 +202,7 @@ export const App: React.FC = () => {
     }
   }, [theme]);
 
-  // Sync favorites
+  // Sync favorites, compare tray, and custom mix draft
   useEffect(() => {
     try {
       localStorage.setItem('sanzo-wada-favorites-v2', JSON.stringify(favorites));
@@ -167,8 +211,58 @@ export const App: React.FC = () => {
     }
   }, [favorites]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem('sanzo-wada-compare-v1', JSON.stringify(compareKeys));
+    } catch {
+      // Ignore storage errors
+    }
+  }, [compareKeys]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('sanzo-wada-custom-palette', JSON.stringify(customIds));
+    } catch {
+      // Ignore storage errors
+    }
+  }, [customIds]);
+
+  // Back-to-top scroll tracking
+  useEffect(() => {
+    const onScroll = () => {
+      setShowScrollTop(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Global keyboard shortcuts: / to focus search, ? to open guide
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || target?.isContentEditable) {
+        return;
+      }
+      const anyModalOpen = Boolean(selectedCombo || selectedColor || compareOpen || customOpen);
+      if (e.key === '/' && !anyModalOpen) {
+        e.preventDefault();
+        document.getElementById('global-search-input')?.focus();
+      } else if (e.key === '?' && !anyModalOpen) {
+        e.preventDefault();
+        setGuideOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, [selectedCombo, selectedColor, compareOpen, customOpen]);
+
   // Sync URL query params for shareable deep-links
   useEffect(() => {
+    const comboKey =
+      selectedCombo && selectedCombo.id > 0
+        ? getComboKey(selectedCombo.id, selectedCombo.volume)
+        : null;
     const query = serializeUrlState({
       viewMode,
       volumeFilter,
@@ -181,7 +275,8 @@ export const App: React.FC = () => {
       swatchId: swatchIdFilter,
       searchQuery,
       onlyFavorites,
-      comboKey: selectedCombo ? getComboKey(selectedCombo.id, selectedCombo.volume) : null,
+      compareKeys,
+      comboKey,
       colorId: selectedColor ? selectedColor.id : null,
     });
     const targetUrl = `${window.location.pathname}${query}${window.location.hash}`;
@@ -200,6 +295,7 @@ export const App: React.FC = () => {
     swatchIdFilter,
     searchQuery,
     onlyFavorites,
+    compareKeys,
     selectedCombo,
     selectedColor,
   ]);
@@ -219,6 +315,7 @@ export const App: React.FC = () => {
       setSwatchIdFilter(parsed.swatchId);
       setSearchQuery(parsed.searchQuery);
       setOnlyFavorites(parsed.onlyFavorites);
+      setCompareKeys(parsed.compareKeys);
       setSelectedCombo(parsed.comboKey ? comboByKey.get(parsed.comboKey) ?? null : null);
       setSelectedColor(parsed.colorId !== null ? colorById.get(parsed.colorId) ?? null : null);
       setReturnCombo(null);
@@ -243,6 +340,7 @@ export const App: React.FC = () => {
   ]);
 
   const toggleFavorite = useCallback((id: number, volume: number) => {
+    if (id <= 0) return;
     const key = getComboKey(id, volume);
     setFavorites((prev) => {
       const exists = prev.includes(key);
@@ -256,6 +354,7 @@ export const App: React.FC = () => {
   }, []);
 
   const toggleCompare = useCallback((combo: Combination) => {
+    if (combo.id <= 0) return;
     const key = getComboKey(combo.id, combo.volume);
     setCompareKeys((prev) => {
       if (prev.includes(key)) {
@@ -266,6 +365,21 @@ export const App: React.FC = () => {
         return prev;
       }
       return [...prev, key];
+    });
+  }, []);
+
+  const addColorToCustomMix = useCallback((color: ColorItem) => {
+    setCustomIds((prev) => {
+      if (prev.includes(color.id)) {
+        setToastMessage(`${color.name} is already in your custom mix`);
+        return prev;
+      }
+      if (prev.length >= 6) {
+        setToastMessage('Custom mix supports up to 6 swatches — remove one in Mix composer');
+        return prev;
+      }
+      setToastMessage(`Added ${color.name} to Custom Mix (${prev.length + 1}/6)`);
+      return [...prev, color.id];
     });
   }, []);
 
@@ -327,7 +441,7 @@ export const App: React.FC = () => {
     Boolean(searchQuery.trim()) ||
     onlyFavorites;
 
-  // Base filtered & sorted combinations (decoupled from favorites toggles)
+  // Base filtered & sorted combinations
   const baseFilteredCombinations = useMemo(() => {
     let result = [...allCombinations];
 
@@ -440,7 +554,7 @@ export const App: React.FC = () => {
         colors: randomCombo.colors.map((c) => c.hex),
       });
     } catch {
-      // Ignore confetti load errors offline
+      // Ignore confetti errors offline
     }
 
     const volLabel =
@@ -448,20 +562,22 @@ export const App: React.FC = () => {
     setToastMessage(`Selected random combination ${volLabel}!`);
   };
 
-  // Studio Prev/Next stepping through active list
+  // Studio Prev/Next stepping
   const comboListForStepping =
     selectedCombo &&
+    selectedCombo.id > 0 &&
     filteredCombinations.some(
       (c) => c.id === selectedCombo.id && c.volume === selectedCombo.volume
     )
       ? filteredCombinations
       : allCombinations;
 
-  const currentStepIndex = selectedCombo
-    ? comboListForStepping.findIndex(
-        (c) => c.id === selectedCombo.id && c.volume === selectedCombo.volume
-      )
-    : -1;
+  const currentStepIndex =
+    selectedCombo && selectedCombo.id > 0
+      ? comboListForStepping.findIndex(
+          (c) => c.id === selectedCombo.id && c.volume === selectedCombo.volume
+        )
+      : -1;
 
   const handlePrevCombo = () => {
     if (currentStepIndex > 0) {
@@ -476,6 +592,7 @@ export const App: React.FC = () => {
   };
 
   const handleShareCombo = (combo: Combination) => {
+    if (combo.id <= 0) return;
     const query = serializeUrlState({
       viewMode: 'combinations',
       volumeFilter: 'all',
@@ -488,6 +605,7 @@ export const App: React.FC = () => {
       swatchId: null,
       searchQuery: '',
       onlyFavorites: false,
+      compareKeys: [],
       comboKey: getComboKey(combo.id, combo.volume),
       colorId: null,
     });
@@ -508,12 +626,15 @@ export const App: React.FC = () => {
       swatchId: null,
       searchQuery: '',
       onlyFavorites: false,
+      compareKeys: [],
       comboKey: null,
       colorId: color.id,
     });
     const shareUrl = `${window.location.origin}${window.location.pathname}${query}`;
     handleCopyText(shareUrl, `Copied share link for ${color.name} (#${color.id})`);
   };
+
+  const hasBottomTray = comparedCombinations.length > 0 && !compareOpen;
 
   return (
     <div className="min-h-screen flex flex-col transition-colors duration-300">
@@ -531,11 +652,14 @@ export const App: React.FC = () => {
         onToggleOnlyFavorites={() => setOnlyFavorites((prev) => !prev)}
         matcherOpen={matcherOpen}
         onToggleMatcher={() => setMatcherOpen((prev) => !prev)}
+        customCount={customIds.length}
+        onOpenCustomComposer={() => setCustomOpen(true)}
+        onOpenGuide={() => setGuideOpen(true)}
       />
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
-        {/* Lazy-loaded Closest Wada Color Matcher */}
+        {/* Lazy-loaded Closest Color Matcher / Image Palette Extractor */}
         {matcherOpen && (
           <Suspense fallback={null}>
             <ColorMatcherPanel
@@ -543,6 +667,10 @@ export const App: React.FC = () => {
               onSelectColor={(color) => {
                 setReturnCombo(null);
                 setSelectedColor(color);
+              }}
+              onOpenExtractedStudio={(combo) => {
+                setReturnCombo(null);
+                setSelectedCombo(combo);
               }}
               onClose={() => setMatcherOpen(false)}
             />
@@ -572,7 +700,7 @@ export const App: React.FC = () => {
           />
         )}
 
-        {/* Master Colors View Header (when in colors view) */}
+        {/* Master Colors View Header */}
         {viewMode === 'colors' && (
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 py-3 border-b border-stone-300/30 dark:border-stone-800 mb-6">
             <div className="flex items-center gap-2 flex-wrap">
@@ -584,7 +712,7 @@ export const App: React.FC = () => {
               </span>
             </div>
 
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex items-center gap-2.5 flex-wrap">
               {/* Tone Quick Filter */}
               <div className="flex items-center gap-1 flex-wrap">
                 {(['all', 'warm', 'cool', 'earthy', 'pastel', 'deep', 'neutral'] as const).map(
@@ -616,9 +744,9 @@ export const App: React.FC = () => {
                     ? 'bg-amber-900 text-amber-50 border-amber-900 dark:bg-amber-700 dark:border-amber-700'
                     : 'border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200/50 dark:hover:bg-stone-800'
                 }`}
-                title="Filter to swatches with documented Japanese kanji (36)"
+                title={`Filter to swatches with documented Japanese kanji (${kanjiTotalCount})`}
               >
-                Kanji (36)
+                Kanji ({kanjiTotalCount})
               </button>
 
               {/* Master Colors Sort */}
@@ -634,6 +762,40 @@ export const App: React.FC = () => {
                 <option value="popularity">Most Used</option>
                 <option value="name">Name (A–Z)</option>
               </select>
+
+              {/* Grid vs Spectrum Map toggle */}
+              <div
+                role="group"
+                aria-label="Master colors layout"
+                className="flex items-center bg-stone-200/60 dark:bg-stone-800 p-0.5 rounded-lg text-xs"
+              >
+                <button
+                  type="button"
+                  onClick={() => setColorsLayout('grid')}
+                  aria-pressed={colorsLayout === 'grid'}
+                  className={`flex items-center gap-1 px-2 py-1 rounded font-medium transition-colors cursor-pointer ${
+                    colorsLayout === 'grid'
+                      ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
+                      : 'text-stone-600 dark:text-stone-400'
+                  }`}
+                >
+                  <LayoutGrid size={12} />
+                  <span>Grid</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setColorsLayout('map')}
+                  aria-pressed={colorsLayout === 'map'}
+                  className={`flex items-center gap-1 px-2 py-1 rounded font-medium transition-colors cursor-pointer ${
+                    colorsLayout === 'map'
+                      ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
+                      : 'text-stone-600 dark:text-stone-400'
+                  }`}
+                >
+                  <ScatterChart size={12} />
+                  <span>Spectrum</span>
+                </button>
+              </div>
 
               {/* Quick Volume Switcher */}
               <div className="flex items-center gap-1 bg-stone-200/60 dark:bg-stone-800 p-0.5 rounded-lg text-xs">
@@ -741,23 +903,35 @@ export const App: React.FC = () => {
           </>
         )}
 
-        {/* MASTER COLORS GRID */}
+        {/* MASTER COLORS VIEW (GRID OR 2D SPECTRUM MAP) */}
         {viewMode === 'colors' && (
           <>
             {filteredColors.length > 0 ? (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                {filteredColors.map((color) => (
-                  <ColorSwatchCard
-                    key={color.id}
-                    color={color}
+              colorsLayout === 'map' ? (
+                <Suspense fallback={null}>
+                  <SpectrumMap
+                    colors={filteredColors}
                     onSelectColor={(c) => {
                       setReturnCombo(null);
                       setSelectedColor(c);
                     }}
-                    onCopyText={handleCopyText}
                   />
-                ))}
-              </div>
+                </Suspense>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                  {filteredColors.map((color) => (
+                    <ColorSwatchCard
+                      key={color.id}
+                      color={color}
+                      onSelectColor={(c) => {
+                        setReturnCombo(null);
+                        setSelectedColor(c);
+                      }}
+                      onCopyText={handleCopyText}
+                    />
+                  ))}
+                </div>
+              )
             ) : (
               <div className="py-20 text-center">
                 <p className="text-base font-editorial text-stone-500 mb-3">
@@ -781,9 +955,24 @@ export const App: React.FC = () => {
         )}
       </main>
 
+      {/* Floating Back to Top Button */}
+      {showScrollTop && (
+        <button
+          type="button"
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+          aria-label="Scroll back to top"
+          title="Back to top"
+          className={`fixed ${
+            hasBottomTray ? 'bottom-20 sm:bottom-6' : 'bottom-6'
+          } left-4 sm:left-6 z-30 p-2.5 rounded-full bg-stone-900/90 dark:bg-stone-100/90 text-white dark:text-stone-900 shadow-lg border border-stone-700/40 dark:border-stone-300/40 hover:scale-105 transition-transform cursor-pointer`}
+        >
+          <ArrowUp size={16} />
+        </button>
+      )}
+
       {/* Floating Compare Palettes Tray */}
-      {comparedCombinations.length > 0 && !compareOpen && (
-        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-4 py-2 rounded-full bg-stone-900/95 text-stone-100 shadow-2xl border border-stone-700 backdrop-blur-md animate-in fade-in slide-in-from-bottom-3">
+      {hasBottomTray && (
+        <div className="fixed bottom-4 sm:bottom-5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-4 py-2 rounded-full bg-stone-900/95 text-stone-100 shadow-2xl border border-stone-700 backdrop-blur-md animate-in fade-in slide-in-from-bottom-3">
           <div className="flex items-center gap-1.5">
             {comparedCombinations.map((combo) => (
               <div
@@ -840,8 +1029,14 @@ export const App: React.FC = () => {
           <ModalStudio
             combination={selectedCombo}
             onClose={() => setSelectedCombo(null)}
-            isFavorite={favoriteSet.has(getComboKey(selectedCombo.id, selectedCombo.volume))}
-            isCompared={compareSet.has(getComboKey(selectedCombo.id, selectedCombo.volume))}
+            isFavorite={
+              selectedCombo.id > 0 &&
+              favoriteSet.has(getComboKey(selectedCombo.id, selectedCombo.volume))
+            }
+            isCompared={
+              selectedCombo.id > 0 &&
+              compareSet.has(getComboKey(selectedCombo.id, selectedCombo.volume))
+            }
             onToggleFavorite={toggleFavorite}
             onToggleCompare={toggleCompare}
             onCopyText={handleCopyText}
@@ -890,6 +1085,7 @@ export const App: React.FC = () => {
               setMonthFilter('all');
               setSwatchIdFilter(color.id);
             }}
+            onAddToCustom={addColorToCustomMix}
           />
         )}
 
@@ -908,9 +1104,50 @@ export const App: React.FC = () => {
             onCopyText={handleCopyText}
           />
         )}
+
+        {customOpen && (
+          <CustomPaletteModal
+            isOpen={customOpen}
+            allColors={allColors}
+            selectedIds={customIds}
+            onChangeIds={setCustomIds}
+            onClose={() => setCustomOpen(false)}
+            onLaunchStudio={(combo) => {
+              setReturnCombo(null);
+              setSelectedCombo(combo);
+            }}
+          />
+        )}
+
+        {guideOpen && (
+          <GuideModal
+            isOpen={guideOpen}
+            onClose={() => setGuideOpen(false)}
+            favorites={favorites}
+            onImportFavorites={(imported) => {
+              setFavorites((prev) => {
+                const merged = Array.from(new Set([...prev, ...imported])).filter((k) =>
+                  comboByKey.has(k)
+                );
+                setToastMessage(`Imported ${imported.length} favorites (${merged.length} total)`);
+                return merged;
+              });
+            }}
+            onSelectMonth={(month) => {
+              setViewMode('combinations');
+              setVolumeFilter(2);
+              setSeasonFilter('all');
+              setMonthFilter(month);
+            }}
+          />
+        )}
       </Suspense>
 
-      <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
+      <Toast
+        message={toastMessage}
+        onClose={() => setToastMessage(null)}
+        hasBottomTray={hasBottomTray}
+      />
     </div>
   );
 };

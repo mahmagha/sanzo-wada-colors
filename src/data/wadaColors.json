@@ -37,8 +37,8 @@
   {
     "id": 2,
     "name": "Corinthian Pink",
-    "ja": null,
-    "reading": null,
+    "ja": "肉色",
+    "reading": "niku-iro",
     "hex": "#f8b6ba",
     "rgb": [
       248,
@@ -81,8 +81,8 @@
   {
     "id": 3,
     "name": "Cameo Pink",
-    "ja": null,
-    "reading": null,
+    "ja": "一斤染",
+    "reading": "ikkon-zome",
     "hex": "#e0b3b6",
     "rgb": [
       224,
@@ -119,8 +119,8 @@
   {
     "id": 4,
     "name": "Fawn",
-    "ja": null,
-    "reading": null,
+    "ja": "桜鼠",
+    "reading": "sakura-nezumi",
     "hex": "#d1b0a7",
     "rgb": [
       209,
@@ -197,8 +197,8 @@
   {
     "id": 6,
     "name": "Coral Red",
-    "ja": null,
-    "reading": null,
+    "ja": "珊瑚珠色",
+    "reading": "sangoshu-iro",
     "hex": "#f58e84",
     "rgb": [
       245,
@@ -231,8 +231,8 @@
   {
     "id": 7,
     "name": "Fresh Color",
-    "ja": null,
-    "reading": null,
+    "ja": "柿色",
+    "reading": "kaki-iro",
     "hex": "#f6917e",
     "rgb": [
       246,

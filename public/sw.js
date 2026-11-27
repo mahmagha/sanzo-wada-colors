@@ -1,9 +1,17 @@
-const CACHE_NAME = 'sanzo-wada-v2';
+const CACHE_NAME = '__SW_CACHE_NAME__';
+const PRECACHE_URLS = ['__SW_PRECACHE_URLS__'];
+
+const RESOLVED_PRECACHE =
+  PRECACHE_URLS.length === 1 && PRECACHE_URLS[0] === '__SW_PRECACHE_URLS__'
+    ? ['./', './index.html', './manifest.webmanifest', './icon.svg', './icon-192.png', './icon-512.png']
+    : PRECACHE_URLS;
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(['./', './index.html', './manifest.webmanifest', './icon.svg']).catch(() => {}))
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(RESOLVED_PRECACHE).catch(() => {}))
   );
 });
 

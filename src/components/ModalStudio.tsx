@@ -37,6 +37,7 @@ import {
   generateJsonExport,
 } from '../utils/colorUtils';
 import { useModalDialog } from '../utils/useModalDialog';
+import { MONTH_OPTIONS } from '../utils/paletteData';
 
 interface ModalStudioProps {
   combination: Combination | null;
@@ -55,6 +56,7 @@ interface ModalStudioProps {
 }
 
 type StudioTab = 'art-print' | 'ui-mockup' | 'contrast-matrix' | 'export';
+type MockupTemplate = 'hero' | 'dashboard' | 'editorial' | 'mobile';
 type ExportFormat =
   | 'css'
   | 'tailwind-v4'
@@ -96,6 +98,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
   onShareLink,
 }) => {
   const [activeTab, setActiveTab] = useState<StudioTab>('art-print');
+  const [mockupTemplate, setMockupTemplate] = useState<MockupTemplate>('hero');
   const [exportFormat, setExportFormat] = useState<ExportFormat>('css');
   const [cssUseOklch, setCssUseOklch] = useState(false);
   const [cvdMode, setCvdMode] = useState<CvdMode>('normal');
@@ -204,7 +207,12 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
     return generateJsonExport(combination);
   };
 
+  const isCustom = combination.id === 0;
   const isVol2 = combination.volume === 2;
+  const monthMotif =
+    isVol2 && combination.month
+      ? MONTH_OPTIONS.find((m) => m.month === combination.month)?.motif
+      : undefined;
   const weightedHeights = getWeightedHeights(colors.length);
 
   const renderWcagBadge = (ratio: number) => {
@@ -262,7 +270,9 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 id="studio-modal-title" className="text-base sm:text-lg font-editorial font-bold">
-                  {isVol2
+                  {isCustom
+                    ? 'Custom Studio Palette'
+                    : isVol2
                     ? `Volume 2 • Card № ${combination.id.toString().padStart(2, '0')}`
                     : `Volume 1 • Combination № ${combination.id.toString().padStart(3, '0')}`}
                 </h2>
@@ -273,15 +283,21 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                       : 'bg-stone-200 dark:bg-stone-800 text-stone-600 dark:text-stone-300'
                   }`}
                 >
-                  {isVol2
+                  {isCustom
+                    ? `${combination.size}-Color Custom Mix`
+                    : isVol2
                     ? `${combination.monthName} (${combination.monthJa}) • ${combination.size} Colors`
                     : `${combination.size}-Color Harmony`}
                 </span>
               </div>
               <p className="text-xs text-stone-500 dark:text-stone-400 font-editorial mt-0.5 truncate">
                 {isVol2 && combination.monthMeaning && (
-                  <span className="text-amber-800 dark:text-amber-400 font-medium mr-2">
-                    {combination.monthMeaning} —
+                  <span
+                    className="text-amber-800 dark:text-amber-400 font-medium mr-2"
+                    title={monthMotif}
+                  >
+                    {combination.monthMeaning}
+                    {monthMotif ? ` (${monthMotif})` : ''} —
                   </span>
                 )}
                 {colors.map((c) => (c.ja ? `${c.name} (${c.ja})` : c.name)).join(' • ')}
@@ -291,7 +307,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
 
           {/* Quick Header Actions (including mobile Prev/Next stepping) */}
           <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
-            {(onPrev || onNext) && (
+            {!isCustom && (onPrev || onNext) && (
               <div className="flex items-center border border-stone-300 dark:border-stone-700 rounded-lg overflow-hidden mr-0.5">
                 <button
                   type="button"
@@ -316,7 +332,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
               </div>
             )}
 
-            {onToggleCompare && (
+            {!isCustom && onToggleCompare && (
               <button
                 type="button"
                 onClick={() => onToggleCompare(combination)}
@@ -333,7 +349,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
               </button>
             )}
 
-            {onShareLink && (
+            {!isCustom && onShareLink && (
               <button
                 type="button"
                 onClick={() => onShareLink(combination)}
@@ -356,22 +372,24 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
               <span className="hidden md:inline">SVG</span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => onToggleFavorite(combination.id, combination.volume)}
-              aria-label={
-                isFavorite ? 'Remove combination from favorites' : 'Save combination to favorites'
-              }
-              aria-pressed={isFavorite}
-              className={`p-2 rounded-lg transition-colors cursor-pointer ${
-                isFavorite
-                  ? 'text-rose-500 bg-rose-50 dark:bg-rose-950/40'
-                  : 'text-stone-400 hover:text-rose-500 hover:bg-stone-100 dark:hover:bg-stone-800'
-              }`}
-              title={isFavorite ? 'Remove favorite' : 'Add to favorites'}
-            >
-              <Heart size={16} className={isFavorite ? 'fill-rose-500' : ''} />
-            </button>
+            {!isCustom && (
+              <button
+                type="button"
+                onClick={() => onToggleFavorite(combination.id, combination.volume)}
+                aria-label={
+                  isFavorite ? 'Remove combination from favorites' : 'Save combination to favorites'
+                }
+                aria-pressed={isFavorite}
+                className={`p-2 rounded-lg transition-colors cursor-pointer ${
+                  isFavorite
+                    ? 'text-rose-500 bg-rose-50 dark:bg-rose-950/40'
+                    : 'text-stone-400 hover:text-rose-500 hover:bg-stone-100 dark:hover:bg-stone-800'
+                }`}
+                title={isFavorite ? 'Remove favorite' : 'Add to favorites'}
+              >
+                <Heart size={16} className={isFavorite ? 'fill-rose-500' : ''} />
+              </button>
+            )}
 
             <button
               type="button"
@@ -739,113 +757,320 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                     </select>
                   </label>
                 </div>
+                <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stone-200/70 dark:border-stone-800">
+                  <span className="text-xs text-stone-500 font-medium">Template:</span>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {(
+                      [
+                        ['hero', 'Landing Hero'],
+                        ['dashboard', 'Analytics Dashboard'],
+                        ['editorial', 'Editorial Article'],
+                        ['mobile', 'Mobile App Card'],
+                      ] as const
+                    ).map(([tplKey, tplLabel]) => (
+                      <button
+                        type="button"
+                        key={tplKey}
+                        onClick={() => setMockupTemplate(tplKey)}
+                        aria-pressed={mockupTemplate === tplKey}
+                        className={`px-2.5 py-1 text-xs font-medium rounded-md transition-colors cursor-pointer ${
+                          mockupTemplate === tplKey
+                            ? 'bg-amber-900 text-amber-50 dark:bg-amber-700'
+                            : 'bg-white dark:bg-stone-900 border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
+                        }`}
+                      >
+                        {tplLabel}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
-              {/* The Rendered Live UI Preview Container */}
-              <div
-                style={{ backgroundColor: bgDisplayHex, color: bgTextColor }}
-                className="rounded-2xl p-6 sm:p-8 shadow-xl border border-black/10 transition-colors duration-300"
-              >
-                <div className="flex items-center justify-between pb-6 border-b border-current/15">
-                  <div className="flex items-center gap-2">
-                    <div
-                      style={{ backgroundColor: accentDisplayHex, color: accentTextColor }}
-                      className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm"
-                    >
-                      和
+              {/* Template 1: Landing Hero */}
+              {mockupTemplate === 'hero' && (
+                <div
+                  style={{ backgroundColor: bgDisplayHex, color: bgTextColor }}
+                  className="rounded-2xl p-6 sm:p-8 shadow-xl border border-black/10 transition-colors duration-300"
+                >
+                  <div className="flex items-center justify-between pb-6 border-b border-current/15">
+                    <div className="flex items-center gap-2">
+                      <div
+                        style={{ backgroundColor: accentDisplayHex, color: accentTextColor }}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm"
+                      >
+                        和
+                      </div>
+                      <span className="font-editorial font-bold text-lg tracking-tight">
+                        Atelier Wada
+                      </span>
                     </div>
-                    <span className="font-editorial font-bold text-lg tracking-tight">
-                      Atelier Wada
-                    </span>
-                  </div>
 
-                  <div className="hidden sm:flex items-center gap-6 text-xs font-medium opacity-85">
-                    <span>Collections</span>
-                    <span>Color Theory</span>
-                    <span>Archive</span>
-                  </div>
+                    <div className="hidden sm:flex items-center gap-6 text-xs font-medium opacity-85">
+                      <span>Collections</span>
+                      <span>Color Theory</span>
+                      <span>Archive</span>
+                    </div>
 
-                  <button
-                    type="button"
-                    style={{ backgroundColor: accentDisplayHex, color: accentTextColor }}
-                    className="px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm hover:opacity-90 transition-opacity"
-                  >
-                    Explore Gallery
-                  </button>
-                </div>
-
-                <div className="py-8 max-w-2xl">
-                  <div
-                    style={badgeStyle}
-                    className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border mb-4"
-                  >
-                    <Sparkles size={12} />
-                    <span>
-                      {isVol2
-                        ? `Vol. 2 • ${combination.monthName} (${combination.monthJa})`
-                        : `Harmony Plate № ${combination.id}`}
-                    </span>
-                  </div>
-
-                  <h4 className="text-2xl sm:text-4xl font-editorial font-bold tracking-tight leading-tight">
-                    Timeless color balance rooted in nature and modernism.
-                  </h4>
-
-                  <p className="mt-3 text-xs sm:text-sm opacity-80 leading-relaxed font-sans">
-                    Sanzo Wada’s color compositions break away from rigid mathematical formulas,
-                    capturing the delicate tensions of 1930s Showa aesthetics.
-                  </p>
-
-                  <div className="mt-6 flex items-center gap-3 flex-wrap">
                     <button
                       type="button"
                       style={{ backgroundColor: accentDisplayHex, color: accentTextColor }}
-                      className="px-5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold shadow-md hover:opacity-95 transition-opacity"
+                      className="px-3.5 py-1.5 rounded-lg text-xs font-semibold shadow-sm hover:opacity-90 transition-opacity"
                     >
-                      Apply Color System
-                    </button>
-                    <button
-                      type="button"
-                      style={{
-                        backgroundColor: surfaceDisplayHex,
-                        color: surfaceTextColor,
-                      }}
-                      className="px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium border border-current/20 hover:opacity-95 transition-opacity"
-                    >
-                      View Palette Specs
+                      Explore Gallery
                     </button>
                   </div>
-                </div>
 
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pt-4">
-                  {colors.map((c, i) => (
+                  <div className="py-8 max-w-2xl">
                     <div
-                      key={c.id}
-                      style={{
-                        backgroundColor: surfaceDisplayHex,
-                        color: surfaceTextColor,
-                      }}
-                      className="p-3.5 rounded-xl shadow-sm border border-current/10"
+                      style={badgeStyle}
+                      className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border mb-4"
                     >
-                      <div className="flex items-center gap-2 mb-2">
-                        <div
-                          style={{ backgroundColor: simHex(c.hex) }}
-                          className="w-4 h-4 rounded-full border border-black/20 shrink-0"
-                        />
-                        <span className="text-[11px] font-code opacity-75 uppercase">
-                          Tone {i + 1}
+                      <Sparkles size={12} />
+                      <span>
+                        {isCustom
+                          ? 'Custom Palette Mix'
+                          : isVol2
+                          ? `Vol. 2 • ${combination.monthName} (${combination.monthJa})`
+                          : `Harmony Plate № ${combination.id}`}
+                      </span>
+                    </div>
+
+                    <h4 className="text-2xl sm:text-4xl font-editorial font-bold tracking-tight leading-tight">
+                      Timeless color balance rooted in nature and modernism.
+                    </h4>
+
+                    <p className="mt-3 text-xs sm:text-sm opacity-80 leading-relaxed font-sans">
+                      Sanzo Wada’s color compositions break away from rigid mathematical formulas,
+                      capturing the delicate tensions of 1930s Showa aesthetics.
+                    </p>
+
+                    <div className="mt-6 flex items-center gap-3 flex-wrap">
+                      <button
+                        type="button"
+                        style={{ backgroundColor: accentDisplayHex, color: accentTextColor }}
+                        className="px-5 py-2.5 rounded-lg text-xs sm:text-sm font-semibold shadow-md hover:opacity-95 transition-opacity"
+                      >
+                        Apply Color System
+                      </button>
+                      <button
+                        type="button"
+                        style={{
+                          backgroundColor: surfaceDisplayHex,
+                          color: surfaceTextColor,
+                        }}
+                        className="px-4 py-2.5 rounded-lg text-xs sm:text-sm font-medium border border-current/20 hover:opacity-95 transition-opacity"
+                      >
+                        View Palette Specs
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pt-4">
+                    {colors.map((c, i) => (
+                      <div
+                        key={c.id}
+                        style={{
+                          backgroundColor: surfaceDisplayHex,
+                          color: surfaceTextColor,
+                        }}
+                        className="p-3.5 rounded-xl shadow-sm border border-current/10"
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <div
+                            style={{ backgroundColor: simHex(c.hex) }}
+                            className="w-4 h-4 rounded-full border border-black/20 shrink-0"
+                          />
+                          <span className="text-[11px] font-code opacity-75 uppercase">
+                            Tone {i + 1}
+                          </span>
+                        </div>
+                        <div className="text-xs sm:text-sm font-editorial font-bold truncate">
+                          {c.ja ? c.ja : c.name}
+                        </div>
+                        <div className="text-[10px] font-code opacity-85 mt-0.5">
+                          {c.hex.toUpperCase()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Template 2: Analytics Dashboard */}
+              {mockupTemplate === 'dashboard' && (
+                <div
+                  style={{ backgroundColor: bgDisplayHex, color: bgTextColor }}
+                  className="rounded-2xl p-6 shadow-xl border border-black/10 space-y-5"
+                >
+                  <div className="flex items-center justify-between gap-4 pb-4 border-b border-current/15">
+                    <div>
+                      <div className="text-xs font-code uppercase opacity-70">Studio Analytics</div>
+                      <h4 className="text-lg font-editorial font-bold">Quarterly Pigment Usage</h4>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span style={badgeStyle} className="px-2.5 py-1 rounded-full text-xs font-code border">
+                        +18.4% YoY
+                      </span>
+                      <button
+                        type="button"
+                        style={{ backgroundColor: accentDisplayHex, color: accentTextColor }}
+                        className="px-3 py-1.5 rounded-lg text-xs font-semibold"
+                      >
+                        Export Report
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div
+                      style={{ backgroundColor: surfaceDisplayHex, color: surfaceTextColor }}
+                      className="md:col-span-2 p-4 rounded-xl border border-current/10 space-y-3"
+                    >
+                      <div className="flex items-center justify-between text-xs font-medium">
+                        <span>Palette Distribution</span>
+                        <span className="font-code opacity-70">{colors.length} Channels</span>
+                      </div>
+                      <div className="h-36 flex items-end gap-3 pt-4">
+                        {colors.map((c, idx) => {
+                          const hPct = 35 + ((idx * 29 + c.id * 11) % 60);
+                          return (
+                            <div key={c.id} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+                              <div
+                                style={{ backgroundColor: simHex(c.hex), height: `${hPct}%` }}
+                                className="w-full rounded-t-md border border-black/15"
+                                title={c.name}
+                              />
+                              <span className="text-[10px] font-code opacity-80 truncate max-w-full">
+                                #{c.id}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    <div
+                      style={{ backgroundColor: surfaceDisplayHex, color: surfaceTextColor }}
+                      className="p-4 rounded-xl border border-current/10 flex flex-col justify-between gap-3"
+                    >
+                      <div className="text-xs font-medium opacity-75">Contrast Readiness</div>
+                      <div className="text-3xl font-code font-bold">{textBgContrast.toFixed(1)}:1</div>
+                      <div className="space-y-2 text-xs">
+                        {colors.slice(0, 3).map((c) => (
+                          <div key={c.id} className="flex items-center justify-between gap-2">
+                            <span className="flex items-center gap-2 truncate">
+                              <span
+                                style={{ backgroundColor: simHex(c.hex) }}
+                                className="w-2.5 h-2.5 rounded-full shrink-0"
+                              />
+                              <span className="truncate">{c.name}</span>
+                            </span>
+                            <span className="font-code opacity-75">{c.hex}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Template 3: Editorial Article */}
+              {mockupTemplate === 'editorial' && (
+                <div
+                  style={{ backgroundColor: bgDisplayHex, color: bgTextColor }}
+                  className="rounded-2xl p-6 sm:p-10 shadow-xl border border-black/10 space-y-6"
+                >
+                  <div className="flex items-center justify-between text-xs font-code uppercase tracking-widest opacity-75 border-b border-current/15 pb-3">
+                    <span>Vol. {combination.volume} • Showa Color Journal</span>
+                    <span>Tokyo, 1933</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-start">
+                    <div className="md:col-span-2 space-y-4">
+                      <h4 className="text-2xl sm:text-3xl font-editorial font-bold leading-snug">
+                        On Seasonal Harmony and Natural Pigment Restraint
+                      </h4>
+                      <p className="text-sm leading-relaxed opacity-85">
+                        <span
+                          style={{ backgroundColor: accentDisplayHex, color: accentTextColor }}
+                          className="float-left mr-3 mt-1 w-10 h-10 rounded-lg flex items-center justify-center font-editorial font-bold text-xl"
+                        >
+                          配
                         </span>
-                      </div>
-                      <div className="text-xs sm:text-sm font-editorial font-bold truncate">
-                        {c.ja ? c.ja : c.name}
-                      </div>
-                      <div className="text-[10px] font-code opacity-85 mt-0.5">
-                        {c.hex.toUpperCase()}
-                      </div>
+                        Rather than isolating hues in clinical abstraction, Wada observed dyed silk,
+                        weathered wood, and seasonal blossoms—pairing muted earth tones with deliberate
+                        chromatic accents.
+                      </p>
+                      <blockquote
+                        style={{
+                          backgroundColor: surfaceDisplayHex,
+                          color: surfaceTextColor,
+                          borderLeftColor: accentDisplayHex,
+                        }}
+                        className="p-4 rounded-r-xl border-l-4 text-xs sm:text-sm font-editorial italic"
+                      >
+                        “True color harmony arises not from uniformity, but from sympathetic tension.”
+                      </blockquote>
                     </div>
-                  ))}
+
+                    <div
+                      style={{ backgroundColor: surfaceDisplayHex, color: surfaceTextColor }}
+                      className="p-4 rounded-xl border border-current/10 space-y-2.5"
+                    >
+                      <div className="text-xs font-code uppercase opacity-70">Plate Swatches</div>
+                      {colors.map((c) => (
+                        <div key={c.id} className="flex items-center gap-2.5 text-xs">
+                          <span
+                            style={{ backgroundColor: simHex(c.hex) }}
+                            className="w-5 h-5 rounded border border-black/15 shrink-0"
+                          />
+                          <span className="font-editorial font-medium truncate">{c.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
+
+              {/* Template 4: Mobile App Card */}
+              {mockupTemplate === 'mobile' && (
+                <div
+                  style={{ backgroundColor: bgDisplayHex, color: bgTextColor }}
+                  className="rounded-2xl p-6 shadow-xl border border-black/10 flex justify-center"
+                >
+                  <div
+                    style={{ backgroundColor: surfaceDisplayHex, color: surfaceTextColor }}
+                    className="w-full max-w-xs rounded-3xl p-5 border border-current/15 shadow-2xl space-y-4"
+                  >
+                    <div className="flex items-center justify-between text-xs font-code opacity-75">
+                      <span>9:41</span>
+                      <span>WADA STUDIO</span>
+                    </div>
+                    <div className="flex h-24 rounded-2xl overflow-hidden border border-black/10">
+                      {colors.map((c) => (
+                        <div key={c.id} style={{ backgroundColor: simHex(c.hex) }} className="flex-1 h-full" />
+                      ))}
+                    </div>
+                    <div>
+                      <span style={badgeStyle} className="px-2 py-0.5 rounded-full text-[10px] font-code border">
+                        {colors.length}-Color System
+                      </span>
+                      <h4 className="font-editorial font-bold text-lg mt-2">
+                        {isCustom ? 'Custom Mix' : isVol2 ? combination.monthName : `Plate № ${combination.id}`}
+                      </h4>
+                      <p className="text-xs opacity-75 mt-1">
+                        {colors.map((c) => c.name).join(' • ')}
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      style={{ backgroundColor: accentDisplayHex, color: accentTextColor }}
+                      className="w-full py-2.5 rounded-xl text-xs font-semibold shadow-sm"
+                    >
+                      Save Palette to Project
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

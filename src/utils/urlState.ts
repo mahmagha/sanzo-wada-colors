@@ -20,6 +20,7 @@ export interface UrlAppState {
   swatchId: number | null;
   searchQuery: string;
   onlyFavorites: boolean;
+  compareKeys: string[];
   comboKey: string | null;
   colorId: number | null;
 }
@@ -47,6 +48,7 @@ const VALID_COLOR_SORTS = new Set<ColorSortOption>([
   'popularity',
   'name',
 ]);
+const COMBO_KEY_RE = /^v[12]-\d+$/;
 
 export function parseUrlState(search: string): UrlAppState {
   const params = new URLSearchParams(search);
@@ -92,8 +94,18 @@ export function parseUrlState(search: string): UrlAppState {
   const searchQuery = params.get('q') || '';
   const onlyFavorites = params.get('fav') === '1';
 
+  const compareRaw = params.get('compare') || '';
+  const compareKeys = Array.from(
+    new Set(
+      compareRaw
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => COMBO_KEY_RE.test(s))
+    )
+  ).slice(0, 3);
+
   const comboParam = params.get('combo');
-  const comboKey = comboParam && /^v[12]-\d+$/.test(comboParam) ? comboParam : null;
+  const comboKey = comboParam && COMBO_KEY_RE.test(comboParam) ? comboParam : null;
 
   const colorRaw = params.get('color');
   const colorParsed = colorRaw ? Number(colorRaw) : NaN;
@@ -111,6 +123,7 @@ export function parseUrlState(search: string): UrlAppState {
     swatchId,
     searchQuery,
     onlyFavorites,
+    compareKeys,
     comboKey,
     colorId,
   };
@@ -130,6 +143,7 @@ export function serializeUrlState(state: UrlAppState): string {
   if (state.swatchId !== null) params.set('swatch', String(state.swatchId));
   if (state.searchQuery.trim()) params.set('q', state.searchQuery.trim());
   if (state.onlyFavorites) params.set('fav', '1');
+  if (state.compareKeys.length > 0) params.set('compare', state.compareKeys.slice(0, 3).join(','));
   if (state.comboKey) params.set('combo', state.comboKey);
   if (state.colorId !== null) params.set('color', String(state.colorId));
 

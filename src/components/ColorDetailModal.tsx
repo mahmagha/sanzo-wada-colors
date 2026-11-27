@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   Share2,
   Filter,
+  Plus,
 } from 'lucide-react';
 import { ColorItem, Combination } from '../types/color';
 import { formatOklch, getIdealTextColor } from '../utils/colorUtils';
@@ -22,6 +23,7 @@ interface ColorDetailModalProps {
   onBackToCombo?: () => void;
   onShareLink?: (color: ColorItem) => void;
   onFilterBySwatch?: (color: ColorItem) => void;
+  onAddToCustom?: (color: ColorItem) => void;
 }
 
 export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
@@ -33,6 +35,7 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
   onBackToCombo,
   onShareLink,
   onFilterBySwatch,
+  onAddToCustom,
 }) => {
   const dialogRef = useRef<HTMLDivElement>(null);
 
@@ -159,6 +162,17 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
                 >
                   <Filter size={12} />
                   <span>Show in Grid ({matchedCombinations.length})</span>
+                </button>
+              )}
+              {onAddToCustom && (
+                <button
+                  type="button"
+                  onClick={() => onAddToCustom(color)}
+                  style={{ color: textColor }}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded bg-black/20 hover:bg-black/30 backdrop-blur-xs text-xs font-medium transition-colors cursor-pointer"
+                >
+                  <Plus size={12} />
+                  <span>Add to Mix</span>
                 </button>
               )}
             </div>

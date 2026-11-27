@@ -1,5 +1,16 @@
 import React from 'react';
-import { Sparkles, Heart, Search, X, Sun, Moon, ScrollText, Pipette } from 'lucide-react';
+import {
+  Sparkles,
+  Heart,
+  Search,
+  X,
+  Sun,
+  Moon,
+  ScrollText,
+  Pipette,
+  Wand2,
+  CircleHelp,
+} from 'lucide-react';
 import { ThemeMode, ViewMode } from '../types/color';
 
 interface HeaderProps {
@@ -15,6 +26,9 @@ interface HeaderProps {
   onToggleOnlyFavorites: () => void;
   matcherOpen: boolean;
   onToggleMatcher: () => void;
+  customCount: number;
+  onOpenCustomComposer: () => void;
+  onOpenGuide: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -30,14 +44,16 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleOnlyFavorites,
   matcherOpen,
   onToggleMatcher,
+  customCount,
+  onOpenCustomComposer,
+  onOpenGuide,
 }) => {
   return (
-    <header className="sticky-header-surface border-b transition-colors duration-200 sticky top-0 z-30 backdrop-blur-md border-stone-300/40 dark:border-stone-800">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-        {/* Top Branding Line */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <header className="sticky-header-surface border-b transition-colors duration-200 sm:sticky sm:top-0 z-30 backdrop-blur-md border-stone-300/40 dark:border-stone-800">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pb-4">
+        {/* Top Branding Line (scrolls naturally on mobile to preserve screen height) */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4">
           <div className="flex items-center gap-3.5">
-            {/* Hanko Seal Motif */}
             <div
               aria-hidden="true"
               className="w-10 h-10 rounded border-2 border-red-700 dark:border-red-600 flex items-center justify-center font-editorial font-bold text-red-700 dark:text-red-500 text-lg shadow-sm shrink-0 bg-red-50/50 dark:bg-red-950/20"
@@ -62,41 +78,51 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Quick Actions (Color Match, Random, Favorites, Theme) */}
-          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 flex-wrap">
-            {/* Closest Color Matcher Toggle */}
+          {/* Quick Actions */}
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
             <button
               type="button"
               onClick={onToggleMatcher}
               aria-pressed={matcherOpen}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border transition-colors duration-150 cursor-pointer ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border transition-colors duration-150 cursor-pointer ${
                 matcherOpen
                   ? 'bg-amber-800 text-amber-50 border-amber-800 dark:bg-amber-700 dark:border-amber-700 shadow-xs'
                   : 'border-stone-300 dark:border-stone-700 hover:bg-stone-200/50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300'
               }`}
-              title="Find closest Sanzo Wada swatch to any hex color"
+              title="Match HEX color or extract palette from image"
             >
               <Pipette size={14} />
               <span>Color Match</span>
             </button>
 
-            {/* Serendipity / Random Palette Button */}
+            <button
+              type="button"
+              onClick={onOpenCustomComposer}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border border-stone-300 dark:border-stone-700 hover:bg-stone-200/50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 transition-colors duration-150 cursor-pointer"
+              title="Compose a custom palette from Wada's 171 pigments"
+            >
+              <Wand2 size={14} />
+              <span>Mix</span>
+              <span className="min-w-[1.2rem] px-1 text-[11px] rounded-full bg-stone-300/60 dark:bg-stone-700 text-stone-700 dark:text-stone-300 font-code tabular-nums text-center">
+                {customCount}
+              </span>
+            </button>
+
             <button
               type="button"
               onClick={onRandomPalette}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-colors duration-150 bg-red-800 hover:bg-red-900 text-red-50 shadow-sm hover:shadow cursor-pointer"
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-colors duration-150 bg-red-800 hover:bg-red-900 text-red-50 shadow-sm hover:shadow cursor-pointer"
               title="Roll a random combination"
             >
               <Sparkles size={15} />
               <span>Surprise Me</span>
             </button>
 
-            {/* Favorites Filter (always reserves counter width so adjacent controls never shift) */}
             <button
               type="button"
               onClick={onToggleOnlyFavorites}
               aria-pressed={onlyFavorites}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border transition-colors duration-150 cursor-pointer ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border transition-colors duration-150 cursor-pointer ${
                 onlyFavorites
                   ? 'bg-rose-500/15 border-rose-500/40 text-rose-600 dark:text-rose-400'
                   : 'border-stone-300 dark:border-stone-700 hover:bg-stone-200/50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300'
@@ -107,7 +133,7 @@ export const Header: React.FC<HeaderProps> = ({
                 size={15}
                 className={onlyFavorites || favoritesCount > 0 ? 'fill-rose-500 text-rose-500' : ''}
               />
-              <span>Favorites</span>
+              <span className="hidden sm:inline">Favorites</span>
               <span
                 className={`ml-0.5 min-w-[1.35rem] px-1.5 py-0.2 text-[11px] rounded-full font-code tabular-nums text-center ${
                   favoritesCount > 0
@@ -168,11 +194,22 @@ export const Header: React.FC<HeaderProps> = ({
                 <Moon size={15} />
               </button>
             </div>
+
+            {/* Archive Guide & Shortcuts (?) */}
+            <button
+              type="button"
+              onClick={onOpenGuide}
+              aria-label="Archive guide, keyboard shortcuts, and favorites backup"
+              title="Guide, shortcuts (?) & favorites backup"
+              className="p-2 rounded-lg border border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200/50 dark:hover:bg-stone-800 transition-colors cursor-pointer"
+            >
+              <CircleHelp size={15} />
+            </button>
           </div>
         </div>
 
-        {/* Lower Row: View Switcher & Search Bar */}
-        <div className="mt-4 pt-3 border-t border-stone-200/70 dark:border-stone-800/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        {/* Lower Row: View Switcher & Search Bar (sticky on mobile, seamless on sm+) */}
+        <div className="sticky top-0 sm:static z-30 sticky-header-surface sm:bg-transparent mt-3 sm:mt-4 py-3 sm:pb-0 border-t border-stone-200/70 dark:border-stone-800/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           {/* View Mode Tabs */}
           <div
             role="tablist"
@@ -207,10 +244,11 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           </div>
 
-          {/* Search Box (supports multi-term matching) */}
+          {/* Search Box (press / to focus) */}
           <div className="relative flex-1 sm:max-w-md">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
             <input
+              id="global-search-input"
               type="text"
               aria-label={
                 viewMode === 'combinations'
@@ -219,7 +257,7 @@ export const Header: React.FC<HeaderProps> = ({
               }
               placeholder={
                 viewMode === 'combinations'
-                  ? 'Search (e.g. "pink blue", "Spring", "#180")'
+                  ? 'Search (e.g. "pink blue", "Spring", "#180") — press /'
                   : 'Search 171 colors by name, Japanese, romaji, or hex...'
               }
               value={searchQuery}

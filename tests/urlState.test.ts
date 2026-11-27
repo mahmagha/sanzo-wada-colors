@@ -10,10 +10,11 @@ describe('URL state parsing and serialization', () => {
     assert.equal(empty.monthFilter, 'all');
     assert.equal(empty.colorSort, 'id-asc');
     assert.equal(empty.swatchId, null);
+    assert.deepEqual(empty.compareKeys, []);
     assert.equal(empty.comboKey, null);
     assert.equal(empty.colorId, null);
 
-    const invalid = parseUrlState('?view=bad&vol=9&season=monsoon&month=13&size=9&tone=neon&sort=foo&csort=bad&swatch=-1&combo=bad&color=-3');
+    const invalid = parseUrlState('?view=bad&vol=9&season=monsoon&month=13&size=9&tone=neon&sort=foo&csort=bad&swatch=-1&compare=bad,v1-1,v2-5,v9-1,v1-9&combo=bad&color=-3');
     assert.equal(invalid.viewMode, 'combinations');
     assert.equal(invalid.volumeFilter, 'all');
     assert.equal(invalid.seasonFilter, 'all');
@@ -23,6 +24,7 @@ describe('URL state parsing and serialization', () => {
     assert.equal(invalid.sortBy, 'number-asc');
     assert.equal(invalid.colorSort, 'id-asc');
     assert.equal(invalid.swatchId, null);
+    assert.deepEqual(invalid.compareKeys, ['v1-1', 'v2-5', 'v1-9']);
     assert.equal(invalid.comboKey, null);
     assert.equal(invalid.colorId, null);
   });
@@ -40,6 +42,7 @@ describe('URL state parsing and serialization', () => {
       swatchId: 12,
       searchQuery: 'sakura',
       onlyFavorites: true,
+      compareKeys: ['v1-1', 'v2-14'],
       comboKey: 'v2-14',
       colorId: 42,
     });
@@ -57,6 +60,7 @@ describe('URL state parsing and serialization', () => {
       swatchId: 12,
       searchQuery: 'sakura',
       onlyFavorites: true,
+      compareKeys: ['v1-1', 'v2-14'],
       comboKey: 'v2-14',
       colorId: 42,
     });
@@ -74,6 +78,7 @@ describe('URL state parsing and serialization', () => {
         swatchId: null,
         searchQuery: '',
         onlyFavorites: false,
+        compareKeys: [],
         comboKey: null,
         colorId: null,
       }),

@@ -6,7 +6,7 @@ An interactive, responsive digital viewer and color harmony studio for **Sanzo W
 
 Digitized archive containing:
 - **420 Color Combinations** (348 Vol. 1 harmonies + 72 Vol. 2 seasonal plates across the 12 calendar months)
-- **171 Master Colors** (159 Vol. 1 swatches + 12 newly introduced in Vol. 2), including documented Japanese kanji & romaji readings (currently **36 of 171** from the upstream dataset).
+- **171 Master Colors** (159 Vol. 1 swatches + 12 newly introduced in Vol. 2), including verified Japanese kanji & romaji readings (**41 of 171** documented via upstream data + verified overrides).
 
 ---
 
@@ -17,19 +17,20 @@ Digitized archive containing:
   - **Seasonal & 12-Month Calendar Filtering (Vol. 2)**: Filter by season (🌸 Spring, 🌿 Summer, 🍁 Autumn, ❄️ Winter) or pick any of the 12 Japanese calendar months (*睦月 Mutsuki* – *師走 Shiwasu*).
   - **Multi-Term Search & Swatch Filtering**: Search across multiple terms simultaneously (e.g. `"warm spring"`, `"pink blue"`, `"toki-iro"`, `"v2-14"`), or filter the grid to all combinations containing any chosen swatch (`?swatch=`).
   - **Color Count & Tone Filters**: Filter by 2, 3, 4, or 5+ colors (up to 7 on Vol. 2 plates) and by *Warm*, *Cool*, *Earthy*, *Pastel*, *Deep*, or *Neutral* tones.
-  - **Sort, Compare & Share**: Sort by plate number, precomputed contrast ratio, or frequency; pin up to 3 palettes to compare side by side; and share deep-linked URLs (`?combo=`, `?color=`, `?swatch=`).
-- **171 Master Color Swatches & Closest Match (CIEDE2000)**:
-  - **Color Match Tool**: Pick or enter any HEX color to rank the perceptually nearest Wada swatches by $\Delta E_{00}$ and jump directly to their combinations.
-  - **Sort & Kanji Filter**: Sort swatches by ID, Hue Spectrum, Lightness, Popularity, or Name, and filter to documented Japanese kanji entries.
+  - **Sort, Compare & Share**: Sort by plate number, precomputed contrast ratio, or frequency; pin up to 3 palettes (persisted in `localStorage` & `?compare=`) to compare side by side; and share deep-linked URLs (`?combo=`, `?color=`, `?swatch=`).
+- **171 Master Color Swatches, Image Extractor & Custom Composer**:
+  - **Closest Color Match & Image Extractor**: Match any HEX color or upload/drop an image locally (client-side k-means quantization + CIEDE2000 $\Delta E$) to extract dominant Wada swatches and launch a matched palette in Studio.
+  - **Custom Palette Composer (`Mix`)**: Compose 2–6 swatches from the 171 pigments into a custom palette and inspect it in the Studio.
+  - **Grid & 2D Spectrum Map**: Sort swatches by ID, Hue Spectrum, Lightness, Popularity, or Name, filter to documented Japanese kanji entries, or toggle the interactive **2D Hue × Lightness Spectrum Map**.
   - **Full Color Space Profiles**: **HEX**, **OKLCH**, **RGB**, **CMYK**, and **CIE-LAB** with bidirectional swatch ↔ palette navigation.
 - **Deep Inspection Studio (Modal)**:
   - **Color Vision Deficiency (CVD) Simulator**: Preview swatches, UI mockups, and contrast under *Protanopia*, *Deuteranopia*, *Tritanopia*, and *Achromatopsia*.
   - **Showa Art Print**: Japanese editorial poster with vertical kanji spine (*配色総鑑*), Wada Sanzo hanko seal (*三造*), Equal vs. 60/30/10 proportions toggle, and print-ready **SVG** & **2× PNG** exports.
-  - **Interactive UI Component Mockup**: Assign **Background**, **Surface**, **Accent**, and **Text / Ink** roles with live WCAG AA/AAA contrast badges and semantic role CSS export.
+  - **Multi-Template UI Mockup**: Switch across **Landing Hero**, **Analytics Dashboard**, **Editorial Article**, and **Mobile App Card** templates; assign **Background**, **Surface**, **Accent**, and **Text / Ink** roles with live WCAG AA/AAA badges and semantic Role CSS export.
   - **Color Science & Developer/Design Exports**: Pairwise WCAG 2.1 matrix plus exports for **CSS (`:root` HEX / OKLCH)**, **Tailwind v4 (`@theme`)**, **Tailwind v3**, **W3C / Figma Tokens**, **SVG Palette**, **GIMP/Procreate `.gpl`**, **Adobe Swatch `.ase`**, and **JSON**.
-- **Accessible, Fast & Offline-Ready**:
-  - **Zero-Jump Layout & Keyboard UX**: Stable filter toolbars, modal focus trapping, scroll locking, `Escape` to close, and `←` / `→` palette stepping.
-  - **Code-Split & PWA Support**: Lazy-loaded studio dialogs and service worker caching (`public/sw.js` + `manifest.webmanifest`) for offline use.
+- **Accessible, Fast & Offline-Ready PWA**:
+  - **Zero-Jump Layout & Keyboard UX**: Stable filter toolbars, modal focus trapping, scroll locking, `/` search focus, `?` guide & favorites JSON backup dialog, `Escape` to close, and `←` / `→` palette stepping.
+  - **Code-Split & Build-Time Precached PWA**: Lazy-loaded dialogs and a build-generated service worker precache manifest (`dist/sw.js`) for full offline support.
   - **Three Themes**: **Washi Paper** (`#F7F4EC`), **Clean Studio** (`#FAFAFA`), and **Dark Gallery** (`#121214`), respecting OS preference on first visit.
 
 ---
@@ -46,7 +47,7 @@ npm run dev
 # 3. Typecheck and run unit tests
 npm test
 
-# 4. Typecheck and build production bundle
+# 4. Typecheck and build production bundle (with SW precache manifest)
 npm run build
 ```
 
@@ -66,7 +67,7 @@ Every push to `main` runs tests, builds `dist/`, and updates the live deployment
 ## 🛠 Tech Stack
 
 - **Framework**: [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
-- **Bundler**: [Vite 8](https://vite.dev/) (relative asset resolution & lazy chunk splitting)
+- **Bundler**: [Vite 8](https://vite.dev/) (relative asset resolution, lazy chunk splitting, & SW manifest injection)
 - **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
 - **Typography**: Google Fonts (*Noto Serif JP*, *Cinzel*, *Plus Jakarta Sans*, *JetBrains Mono*)
 - **Icons**: [Lucide React](https://lucide.dev/)

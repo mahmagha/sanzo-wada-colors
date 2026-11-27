@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import rawColors from '../src/data/wadaColors.json';
 import rawCombinations from '../src/data/wadaCombinations.json';
 import { ColorItem, RawCombination } from '../src/types/color';
-import { hydrateCombinations, MONTH_OPTIONS, SEASON_MONTHS } from '../src/utils/paletteData';
+import { ARCHIVAL_NOTES, hydrateCombinations, MONTH_OPTIONS, SEASON_MONTHS } from '../src/utils/paletteData';
 
 describe('dataset integrity and hydration', () => {
   const colors = rawColors as ColorItem[];
@@ -31,9 +31,12 @@ describe('dataset integrity and hydration', () => {
     }
   });
 
-  it('covers all 12 calendar months consistently across seasons', () => {
+  it('covers all 12 calendar months consistently with seasonal motifs and archival notes', () => {
     assert.equal(MONTH_OPTIONS.length, 12);
+    assert.ok(MONTH_OPTIONS.every((m) => m.motif.length > 10));
+    assert.equal(ARCHIVAL_NOTES.length, 3);
     const allSeasonMonths = Object.values(SEASON_MONTHS).flat().sort((a, b) => a - b);
     assert.deepEqual(allSeasonMonths, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
+    assert.ok(colors.filter((c) => Boolean(c.ja)).length >= 41);
   });
 });
