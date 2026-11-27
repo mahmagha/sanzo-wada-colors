@@ -47,10 +47,10 @@ export const ColorSwatchCard: React.FC<ColorSwatchCardProps> = ({
 
           <div style={{ color: textColor }} className="w-full">
             {color.ja && (
-              <div className="text-xs font-editorial font-semibold opacity-90 truncate">
+              <div lang="ja" className="text-xs font-editorial font-semibold opacity-90 truncate">
                 {color.ja}
                 {color.reading && (
-                  <span className="text-[10px] opacity-75 font-sans ml-1">({color.reading})</span>
+                  <span lang="en" className="text-[10px] opacity-75 font-sans ml-1">({color.reading})</span>
                 )}
               </div>
             )}

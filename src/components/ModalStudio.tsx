@@ -709,7 +709,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                               >
                                 {c.name}{' '}
                                 {c.ja && (
-                                  <span className="opacity-90 font-normal text-xs sm:text-sm">
+                                  <span lang="ja" className="opacity-90 font-normal text-xs sm:text-sm">
                                     ({c.ja})
                                   </span>
                                 )}

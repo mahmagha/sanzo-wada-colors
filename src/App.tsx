@@ -629,7 +629,13 @@ export const App: React.FC = () => {
     setSelectedColor(null);
     setSelectedCombo(randomCombo);
 
+    const reduceMotion =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     try {
+      if (reduceMotion) throw new Error('reduced motion');
       const { default: confetti } = await import('canvas-confetti');
       confetti({
         particleCount: 40,
