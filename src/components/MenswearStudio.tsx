@@ -726,7 +726,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                         : 'border-stone-300/70 dark:border-stone-800 bg-white/80 dark:bg-stone-950/40'
                     }`}
                   >
-                    <div className="flex items-center justify-between gap-2">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                       <button
                         type="button"
                         onClick={() => {
@@ -771,7 +771,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                         </div>
                       </button>
 
-                      <div className="flex items-center gap-1 shrink-0 flex-wrap justify-end">
+                      <div className="flex items-center gap-1.5 flex-wrap sm:justify-end">
                         <select
                           aria-label={`Garment type for ${slot}`}
                           value={pieces[slot]}
@@ -869,7 +869,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                   onChange={(e) => setLookName(e.target.value)}
                   placeholder="Name outfit look..."
                   aria-label="Saved menswear outfit name"
-                  className="flex-1 px-2.5 py-1.5 text-xs rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-950 text-stone-900 dark:text-stone-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700"
+                  className="flex-1 min-w-0 px-2.5 py-1.5 text-xs rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-950 text-stone-900 dark:text-stone-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700"
                 />
                 <button
                   type="button"

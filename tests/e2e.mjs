@@ -237,6 +237,47 @@ async function run() {
     assert.equal(baselineAudit.fontsLoaded.mono, true);
     assert.equal(baselineAudit.fontsLoaded.notoJp, true);
 
+    const assertMobileFits360 = async (viewLabel) => {
+      await client.send('Emulation.setDeviceMetricsOverride', {
+        width: 360,
+        height: 780,
+        deviceScaleFactor: 2,
+        mobile: true,
+      });
+      await new Promise((r) => setTimeout(r, 140));
+      const overflowCheck = await client.eval(`(() => {
+        const cw = document.documentElement.clientWidth;
+        const bad = Array.from(document.querySelectorAll('*'))
+          .filter(el => {
+            if (el.tagName === 'HTML' || el.tagName === 'BODY') return false;
+            const r = el.getBoundingClientRect();
+            const cs = getComputedStyle(el);
+            if (r.width <= 0) return false;
+            if (r.right > cw + 1 || r.left < -1) return true;
+            if (cs.overflowX === 'visible' && cs.overflow === 'visible' && el.scrollWidth > el.clientWidth + 2) return true;
+            return false;
+          })
+          .slice(0, 10)
+          .map(el => ({
+            tag: el.tagName,
+            cls: typeof el.className === 'string' ? el.className.slice(0, 60) : '',
+            left: Math.round(el.getBoundingClientRect().left),
+            right: Math.round(el.getBoundingClientRect().right),
+            sw: el.scrollWidth,
+            cw: el.clientWidth,
+          }));
+        return { cw, sw: document.documentElement.scrollWidth, bad };
+      })()`);
+      await client.send('Emulation.clearDeviceMetricsOverride');
+      await new Promise((r) => setTimeout(r, 100));
+      assert.ok(
+        overflowCheck.sw <= 360 && overflowCheck.bad.length === 0,
+        `Mobile 360px overflow on ${viewLabel}: ${JSON.stringify(overflowCheck)}`
+      );
+    };
+
+    await assertMobileFits360('combinations');
+
     const getRects = async () =>
       client.eval(`(() => {
         const findBtn = (txt) => Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim().includes(txt));
@@ -621,6 +662,7 @@ async function run() {
     await client.eval(`document.querySelector('button[aria-label="Export menswear SVG lookbook"]')?.click()`);
     await client.eval(`document.querySelector('button[aria-label="Pin menswear palette to compare"]')?.click()`);
     assert.equal(await waitForText('Compare (3/3)'), true);
+    await assertMobileFits360('menswear + pinstripe + compare tray');
     await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Compare (3/3)')).click()`);
     assert.equal(await waitForText('Palette Comparison (3 / 3)'), true);
     assert.equal(await waitForText('Custom Mix •'), true);

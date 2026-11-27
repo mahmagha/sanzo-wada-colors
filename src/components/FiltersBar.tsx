@@ -61,12 +61,12 @@ export const FiltersBar: React.FC<FiltersBarProps> = ({
       {/* Top Row: Volume Selector & Seasonal / Month Filters (always rendered to prevent layout jumps) */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
         {/* Volume Selector Tabs */}
-        <div className="flex items-center gap-1.5 p-1 rounded-lg bg-stone-200/60 dark:bg-stone-800 border border-stone-300/40 dark:border-stone-700/60 self-start shrink-0">
+        <div className="flex flex-wrap items-center gap-1.5 p-1 rounded-lg bg-stone-200/60 dark:bg-stone-800 border border-stone-300/40 dark:border-stone-700/60 self-start max-w-full">
           <button
             type="button"
             onClick={() => onVolumeChange('all')}
             aria-pressed={volume === 'all'}
-            className={`px-3 py-1 text-xs rounded-md font-medium transition-colors whitespace-nowrap cursor-pointer ${
+            className={`px-2.5 sm:px-3 py-1 text-xs rounded-md font-medium transition-colors whitespace-nowrap cursor-pointer ${
               volume === 'all'
                 ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
                 : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'

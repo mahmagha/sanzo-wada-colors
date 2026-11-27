@@ -1191,7 +1191,7 @@ export const App: React.FC = () => {
 
       {/* Floating Compare Palettes Tray */}
       {hasBottomTray && (
-        <div className="fixed bottom-4 sm:bottom-5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-4 py-2 rounded-full bg-stone-900/95 text-stone-100 shadow-2xl border border-stone-700 backdrop-blur-md animate-in fade-in slide-in-from-bottom-3">
+        <div className="fixed bottom-4 sm:bottom-5 left-1/2 -translate-x-1/2 z-40 max-w-[calc(100vw-1.5rem)] flex flex-wrap items-center justify-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 rounded-2xl sm:rounded-full bg-stone-900/95 text-stone-100 shadow-2xl border border-stone-700 backdrop-blur-md animate-in fade-in slide-in-from-bottom-3">
           <div className="flex items-center gap-1.5">
             {comparedCombinations.map((combo) => (
               <div

@@ -55,15 +55,15 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pb-4">
         {/* Top Branding Line (scrolls naturally on mobile to preserve screen height) */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 sm:gap-4">
-          <div className="flex items-center gap-3.5">
+          <div className="flex items-center gap-3.5 min-w-0">
             <div
               aria-hidden="true"
               className="w-10 h-10 rounded border-2 border-red-700 dark:border-red-600 flex items-center justify-center font-editorial font-bold text-red-700 dark:text-red-500 text-lg shadow-sm shrink-0 bg-red-50/50 dark:bg-red-950/20"
             >
               三造
             </div>
-            <div>
-              <div className="flex items-center gap-2">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
                 <h1 className="text-xl sm:text-2xl font-editorial font-bold tracking-tight text-stone-900 dark:text-stone-100">
                   和田三造{' '}
                   <span className="font-sans font-light text-stone-500 dark:text-stone-400 text-base sm:text-lg">
@@ -81,7 +81,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Quick Actions */}
-          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+          <div className="flex items-center gap-2 flex-wrap max-w-full">
             <button
               type="button"
               onClick={onToggleMatcher}
