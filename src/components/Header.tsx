@@ -12,6 +12,7 @@ import {
   CircleHelp,
   Shirt,
   CircleDot,
+  CalendarDays,
 } from 'lucide-react';
 import { ThemeMode, ViewMode } from '../types/color';
 
@@ -23,6 +24,7 @@ interface HeaderProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onRandomPalette: () => void;
+  onTodaysPalette: () => void;
   favoritesCount: number;
   onlyFavorites: boolean;
   onToggleOnlyFavorites: () => void;
@@ -41,6 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
   searchQuery,
   onSearchChange,
   onRandomPalette,
+  onTodaysPalette,
   favoritesCount,
   onlyFavorites,
   onToggleOnlyFavorites,
@@ -108,6 +111,17 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="min-w-[1.2rem] px-1 text-[11px] rounded-full bg-stone-300/60 dark:bg-stone-700 text-stone-700 dark:text-stone-300 font-code tabular-nums text-center">
                 {customCount}
               </span>
+            </button>
+
+            <button
+              type="button"
+              onClick={onTodaysPalette}
+              className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border border-stone-300 dark:border-stone-700 hover:bg-stone-200/50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300 transition-colors duration-150 cursor-pointer"
+              title="Today's combination (same for everyone, changes at midnight)"
+              aria-label="Today's combination"
+            >
+              <CalendarDays size={15} />
+              <span className="hidden xl:inline">Today</span>
             </button>
 
             <button

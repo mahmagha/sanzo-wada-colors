@@ -1,3 +1,4 @@
+import { pickOfTheDay } from './utils/dailyPick';
 import React, { Suspense, lazy, useState, useMemo, useEffect, useCallback } from 'react';
 import { ArrowUp, Columns2, LayoutGrid, ScatterChart, X } from 'lucide-react';
 import rawCombinations from './data/wadaCombinations.json';
@@ -621,6 +622,16 @@ export const App: React.FC = () => {
     return sortMasterColors(result, colorSort);
   }, [volumeFilter, hasKanjiOnly, toneFilter, searchQuery, colorSort]);
 
+  const handleTodaysPalette = () => {
+    const pick = pickOfTheDay(allCombinations);
+    if (!pick) return;
+    setReturnCombo(null);
+    setSelectedColor(null);
+    setSelectedCombo(pick);
+    const volLabel = pick.volume === 2 ? `Vol. 2 Card № ${pick.id}` : `Vol. 1 № ${pick.id}`;
+    setToastMessage(`Today's combination: ${volLabel}`);
+  };
+
   const handleRandomPalette = async () => {
     const pool = filteredCombinations.length > 0 ? filteredCombinations : allCombinations;
     const randomIndex = Math.floor(Math.random() * pool.length);
@@ -725,6 +736,7 @@ export const App: React.FC = () => {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onRandomPalette={handleRandomPalette}
+        onTodaysPalette={handleTodaysPalette}
         favoritesCount={favorites.length}
         onlyFavorites={onlyFavorites}
         onToggleOnlyFavorites={() => setOnlyFavorites((prev) => !prev)}
