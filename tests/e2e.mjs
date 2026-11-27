@@ -154,6 +154,11 @@ async function run() {
       '--disable-gpu',
       '--no-first-run',
       '--no-default-browser-check',
+      '--disable-background-networking',
+      '--disable-extensions',
+      '--disable-sync',
+      '--disable-background-timer-throttling',
+      '--remote-debugging-address=127.0.0.1',
       ...(process.platform === 'linux' || process.env.CI
         ? ['--no-sandbox', '--disable-dev-shm-usage']
         : []),
@@ -163,9 +168,15 @@ async function run() {
       BASE_URL,
     ];
 
+    const browserEnv = { ...process.env };
+    if (process.platform === 'linux') {
+      delete browserEnv.DBUS_SESSION_BUS_ADDRESS;
+    }
+
     browser = spawn(browserBin, browserArgs, {
       stdio: ['ignore', 'pipe', 'pipe'],
       windowsHide: true,
+      env: browserEnv,
     });
     browser.stderr.on('data', (d) => {
       browserLogs = (browserLogs + d.toString()).slice(-4000);
@@ -173,9 +184,11 @@ async function run() {
 
     let targets;
     try {
-      targets = await waitForHttp(`http://127.0.0.1:${CDP_PORT}/json`);
+      targets = await waitForHttp(`http://127.0.0.1:${CDP_PORT}/json`, 30000);
     } catch (e) {
-      throw new Error(`${e.message}\nBrowser (${browserBin}) stderr:\n${browserLogs}`);
+      throw new Error(
+        `${e.message} (exitCode=${browser.exitCode})\nBrowser (${browserBin}) stderr:\n${browserLogs}`
+      );
     }
     const pageTarget = targets.find((t) => t.type === 'page');
     assert.ok(pageTarget, 'No CDP page target found');
