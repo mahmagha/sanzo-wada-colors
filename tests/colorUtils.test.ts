@@ -6,6 +6,7 @@ import {
   buildAseBytes,
   buildSvgCardMarkup,
   classifyColorTone,
+  deriveSurfaceHex,
   escapeXml,
   findClosestColors,
   formatOklch,
@@ -55,6 +56,10 @@ describe('hex & contrast utilities', () => {
     const highContrast = getAccessibleBadgeColors('#284b63', '#ffffff');
     assert.equal(highContrast.backgroundColor, '#284b6322');
     assert.equal(highContrast.color, '#284b63');
+
+    assert.notEqual(deriveSurfaceHex('#ffffff'), '#ffffff');
+    assert.notEqual(deriveSurfaceHex('#f9c1ce'), '#f9c1ce');
+    assert.notEqual(deriveSurfaceHex('#284b63'), '#284b63');
   });
 });
 

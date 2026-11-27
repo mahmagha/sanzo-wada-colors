@@ -21,6 +21,9 @@ import {
   getContrastRatio,
   getIdealTextColor,
   getAccessibleBadgeColors,
+  getLuminance,
+  hexToRgb,
+  deriveSurfaceHex,
   formatOklch,
   simulateColorVision,
   downloadSvgCard,
@@ -82,6 +85,22 @@ function getWeightedHeights(count: number): number[] {
   return [150, 90, ...Array(count - 2).fill(restHeight)];
 }
 
+function getDefaultRoleIndices(colors: ColorItem[]): {
+  bg: number;
+  surface: number;
+  accent: number;
+} {
+  if (colors.length <= 1) return { bg: 0, surface: -1, accent: 0 };
+  if (colors.length === 2) {
+    const lum0 = getLuminance(...hexToRgb(colors[0].hex));
+    const lum1 = getLuminance(...hexToRgb(colors[1].hex));
+    const bg = lum0 >= lum1 ? 0 : 1;
+    // Use derived Auto Surface Tint (-1) so 2-color UI never shares Surface === Accent
+    return { bg, surface: -1, accent: 1 - bg };
+  }
+  return { bg: 0, surface: 1, accent: 2 };
+}
+
 export const ModalStudio: React.FC<ModalStudioProps> = ({
   combination,
   onClose,
@@ -104,14 +123,11 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
   const [cvdMode, setCvdMode] = useState<CvdMode>('normal');
   const [weightedBars, setWeightedBars] = useState(false);
 
-  const initialCount = combination?.colors.length ?? 0;
-  const [bgIndex, setBgIndex] = useState<number>(0);
-  const [surfaceIndex, setSurfaceIndex] = useState<number>(
-    Math.min(1, Math.max(0, initialCount - 1))
-  );
-  const [accentIndex, setAccentIndex] = useState<number>(
-    initialCount > 2 ? 2 : Math.min(1, Math.max(0, initialCount - 1))
-  );
+  const initialColors = combination?.colors ?? [];
+  const initialDefaults = getDefaultRoleIndices(initialColors);
+  const [bgIndex, setBgIndex] = useState<number>(initialDefaults.bg);
+  const [surfaceIndex, setSurfaceIndex] = useState<number>(initialDefaults.surface);
+  const [accentIndex, setAccentIndex] = useState<number>(initialDefaults.accent);
   // -1 means Auto WCAG high-contrast text; >= 0 picks a palette color as custom Ink/Text
   const [textIndex, setTextIndex] = useState<number>(-1);
 
@@ -119,10 +135,10 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
 
   useEffect(() => {
     if (!combination) return;
-    const len = combination.colors.length;
-    setBgIndex(0);
-    setSurfaceIndex(Math.min(1, Math.max(0, len - 1)));
-    setAccentIndex(len > 2 ? 2 : Math.min(1, Math.max(0, len - 1)));
+    const defaults = getDefaultRoleIndices(combination.colors);
+    setBgIndex(defaults.bg);
+    setSurfaceIndex(defaults.surface);
+    setAccentIndex(defaults.accent);
     setTextIndex(-1);
   }, [combination?.volume, combination?.id, combination?.colors.length]);
 
@@ -151,20 +167,32 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
   if (!combination) return null;
 
   const colors = combination.colors;
-  const safeBgIndex = Math.min(bgIndex, Math.max(0, colors.length - 1));
-  const safeSurfaceIndex = Math.min(surfaceIndex, Math.max(0, colors.length - 1));
-  const safeAccentIndex = Math.min(accentIndex, Math.max(0, colors.length - 1));
+  const safeBgIndex = bgIndex < 0 ? bgIndex : Math.min(bgIndex, Math.max(0, colors.length - 1));
+  const safeSurfaceIndex =
+    surfaceIndex < 0 ? -1 : Math.min(surfaceIndex, Math.max(0, colors.length - 1));
+  const safeAccentIndex = Math.min(Math.max(0, accentIndex), Math.max(0, colors.length - 1));
 
-  const bgColor = colors[safeBgIndex] || colors[0];
-  const surfaceColor = colors[safeSurfaceIndex] || colors[1] || colors[0];
+  const bgRole =
+    safeBgIndex === -1
+      ? { hex: '#faf7f2', name: 'Washi Paper' }
+      : safeBgIndex === -2
+      ? { hex: '#18181b', name: 'Obsidian Dark' }
+      : colors[safeBgIndex] || colors[0];
+
   const accentColor = colors[safeAccentIndex] || colors[colors.length - 1];
   const customTextColor =
     textIndex >= 0 && textIndex < colors.length ? colors[textIndex] : null;
 
   const simHex = (hex: string) => simulateColorVision(hex, cvdMode);
 
-  const bgDisplayHex = simHex(bgColor.hex);
-  const surfaceDisplayHex = simHex(surfaceColor.hex);
+  const bgDisplayHex = simHex(bgRole.hex);
+  const derivedSurfaceRawHex = deriveSurfaceHex(bgRole.hex);
+  const surfaceRole =
+    safeSurfaceIndex === -1
+      ? { hex: derivedSurfaceRawHex, name: `Auto Tint (${bgRole.name})` }
+      : colors[safeSurfaceIndex] || colors[0];
+  const surfaceDisplayHex =
+    safeSurfaceIndex === -1 ? deriveSurfaceHex(bgDisplayHex) : simHex(surfaceRole.hex);
   const accentDisplayHex = simHex(accentColor.hex);
 
   const bgTextColor = customTextColor
@@ -181,6 +209,24 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
   const accentBgContrast = getContrastRatio(bgDisplayHex, accentDisplayHex);
 
   const handleShuffleRoles = () => {
+    if (colors.length <= 1) return;
+    if (colors.length === 2) {
+      const presets = [
+        { bg: 0, surface: -1, accent: 1 },
+        { bg: 1, surface: -1, accent: 0 },
+        { bg: -1, surface: 0, accent: 1 },
+        { bg: -2, surface: 1, accent: 0 },
+      ];
+      const currentIdx = presets.findIndex(
+        (p) => p.bg === safeBgIndex && p.surface === safeSurfaceIndex && p.accent === safeAccentIndex
+      );
+      const next = presets[(currentIdx + 1) % presets.length];
+      setBgIndex(next.bg);
+      setSurfaceIndex(next.surface);
+      setAccentIndex(next.accent);
+      return;
+    }
+
     const indices = Array.from({ length: colors.length }, (_, i) => i);
     const shuffled = [...indices].sort(() => Math.random() - 0.5);
     setBgIndex(shuffled[0]);
@@ -500,7 +546,11 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                       : 'bg-stone-200/70 dark:bg-stone-800 text-stone-600 dark:text-stone-300'
                   }`}
                 >
-                  60 / 30 / 10 Balance
+                  {colors.length === 2
+                    ? '70 / 30 Balance'
+                    : colors.length === 3
+                    ? '60 / 30 / 10 Balance'
+                    : 'Tiered 60 / 30 / 10'}
                 </button>
               </div>
 
@@ -664,12 +714,12 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                       onClick={() =>
                         onCopyText(
                           generateRoleCssVariables(combination, {
-                            bg: bgColor,
-                            surface: surfaceColor,
+                            bg: bgRole,
+                            surface: surfaceRole,
                             accent: accentColor,
                             textHex: customTextColor
                               ? customTextColor.hex
-                              : getIdealTextColor(bgColor.hex),
+                              : getIdealTextColor(bgRole.hex),
                           }),
                           'Copied semantic UI role CSS tokens'
                         )
@@ -708,6 +758,8 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                           {i + 1}. {c.name}
                         </option>
                       ))}
+                      <option value={-1}>Paper Canvas (#FAF7F2)</option>
+                      <option value={-2}>Obsidian Dark (#18181B)</option>
                     </select>
                   </label>
 
@@ -718,6 +770,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                       onChange={(e) => setSurfaceIndex(Number(e.target.value))}
                       className="px-2 py-1.5 rounded border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700"
                     >
+                      <option value={-1}>Auto Tint (from BG)</option>
                       {colors.map((c, i) => (
                         <option key={c.id} value={i}>
                           {i + 1}. {c.name}
@@ -865,7 +918,15 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3 pt-4">
+                  <div
+                    className={`grid gap-3 pt-4 ${
+                      colors.length === 2
+                        ? 'grid-cols-1 sm:grid-cols-2'
+                        : colors.length === 3
+                        ? 'grid-cols-1 sm:grid-cols-3'
+                        : 'grid-cols-2 sm:grid-cols-3 md:grid-cols-4'
+                    }`}
+                  >
                     {colors.map((c, i) => (
                       <div
                         key={c.id}
@@ -873,12 +934,15 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                           backgroundColor: surfaceDisplayHex,
                           color: surfaceTextColor,
                         }}
-                        className="p-3.5 rounded-xl shadow-sm border border-current/10"
+                        className="p-3.5 rounded-xl shadow-sm border border-current/15"
                       >
                         <div className="flex items-center gap-2 mb-2">
                           <div
-                            style={{ backgroundColor: simHex(c.hex) }}
-                            className="w-4 h-4 rounded-full border border-black/20 shrink-0"
+                            style={{
+                              backgroundColor: simHex(c.hex),
+                              borderColor: `${surfaceTextColor}44`,
+                            }}
+                            className="w-4 h-4 rounded-full border shrink-0"
                           />
                           <span className="text-[11px] font-code opacity-75 uppercase">
                             Tone {i + 1}
@@ -936,8 +1000,12 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                           return (
                             <div key={c.id} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
                               <div
-                                style={{ backgroundColor: simHex(c.hex), height: `${hPct}%` }}
-                                className="w-full rounded-t-md border border-black/15"
+                                style={{
+                                  backgroundColor: simHex(c.hex),
+                                  height: `${hPct}%`,
+                                  borderColor: `${surfaceTextColor}38`,
+                                }}
+                                className="w-full rounded-t-md border"
                                 title={c.name}
                               />
                               <span className="text-[10px] font-code opacity-80 truncate max-w-full">
@@ -960,8 +1028,11 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                           <div key={c.id} className="flex items-center justify-between gap-2">
                             <span className="flex items-center gap-2 truncate">
                               <span
-                                style={{ backgroundColor: simHex(c.hex) }}
-                                className="w-2.5 h-2.5 rounded-full shrink-0"
+                                style={{
+                                  backgroundColor: simHex(c.hex),
+                                  borderColor: `${surfaceTextColor}44`,
+                                }}
+                                className="w-2.5 h-2.5 rounded-full border shrink-0"
                               />
                               <span className="truncate">{c.name}</span>
                             </span>

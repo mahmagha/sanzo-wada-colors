@@ -87,6 +87,25 @@ export function getAccessibleBadgeColors(
   };
 }
 
+/**
+ * Derive a distinct elevated surface hex from a background color so 2-color palettes
+ * never collide between Surface and Accent roles.
+ */
+export function deriveSurfaceHex(bgHex: string): string {
+  const [r, g, b] = hexToRgb(bgHex);
+  const lum = getLuminance(r, g, b);
+
+  // Mix toward warm ink on near-white backgrounds, or lift toward white on mid/dark tones
+  const target: [number, number, number] = lum >= 0.82 ? [28, 25, 23] : [255, 255, 255];
+  const t = lum >= 0.82 ? 0.08 : lum > 0.35 ? 0.42 : 0.14;
+
+  return rgbToHex(
+    r + (target[0] - r) * t,
+    g + (target[1] - g) * t,
+    b + (target[2] - b) * t
+  );
+}
+
 export function getMaxPaletteContrast(combination: Pick<Combination, 'colors'>): number {
   let maxRatio = 1;
   const { colors } = combination;
@@ -380,7 +399,12 @@ export function generateCssVariables(
 
 export function generateRoleCssVariables(
   combo: Combination,
-  roles: { bg: ColorItem; surface: ColorItem; accent: ColorItem; textHex: string }
+  roles: {
+    bg: { hex: string; name: string };
+    surface: { hex: string; name: string };
+    accent: { hex: string; name: string };
+    textHex: string;
+  }
 ): string {
   return `/* Semantic UI Roles — ${getComboTitle(combo)} */\n:root {\n  --color-bg: ${roles.bg.hex}; /* ${roles.bg.name} */\n  --color-surface: ${roles.surface.hex}; /* ${roles.surface.name} */\n  --color-accent: ${roles.accent.hex}; /* ${roles.accent.name} */\n  --color-text: ${roles.textHex};\n}`;
 }
