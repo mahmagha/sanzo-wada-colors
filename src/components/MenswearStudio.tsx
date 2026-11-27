@@ -44,7 +44,7 @@ import {
   STYLE_PRESET_PIECES,
   TOP_CUTS,
 } from "../utils/menswearUtils";
-import { MenswearIllustration } from "./MenswearIllustration";
+import { MenswearIllustration, DEFAULT_FABRICS } from "./MenswearIllustration";
 import { GarmentWeaveControls } from "./GarmentWeaveControls";
 import type { GarmentFabrics } from "./MenswearIllustration";
 
@@ -104,7 +104,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
   );
   const [chooserTab, setChooserTab] = useState<ChooserTab>("swatches");
   const [cvdMode, setCvdMode] = useState<CvdMode>("normal");
-  const [fabrics, setFabrics] = useState<GarmentFabrics>({});
+  const [fabrics, setFabrics] = useState<GarmentFabrics>(DEFAULT_FABRICS);
   const [searchQuery, setSearchQuery] = useState("");
   const [toneFilter, setToneFilter] = useState<ToneFilter>("all");
   const [swatchSort, setSwatchSort] = useState<ColorSortOption>("hue");
@@ -441,6 +441,8 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                 outerwear: resolvedOutfit.outerwear.hex,
                 top: resolvedOutfit.top.hex,
                 bottom: resolvedOutfit.bottom.hex,
+                accent: resolvedOutfit.accent.hex,
+                footwear: resolvedOutfit.footwear.hex,
               }}
             />
 

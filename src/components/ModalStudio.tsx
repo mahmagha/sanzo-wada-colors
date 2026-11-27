@@ -54,7 +54,7 @@ import {
   mapComboToGarmentOutfit,
   STYLE_PRESET_PIECES,
 } from "../utils/menswearUtils";
-import { MenswearIllustration } from "./MenswearIllustration";
+import { MenswearIllustration, DEFAULT_FABRICS } from "./MenswearIllustration";
 import { WeavePreview } from "./WeavePreview";
 import { GarmentWeaveControls } from "./GarmentWeaveControls";
 import type { GarmentFabrics } from "./MenswearIllustration";
@@ -149,7 +149,8 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
   const [exportFormat, setExportFormat] = useState<ExportFormat>("css");
   const [cssUseOklch, setCssUseOklch] = useState(false);
   const [cvdMode, setCvdMode] = useState<CvdMode>("normal");
-  const [garmentFabrics, setGarmentFabrics] = useState<GarmentFabrics>({});
+  const [garmentFabrics, setGarmentFabrics] =
+    useState<GarmentFabrics>(DEFAULT_FABRICS);
   const [weightedBars, setWeightedBars] = useState(false);
 
   const initialColors = combination?.colors ?? [];
@@ -1496,6 +1497,8 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                         outerwear: outfitColors.outerwear.hex,
                         top: outfitColors.top.hex,
                         bottom: outfitColors.bottom.hex,
+                        accent: outfitColors.accent.hex,
+                        footwear: outfitColors.footwear.hex,
                       }}
                     />
                   </div>

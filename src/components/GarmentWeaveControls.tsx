@@ -70,7 +70,7 @@ export const GarmentWeaveControls: React.FC<Props> = ({
           Fabric per garment
         </span>
         <span className="text-[11px] text-stone-500">
-          Shoes and accents stay flat
+          Every garment is woven by default
         </span>
       </div>
       {SLOTS.filter(
