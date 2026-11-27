@@ -1,8 +1,12 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Pipette, X, ArrowRight, FileImage, Upload, Sparkles } from 'lucide-react';
 import { ColorItem, Combination } from '../types/color';
 import { findClosestColors, normalizeHex, getIdealTextColor } from '../utils/colorUtils';
-import { ExtractedColor, extractColorsFromImageFile } from '../utils/imageQuantize';
+import {
+  ExtractedColor,
+  extractColorsFromImageFile,
+  quantizeRgbSamples,
+} from '../utils/imageQuantize';
 
 interface ColorMatcherPanelProps {
   allColors: ColorItem[];
@@ -12,6 +16,47 @@ interface ColorMatcherPanelProps {
 }
 
 type MatcherMode = 'hex' | 'image';
+
+const SAMPLE_ARTWORKS: { id: string; label: string; stops: string[] }[] = [
+  {
+    id: 'sunset',
+    label: 'Ukiyo-e Sunset',
+    stops: ['#c54432', '#e5a95e', '#f5ecc2', '#284b63', '#47443e'],
+  },
+  {
+    id: 'moss',
+    label: 'Botanical Moss',
+    stops: ['#cad2a4', '#769164', '#253122', '#d1b0a7', '#f4f7ec'],
+  },
+  {
+    id: 'nocturne',
+    label: 'Nocturne Indigo',
+    stops: ['#1a2942', '#3f6a87', '#b5b1d8', '#e0b3b6', '#f7e4d1'],
+  },
+];
+
+function renderSampleArtwork(stops: string[]): { dataUrl: string; extracted: ExtractedColor[] } {
+  const canvas = document.createElement('canvas');
+  canvas.width = 96;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    return { dataUrl: '', extracted: [] };
+  }
+
+  // Paint vertical/horizon composition blocks matching sample stops
+  const bandW = canvas.width / stops.length;
+  stops.forEach((hex, idx) => {
+    ctx.fillStyle = hex;
+    ctx.fillRect(Math.floor(idx * bandW), 0, Math.ceil(bandW), canvas.height);
+  });
+
+  const { data } = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  return {
+    dataUrl: canvas.toDataURL('image/png'),
+    extracted: quantizeRgbSamples(data, Math.min(5, stops.length)),
+  };
+}
 
 export const ColorMatcherPanel: React.FC<ColorMatcherPanelProps> = ({
   allColors,
@@ -23,10 +68,19 @@ export const ColorMatcherPanel: React.FC<ColorMatcherPanelProps> = ({
   const [hexInput, setHexInput] = useState('#c54432');
 
   const [imageName, setImageName] = useState<string | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [extracted, setExtracted] = useState<ExtractedColor[]>([]);
   const [extractError, setExtractError] = useState<string | null>(null);
   const [extracting, setExtracting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    return () => {
+      if (previewUrl && previewUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const validHex = useMemo(() => normalizeHex(hexInput), [hexInput]);
   const pickerHex = validHex || '#c54432';
@@ -60,6 +114,8 @@ export const ColorMatcherPanel: React.FC<ColorMatcherPanelProps> = ({
     setExtracting(true);
     setExtractError(null);
     setImageName(file.name);
+    const nextUrl = URL.createObjectURL(file);
+    setPreviewUrl(nextUrl);
     try {
       const palette = await extractColorsFromImageFile(file, 5);
       if (palette.length === 0) {
@@ -74,6 +130,14 @@ export const ColorMatcherPanel: React.FC<ColorMatcherPanelProps> = ({
     } finally {
       setExtracting(false);
     }
+  };
+
+  const handleSamplePreset = (preset: { label: string; stops: string[] }) => {
+    setExtractError(null);
+    setImageName(`Sample: ${preset.label}`);
+    const { dataUrl, extracted: sampleExtracted } = renderSampleArtwork(preset.stops);
+    setPreviewUrl(dataUrl);
+    setExtracted(sampleExtracted);
   };
 
   const handleOpenMatchedPalette = () => {
@@ -111,7 +175,6 @@ export const ColorMatcherPanel: React.FC<ColorMatcherPanelProps> = ({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Mode Tabs */}
           <div className="flex rounded-lg p-0.5 bg-stone-200/60 dark:bg-stone-800 border border-stone-300/40 dark:border-stone-700/60 text-xs">
             <button
               type="button"
@@ -245,13 +308,21 @@ export const ColorMatcherPanel: React.FC<ColorMatcherPanelProps> = ({
               e.preventDefault();
               handleFile(e.dataTransfer.files?.[0]);
             }}
-            className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-xl border border-dashed border-stone-300 dark:border-stone-700 bg-stone-50/70 dark:bg-stone-950/40"
+            className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 p-4 rounded-xl border border-dashed border-stone-300 dark:border-stone-700 bg-stone-50/70 dark:bg-stone-950/40"
           >
-            <div className="flex items-center gap-3 text-xs text-stone-600 dark:text-stone-300">
-              <Upload size={18} className="text-amber-800 dark:text-amber-400 shrink-0" />
-              <div>
-                <div className="font-medium text-stone-900 dark:text-stone-100">
-                  {imageName ? `Analyzed: ${imageName}` : 'Drop an image here or choose a file'}
+            <div className="flex items-center gap-3 text-xs text-stone-600 dark:text-stone-300 min-w-0">
+              {previewUrl ? (
+                <img
+                  src={previewUrl}
+                  alt={imageName || 'Uploaded preview'}
+                  className="w-16 h-11 rounded-lg object-cover border border-stone-300 dark:border-stone-700 shrink-0"
+                />
+              ) : (
+                <Upload size={18} className="text-amber-800 dark:text-amber-400 shrink-0" />
+              )}
+              <div className="min-w-0">
+                <div className="font-medium text-stone-900 dark:text-stone-100 truncate">
+                  {imageName ? `Analyzed: ${imageName}` : 'Drop an image here, choose a file, or try a preset'}
                 </div>
                 <div className="text-[11px] text-stone-500">
                   100% client-side quantization (PNG, JPG, WebP) — nothing leaves your browser.
@@ -259,7 +330,23 @@ export const ColorMatcherPanel: React.FC<ColorMatcherPanelProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center gap-2 shrink-0">
+            <div className="flex items-center gap-2 flex-wrap shrink-0">
+              {SAMPLE_ARTWORKS.map((preset) => (
+                <button
+                  type="button"
+                  key={preset.id}
+                  onClick={() => handleSamplePreset(preset)}
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
+                >
+                  <span className="flex h-3 w-5 rounded overflow-hidden border border-black/15">
+                    {preset.stops.slice(0, 3).map((s) => (
+                      <span key={s} style={{ backgroundColor: s }} className="flex-1 h-full" />
+                    ))}
+                  </span>
+                  <span>{preset.label}</span>
+                </button>
+              ))}
+
               <input
                 ref={fileInputRef}
                 type="file"

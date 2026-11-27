@@ -8,6 +8,7 @@
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "tsc -p tsconfig.test.json --noEmit && jiti tests/all.test.ts",
+    "test:e2e": "node tests/e2e.mjs",
     "prepare-data": "node scripts/build-all-data.mjs"
   },
   "keywords": [

@@ -1,9 +1,15 @@
-import React, { useMemo, useRef, useState } from 'react';
-import { X, Sparkles, Shuffle, Trash2, Check, Search } from 'lucide-react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { X, Sparkles, Shuffle, Trash2, Check, Search, BookmarkPlus } from 'lucide-react';
 import { ColorItem, Combination, ToneFilter } from '../types/color';
 import { classifyColorTone, getIdealTextColor } from '../utils/colorUtils';
 import { matchesColorTokens } from '../utils/searchUtils';
 import { useModalDialog } from '../utils/useModalDialog';
+
+interface SavedCustomMix {
+  id: string;
+  name: string;
+  colorIds: number[];
+}
 
 interface CustomPaletteModalProps {
   isOpen: boolean;
@@ -15,6 +21,7 @@ interface CustomPaletteModalProps {
 }
 
 const MAX_CUSTOM_COLORS = 6;
+const SAVED_MIXES_KEY = 'sanzo-wada-saved-mixes-v1';
 
 export const CustomPaletteModal: React.FC<CustomPaletteModalProps> = ({
   isOpen,
@@ -26,7 +33,28 @@ export const CustomPaletteModal: React.FC<CustomPaletteModalProps> = ({
 }) => {
   const [query, setQuery] = useState('');
   const [tone, setTone] = useState<ToneFilter>('all');
+  const [mixName, setMixName] = useState('');
+  const [savedMixes, setSavedMixes] = useState<SavedCustomMix[]>(() => {
+    try {
+      const raw = localStorage.getItem(SAVED_MIXES_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {
+      // Ignore storage errors
+    }
+    return [];
+  });
   const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(SAVED_MIXES_KEY, JSON.stringify(savedMixes));
+    } catch {
+      // Ignore storage errors
+    }
+  }, [savedMixes]);
 
   useModalDialog({
     isOpen,
@@ -73,6 +101,18 @@ export const CustomPaletteModal: React.FC<CustomPaletteModalProps> = ({
     onChangeIds(picked);
   };
 
+  const handleSaveMix = () => {
+    if (selectedColors.length < 2) return;
+    const label = mixName.trim() || `Mix ${savedMixes.length + 1} (${selectedColors.length} colors)`;
+    const next: SavedCustomMix = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      name: label,
+      colorIds: selectedColors.map((c) => c.id),
+    };
+    setSavedMixes((prev) => [next, ...prev].slice(0, 12));
+    setMixName('');
+  };
+
   const handleOpenInStudio = () => {
     if (selectedColors.length < 2) return;
     onClose();
@@ -104,7 +144,7 @@ export const CustomPaletteModal: React.FC<CustomPaletteModalProps> = ({
               Custom Wada Palette Composer ({selectedColors.length} / {MAX_CUSTOM_COLORS})
             </h2>
             <p className="text-xs text-stone-500 dark:text-stone-400">
-              Select 2 to 6 master pigments to test contrast, CVD vision, UI mockups, and export.
+              Select 2 to 6 master pigments, save named mixes, or inspect directly in Studio.
             </p>
           </div>
           <button
@@ -117,7 +157,7 @@ export const CustomPaletteModal: React.FC<CustomPaletteModalProps> = ({
           </button>
         </div>
 
-        {/* Selected Strip */}
+        {/* Selected Strip & Save Bar */}
         <div className="p-4 border-b border-stone-200 dark:border-stone-800 bg-stone-50/50 dark:bg-stone-950/30 space-y-3 shrink-0">
           {selectedColors.length > 0 ? (
             <div className="flex h-16 rounded-xl overflow-hidden border border-stone-300 dark:border-stone-700">
@@ -145,7 +185,7 @@ export const CustomPaletteModal: React.FC<CustomPaletteModalProps> = ({
           )}
 
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <button
                 type="button"
                 onClick={handleRandomMix}
@@ -163,6 +203,25 @@ export const CustomPaletteModal: React.FC<CustomPaletteModalProps> = ({
                 <Trash2 size={13} />
                 <span>Clear</span>
               </button>
+              <div className="flex items-center gap-1">
+                <input
+                  type="text"
+                  value={mixName}
+                  onChange={(e) => setMixName(e.target.value)}
+                  placeholder="Name mix..."
+                  aria-label="Custom palette name"
+                  className="w-28 sm:w-36 px-2.5 py-1.5 text-xs rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-950 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700"
+                />
+                <button
+                  type="button"
+                  onClick={handleSaveMix}
+                  disabled={selectedColors.length < 2}
+                  className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 disabled:opacity-40 cursor-pointer"
+                >
+                  <BookmarkPlus size={13} />
+                  <span>Save</span>
+                </button>
+              </div>
             </div>
 
             <button
@@ -175,6 +234,46 @@ export const CustomPaletteModal: React.FC<CustomPaletteModalProps> = ({
               <span>Open in Studio</span>
             </button>
           </div>
+
+          {/* Saved Custom Mixes Row */}
+          {savedMixes.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap pt-1">
+              <span className="text-[11px] text-stone-500 font-medium">Saved:</span>
+              {savedMixes.map((mix) => (
+                <div
+                  key={mix.id}
+                  className="inline-flex items-center rounded-full border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 overflow-hidden text-xs"
+                >
+                  <button
+                    type="button"
+                    onClick={() => onChangeIds(mix.colorIds)}
+                    className="flex items-center gap-1.5 px-2.5 py-1 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
+                  >
+                    <span className="flex h-3 w-6 rounded overflow-hidden border border-black/15">
+                      {mix.colorIds.map((id) => (
+                        <span
+                          key={id}
+                          style={{ backgroundColor: colorById.get(id)?.hex || '#999' }}
+                          className="flex-1 h-full"
+                        />
+                      ))}
+                    </span>
+                    <span className="font-medium truncate max-w-[110px]">{mix.name}</span>
+                  </button>
+                  <button
+                    type="button"
+                    aria-label={`Delete saved mix ${mix.name}`}
+                    onClick={() =>
+                      setSavedMixes((prev) => prev.filter((item) => item.id !== mix.id))
+                    }
+                    className="px-1.5 py-1 text-stone-400 hover:text-rose-500 border-l border-stone-200 dark:border-stone-800 cursor-pointer"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Picker Filter Bar */}

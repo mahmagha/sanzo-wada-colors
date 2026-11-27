@@ -10,6 +10,8 @@ import {
 
 export interface UrlAppState {
   viewMode: ViewMode;
+  colorsLayout: 'grid' | 'map';
+  hasKanjiOnly: boolean;
   volumeFilter: VolumeFilter;
   seasonFilter: SeasonFilter;
   monthFilter: number | 'all';
@@ -22,6 +24,7 @@ export interface UrlAppState {
   onlyFavorites: boolean;
   compareKeys: string[];
   comboKey: string | null;
+  mixIds: number[];
   colorId: number | null;
 }
 
@@ -55,6 +58,11 @@ export function parseUrlState(search: string): UrlAppState {
 
   const viewParam = params.get('view');
   const viewMode: ViewMode = viewParam === 'colors' ? 'colors' : 'combinations';
+
+  const layoutParam = params.get('layout');
+  const colorsLayout: 'grid' | 'map' = layoutParam === 'map' ? 'map' : 'grid';
+
+  const hasKanjiOnly = params.get('kanji') === '1';
 
   const volParam = params.get('vol');
   const volumeFilter: VolumeFilter = volParam === '1' ? 1 : volParam === '2' ? 2 : 'all';
@@ -107,12 +115,25 @@ export function parseUrlState(search: string): UrlAppState {
   const comboParam = params.get('combo');
   const comboKey = comboParam && COMBO_KEY_RE.test(comboParam) ? comboParam : null;
 
+  const mixRaw = params.get('mix') || '';
+  const parsedMix = Array.from(
+    new Set(
+      mixRaw
+        .split(',')
+        .map((s) => Number(s.trim()))
+        .filter((n) => Number.isInteger(n) && n >= 1 && n <= 171)
+    )
+  ).slice(0, 6);
+  const mixIds = parsedMix.length >= 2 ? parsedMix : [];
+
   const colorRaw = params.get('color');
   const colorParsed = colorRaw ? Number(colorRaw) : NaN;
   const colorId = Number.isInteger(colorParsed) && colorParsed > 0 ? colorParsed : null;
 
   return {
     viewMode,
+    colorsLayout,
+    hasKanjiOnly,
     volumeFilter,
     seasonFilter,
     monthFilter,
@@ -125,6 +146,7 @@ export function parseUrlState(search: string): UrlAppState {
     onlyFavorites,
     compareKeys,
     comboKey,
+    mixIds,
     colorId,
   };
 }
@@ -133,6 +155,8 @@ export function serializeUrlState(state: UrlAppState): string {
   const params = new URLSearchParams();
 
   if (state.viewMode !== 'combinations') params.set('view', state.viewMode);
+  if (state.colorsLayout !== 'grid') params.set('layout', state.colorsLayout);
+  if (state.hasKanjiOnly) params.set('kanji', '1');
   if (state.volumeFilter !== 'all') params.set('vol', String(state.volumeFilter));
   if (state.seasonFilter !== 'all') params.set('season', state.seasonFilter);
   if (state.monthFilter !== 'all') params.set('month', String(state.monthFilter));
@@ -145,6 +169,7 @@ export function serializeUrlState(state: UrlAppState): string {
   if (state.onlyFavorites) params.set('fav', '1');
   if (state.compareKeys.length > 0) params.set('compare', state.compareKeys.slice(0, 3).join(','));
   if (state.comboKey) params.set('combo', state.comboKey);
+  if (state.mixIds.length >= 2) params.set('mix', state.mixIds.slice(0, 6).join(','));
   if (state.colorId !== null) params.set('color', String(state.colorId));
 
   const query = params.toString();

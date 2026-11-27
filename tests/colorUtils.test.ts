@@ -22,6 +22,7 @@ import {
   getContrastRatio,
   getDeltaE2000,
   getIdealTextColor,
+  getProportionWeights,
   hexToRgb,
   normalizeHex,
   rgbToLab,
@@ -199,5 +200,44 @@ describe('SVG & code exporters', () => {
 
   it('escapes all five XML special characters', () => {
     assert.equal(escapeXml(`a&b<c>d"e'f`), 'a&amp;b&lt;c&gt;d&quot;e&apos;f');
+  });
+
+  it('computes 60/30/10-inspired proportion weights summing to 100 across palette sizes', () => {
+    assert.deepEqual(getProportionWeights(1), [100]);
+    assert.deepEqual(getProportionWeights(2), [70, 30]);
+    assert.deepEqual(getProportionWeights(3), [60, 30, 10]);
+    assert.deepEqual(getProportionWeights(4), [60, 20, 10, 10]);
+    assert.deepEqual(getProportionWeights(5), [55, 25, 8, 6, 6]);
+    const six = getProportionWeights(6);
+    assert.equal(six.length, 6);
+    assert.equal(six.reduce((a, b) => a + b, 0), 100);
+  });
+
+  it('uses Custom Mix identity and supports weighted percentage labels in poster SVG export', () => {
+    const customCombo: Combination = {
+      id: 0,
+      volume: 1,
+      size: 3,
+      colors: [masterColors[0], masterColors[1], masterColors[2]],
+    };
+
+    const customCss = generateCssVariables(customCombo, false);
+    assert.ok(customCss.includes('Sanzo Wada Custom Mix (3-Color)'));
+    assert.ok(customCss.includes('--wada-custom-color-1:'));
+    assert.ok(!customCss.includes('--wada-0-'));
+
+    const customTw = generateTailwindV4Theme(customCombo);
+    assert.ok(customTw.includes('--color-wada-custom-1:'));
+
+    const customGpl = generateGplPalette(customCombo);
+    assert.ok(customGpl.includes('Name: Sanzo Wada Custom Mix (3-Color)'));
+
+    const weightedSvg = buildSvgCardMarkup(customCombo, { weighted: true });
+    assert.ok(weightedSvg.includes('CUSTOM MIX'));
+    assert.ok(weightedSvg.includes('3-COLOR CUSTOM COMPOSITION'));
+    assert.ok(!weightedSvg.includes('№ 000'));
+    assert.ok(weightedSvg.includes('(60%)'));
+    assert.ok(weightedSvg.includes('(30%)'));
+    assert.ok(weightedSvg.includes('(10%)'));
   });
 });

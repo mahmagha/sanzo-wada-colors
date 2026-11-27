@@ -25,6 +25,7 @@ import {
   hexToRgb,
   deriveSurfaceHex,
   formatOklch,
+  getProportionWeights,
   simulateColorVision,
   downloadSvgCard,
   downloadPngCard,
@@ -77,12 +78,10 @@ const CVD_OPTIONS: { id: CvdMode; label: string }[] = [
   { id: 'achromatopsia', label: 'Achromatopsia' },
 ];
 
-function getWeightedHeights(count: number): number[] {
-  if (count <= 1) return [320];
-  if (count === 2) return [210, 110];
-  if (count === 3) return [165, 95, 65];
-  const restHeight = Math.max(44, Math.floor(150 / (count - 2)));
-  return [150, 90, ...Array(count - 2).fill(restHeight)];
+function getWeightedBarHeights(count: number): number[] {
+  const weights = getProportionWeights(count);
+  const totalPx = 350;
+  return weights.map((pct) => Math.max(40, Math.round((pct / 100) * totalPx)));
 }
 
 function getDefaultRoleIndices(colors: ColorItem[]): {
@@ -125,6 +124,9 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
 
   const initialColors = combination?.colors ?? [];
   const initialDefaults = getDefaultRoleIndices(initialColors);
+  const [posterOrder, setPosterOrder] = useState<number[]>(() =>
+    initialColors.map((c) => c.id)
+  );
   const [bgIndex, setBgIndex] = useState<number>(initialDefaults.bg);
   const [surfaceIndex, setSurfaceIndex] = useState<number>(initialDefaults.surface);
   const [accentIndex, setAccentIndex] = useState<number>(initialDefaults.accent);
@@ -133,14 +135,17 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
 
   const dialogRef = useRef<HTMLDivElement>(null);
 
+  const comboColorSignature = combination?.colors.map((c) => c.id).join(',') ?? '';
+
   useEffect(() => {
     if (!combination) return;
+    setPosterOrder(combination.colors.map((c) => c.id));
     const defaults = getDefaultRoleIndices(combination.colors);
     setBgIndex(defaults.bg);
     setSurfaceIndex(defaults.surface);
     setAccentIndex(defaults.accent);
     setTextIndex(-1);
-  }, [combination?.volume, combination?.id, combination?.colors.length]);
+  }, [combination?.volume, combination?.id, comboColorSignature]);
 
   const handleStudioKeyDown = useCallback(
     (e: KeyboardEvent) => {
@@ -234,12 +239,34 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
     setAccentIndex(shuffled[2 % colors.length]);
   };
 
+  const posterColors = (() => {
+    const byId = new Map(colors.map((c) => [c.id, c]));
+    const ordered = posterOrder
+      .map((id) => byId.get(id))
+      .filter((c): c is ColorItem => Boolean(c));
+    return ordered.length === colors.length ? ordered : colors;
+  })();
+
+  const posterCombo: Combination = {
+    ...combination,
+    colors: posterColors,
+  };
+
+  const promoteToDominant = (colorId: number) => {
+    setPosterOrder((prev) => [colorId, ...prev.filter((id) => id !== colorId)]);
+  };
+
   const handleDownloadPng = async () => {
     try {
-      await downloadPngCard(combination);
-      onCopyText('', `Downloaded 2× PNG poster for Vol.${combination.volume} № ${combination.id}`);
+      await downloadPngCard(posterCombo, { weighted: weightedBars });
+      onCopyText(
+        '',
+        isCustom
+          ? 'Downloaded 2× PNG poster for Custom Mix'
+          : `Downloaded 2× PNG poster for Vol.${combination.volume} № ${combination.id}`
+      );
     } catch {
-      downloadSvgCard(combination);
+      downloadSvgCard(posterCombo, { weighted: weightedBars });
     }
   };
 
@@ -259,7 +286,8 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
     isVol2 && combination.month
       ? MONTH_OPTIONS.find((m) => m.month === combination.month)?.motif
       : undefined;
-  const weightedHeights = getWeightedHeights(colors.length);
+  const proportionWeights = getProportionWeights(posterColors.length);
+  const weightedHeights = getWeightedBarHeights(posterColors.length);
 
   const renderWcagBadge = (ratio: number) => {
     if (ratio >= 7) {
@@ -395,7 +423,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
               </button>
             )}
 
-            {!isCustom && onShareLink && (
+            {onShareLink && (
               <button
                 type="button"
                 onClick={() => onShareLink(combination)}
@@ -409,7 +437,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
 
             <button
               type="button"
-              onClick={() => downloadSvgCard(combination)}
+              onClick={() => downloadSvgCard(posterCombo, { weighted: weightedBars })}
               aria-label="Export print-ready SVG card"
               className="hidden sm:flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors cursor-pointer"
               title="Download print-ready SVG Card"
@@ -560,20 +588,29 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
 
                 <div className="flex justify-between items-start gap-4 mb-6 relative z-10">
                   <div>
-                    <h3 className="font-editorial text-xl sm:text-2xl font-bold tracking-widest text-[#1C1A17] uppercase">
+                    <h3
+                      style={{ fontFamily: "'Cinzel', var(--font-serif)" }}
+                      className="text-xl sm:text-2xl font-bold tracking-widest text-[#1C1A17] uppercase"
+                    >
                       A Dictionary of Color Combinations
                     </h3>
                     <p className="font-editorial text-sm text-stone-600 mt-1">
-                      和田三造 (Sanzo Wada, 1933) — 配色総鑑 {isVol2 ? 'B篇 (Seasonal)' : ''}
+                      {isCustom
+                        ? '和田三造 (Sanzo Wada) — Custom Palette Study'
+                        : `和田三造 (Sanzo Wada, 1933) — 配色総鑑 ${isVol2 ? 'B篇 (Seasonal)' : ''}`}
                     </p>
                     <div className="mt-3 flex items-baseline gap-2 flex-wrap">
                       <span className="font-editorial text-xl font-bold text-red-800">
-                        {isVol2
+                        {isCustom
+                          ? 'Custom Mix'
+                          : isVol2
                           ? `Vol. 2 Card № ${combination.id}`
                           : `№ ${combination.id.toString().padStart(3, '0')}`}
                       </span>
                       <span className="text-xs uppercase tracking-wider text-stone-500 font-code">
-                        {isVol2
+                        {isCustom
+                          ? `${combination.size}-Color Custom Composition`
+                          : isVol2
                           ? `${combination.monthName} (${combination.monthJa})`
                           : `${combination.size}-Color Harmony`}
                       </span>
@@ -589,57 +626,96 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                 </div>
 
                 <div className="flex items-stretch gap-4 my-5 relative z-10">
-                  <div className="grid grid-cols-1 gap-2.5 flex-1">
-                    {colors.map((c, idx) => {
+                  <div className="grid grid-cols-1 gap-2 flex-1">
+                    {posterColors.map((c, idx) => {
                       const shownHex = simHex(c.hex);
                       const txtColor = getIdealTextColor(shownHex);
                       const barHeight = weightedBars ? weightedHeights[idx] : undefined;
+                      const weightPct = proportionWeights[idx];
+                      const isCompactBar = weightedBars && (barHeight ?? 64) < 56;
                       return (
-                        <button
-                          type="button"
+                        <div
                           key={c.id}
-                          onClick={() => onSelectColor?.(c)}
                           style={{
                             backgroundColor: shownHex,
                             minHeight: barHeight ? `${barHeight}px` : undefined,
                           }}
-                          title={
-                            onSelectColor ? `Inspect ${c.name} swatch & combinations` : undefined
-                          }
-                          className={`group/bar ${
+                          className={`group/bar relative ${
                             weightedBars ? '' : 'min-h-[4rem] sm:min-h-[4.5rem]'
-                          } w-full text-left rounded-lg p-3 sm:p-4 flex items-center justify-between shadow-sm transition-transform hover:scale-[1.01] cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700`}
+                          } rounded-lg shadow-sm transition-transform hover:scale-[1.01]`}
                         >
-                          <div style={{ color: txtColor }}>
-                            <div className="text-sm sm:text-base font-editorial font-bold">
-                              {c.name}{' '}
-                              {c.ja && (
-                                <span className="opacity-90 font-normal text-xs sm:text-sm">
-                                  ({c.ja})
-                                </span>
-                              )}
-                            </div>
-                            <div className="text-xs font-code opacity-85 uppercase">
-                              {c.hex}
-                              {cvdMode !== 'normal' && (
-                                <span className="ml-2 opacity-75">→ {shownHex}</span>
-                              )}
-                              {onSelectColor && (
-                                <span className="ml-2 opacity-0 group-hover/bar:opacity-90 transition-opacity font-sans text-[11px] underline">
-                                  Inspect swatch →
-                                </span>
-                              )}
-                            </div>
-                          </div>
-
-                          <div
-                            style={{ color: txtColor }}
-                            className="text-right text-[11px] font-code opacity-75 hidden sm:block"
+                          <button
+                            type="button"
+                            onClick={() => onSelectColor?.(c)}
+                            title={
+                              onSelectColor ? `Inspect ${c.name} swatch & combinations` : undefined
+                            }
+                            className={`w-full h-full text-left flex items-center justify-between cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 rounded-lg ${
+                              isCompactBar ? 'px-3 py-2' : 'p-3 sm:p-4'
+                            }`}
                           >
-                            <div>CMYK({c.cmyk.join(', ')})</div>
-                            <div>RGB({c.rgb.join(', ')})</div>
-                          </div>
-                        </button>
+                            <div style={{ color: txtColor }} className="min-w-0 pr-24 sm:pr-0">
+                              <div
+                                className={`${
+                                  isCompactBar ? 'text-xs sm:text-sm' : 'text-sm sm:text-base'
+                                } font-editorial font-bold truncate`}
+                              >
+                                {c.name}{' '}
+                                {c.ja && (
+                                  <span className="opacity-90 font-normal text-xs sm:text-sm">
+                                    ({c.ja})
+                                  </span>
+                                )}
+                                {weightedBars && (
+                                  <span className="ml-2 font-code text-[11px] opacity-85">
+                                    {weightPct}%
+                                  </span>
+                                )}
+                                {isCompactBar && (
+                                  <span className="ml-2 font-code text-[11px] opacity-80 uppercase">
+                                    {c.hex}
+                                  </span>
+                                )}
+                              </div>
+                              {!isCompactBar && (
+                                <div className="text-xs font-code opacity-85 uppercase">
+                                  {c.hex}
+                                  {cvdMode !== 'normal' && (
+                                    <span className="ml-2 opacity-75">→ {shownHex}</span>
+                                  )}
+                                  {onSelectColor && (
+                                    <span className="ml-2 opacity-0 group-hover/bar:opacity-90 transition-opacity font-sans text-[11px] underline">
+                                      Inspect swatch →
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+
+                            {!isCompactBar && (
+                              <div
+                                style={{ color: txtColor }}
+                                className="text-right text-[11px] font-code opacity-75 hidden sm:block pr-4"
+                              >
+                                <div>CMYK({c.cmyk.join(', ')})</div>
+                                <div>RGB({c.rgb.join(', ')})</div>
+                              </div>
+                            )}
+                          </button>
+
+                          {idx > 0 && weightedBars && (
+                            <button
+                              type="button"
+                              onClick={() => promoteToDominant(c.id)}
+                              style={{ color: txtColor }}
+                              aria-label={`Promote ${c.name} to primary dominant slot`}
+                              title="Make primary (dominant) color"
+                              className="opacity-0 group-hover/bar:opacity-100 focus:opacity-100 absolute top-1.5 right-1.5 px-2 py-0.5 rounded bg-black/25 hover:bg-black/40 text-[10px] font-code transition-opacity cursor-pointer"
+                            >
+                              ↑ Dominant
+                            </button>
+                          )}
+                        </div>
                       );
                     })}
                   </div>
@@ -648,7 +724,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                     aria-hidden="true"
                     className="writing-vertical hidden sm:flex items-center justify-center font-editorial font-bold text-lg tracking-[0.35em] text-stone-500 select-none border-l border-stone-300/70 pl-3"
                   >
-                    {isVol2 ? '配色総鑑 B篇' : '配色総鑑'}
+                    {!isCustom && isVol2 ? '配色総鑑 B篇' : '配色総鑑'}
                   </div>
                 </div>
 
@@ -662,7 +738,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
               <div className="mt-6 flex items-center justify-center gap-3 flex-wrap">
                 <button
                   type="button"
-                  onClick={() => downloadSvgCard(combination)}
+                  onClick={() => downloadSvgCard(posterCombo, { weighted: weightedBars })}
                   className="flex items-center gap-2 px-4 py-2 rounded-lg bg-amber-900 hover:bg-amber-800 text-amber-50 font-medium text-xs sm:text-sm shadow-sm transition-colors cursor-pointer"
                 >
                   <Download size={15} />
@@ -1116,7 +1192,10 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                       <span>9:41</span>
                       <span>WADA STUDIO</span>
                     </div>
-                    <div className="flex h-24 rounded-2xl overflow-hidden border border-black/10">
+                    <div
+                      className="flex h-24 rounded-2xl overflow-hidden border divide-x divide-current/15"
+                      style={{ borderColor: `${surfaceTextColor}30` }}
+                    >
                       {colors.map((c) => (
                         <div key={c.id} style={{ backgroundColor: simHex(c.hex) }} className="flex-1 h-full" />
                       ))}

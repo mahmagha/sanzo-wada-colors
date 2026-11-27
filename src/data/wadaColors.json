@@ -156,8 +156,8 @@
   {
     "id": 5,
     "name": "Light Brown Drab",
-    "ja": null,
-    "reading": null,
+    "ja": "梅鼠",
+    "reading": "ume-nezumi",
     "hex": "#b59392",
     "rgb": [
       181,
@@ -264,8 +264,8 @@
   {
     "id": 8,
     "name": "Grenadine Pink",
-    "ja": null,
-    "reading": null,
+    "ja": "洗朱",
+    "reading": "arai-shu",
     "hex": "#f48067",
     "rgb": [
       244,
@@ -389,8 +389,8 @@
   {
     "id": 11,
     "name": "Old Rose",
-    "ja": null,
-    "reading": null,
+    "ja": "長春色",
+    "reading": "choshun-iro",
     "hex": "#d46d7a",
     "rgb": [
       212,

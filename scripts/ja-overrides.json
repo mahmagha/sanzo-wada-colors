@@ -2,6 +2,9 @@
   "2": { "ja": "肉色", "reading": "niku-iro" },
   "3": { "ja": "一斤染", "reading": "ikkon-zome" },
   "4": { "ja": "桜鼠", "reading": "sakura-nezumi" },
+  "5": { "ja": "梅鼠", "reading": "ume-nezumi" },
   "6": { "ja": "珊瑚珠色", "reading": "sangoshu-iro" },
-  "7": { "ja": "柿色", "reading": "kaki-iro" }
+  "7": { "ja": "柿色", "reading": "kaki-iro" },
+  "8": { "ja": "洗朱", "reading": "arai-shu" },
+  "11": { "ja": "長春色", "reading": "choshun-iro" }
 }

@@ -89,7 +89,7 @@ export const App: React.FC = () => {
 
   // View & panels state
   const [viewMode, setViewMode] = useState<ViewMode>(initialUrl.viewMode);
-  const [colorsLayout, setColorsLayout] = useState<'grid' | 'map'>('grid');
+  const [colorsLayout, setColorsLayout] = useState<'grid' | 'map'>(initialUrl.colorsLayout);
   const [matcherOpen, setMatcherOpen] = useState(false);
   const [customOpen, setCustomOpen] = useState(false);
   const [guideOpen, setGuideOpen] = useState(false);
@@ -155,14 +155,25 @@ export const App: React.FC = () => {
   const [monthFilter, setMonthFilter] = useState<number | 'all'>(initialUrl.monthFilter);
   const [sortBy, setSortBy] = useState<SortOption>(initialUrl.sortBy);
   const [colorSort, setColorSort] = useState<ColorSortOption>(initialUrl.colorSort);
-  const [hasKanjiOnly, setHasKanjiOnly] = useState(false);
+  const [hasKanjiOnly, setHasKanjiOnly] = useState(initialUrl.hasKanjiOnly);
   const [swatchIdFilter, setSwatchIdFilter] = useState<number | null>(initialUrl.swatchId);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   // Modals & navigation history state
-  const [selectedCombo, setSelectedCombo] = useState<Combination | null>(() =>
-    initialUrl.comboKey ? comboByKey.get(initialUrl.comboKey) ?? null : null
-  );
+  const [selectedCombo, setSelectedCombo] = useState<Combination | null>(() => {
+    if (initialUrl.comboKey) {
+      return comboByKey.get(initialUrl.comboKey) ?? null;
+    }
+    if (initialUrl.mixIds.length >= 2) {
+      const mixColors = initialUrl.mixIds
+        .map((id) => colorById.get(id))
+        .filter((c): c is ColorItem => Boolean(c));
+      if (mixColors.length >= 2) {
+        return { id: 0, volume: 1, size: mixColors.length, colors: mixColors };
+      }
+    }
+    return null;
+  });
   const [selectedColor, setSelectedColor] = useState<ColorItem | null>(() =>
     initialUrl.colorId !== null ? colorById.get(initialUrl.colorId) ?? null : null
   );
@@ -263,8 +274,14 @@ export const App: React.FC = () => {
       selectedCombo && selectedCombo.id > 0
         ? getComboKey(selectedCombo.id, selectedCombo.volume)
         : null;
+    const mixIds =
+      selectedCombo && selectedCombo.id === 0
+        ? selectedCombo.colors.map((c) => c.id)
+        : [];
     const query = serializeUrlState({
       viewMode,
+      colorsLayout,
+      hasKanjiOnly,
       volumeFilter,
       seasonFilter,
       monthFilter,
@@ -277,6 +294,7 @@ export const App: React.FC = () => {
       onlyFavorites,
       compareKeys,
       comboKey,
+      mixIds,
       colorId: selectedColor ? selectedColor.id : null,
     });
     const targetUrl = `${window.location.pathname}${query}${window.location.hash}`;
@@ -285,6 +303,8 @@ export const App: React.FC = () => {
     }
   }, [
     viewMode,
+    colorsLayout,
+    hasKanjiOnly,
     volumeFilter,
     seasonFilter,
     monthFilter,
@@ -305,6 +325,8 @@ export const App: React.FC = () => {
     const handlePopState = () => {
       const parsed = parseUrlState(window.location.search);
       setViewMode(parsed.viewMode);
+      setColorsLayout(parsed.colorsLayout);
+      setHasKanjiOnly(parsed.hasKanjiOnly);
       setVolumeFilter(parsed.volumeFilter);
       setSeasonFilter(parsed.seasonFilter);
       setMonthFilter(parsed.monthFilter);
@@ -316,7 +338,18 @@ export const App: React.FC = () => {
       setSearchQuery(parsed.searchQuery);
       setOnlyFavorites(parsed.onlyFavorites);
       setCompareKeys(parsed.compareKeys);
-      setSelectedCombo(parsed.comboKey ? comboByKey.get(parsed.comboKey) ?? null : null);
+      if (parsed.comboKey) {
+        setSelectedCombo(comboByKey.get(parsed.comboKey) ?? null);
+      } else if (parsed.mixIds.length >= 2) {
+        const mixColors = parsed.mixIds
+          .map((id) => colorById.get(id))
+          .filter((c): c is ColorItem => Boolean(c));
+        setSelectedCombo(
+          mixColors.length >= 2 ? { id: 0, volume: 1, size: mixColors.length, colors: mixColors } : null
+        );
+      } else {
+        setSelectedCombo(null);
+      }
       setSelectedColor(parsed.colorId !== null ? colorById.get(parsed.colorId) ?? null : null);
       setReturnCombo(null);
     };
@@ -592,9 +625,11 @@ export const App: React.FC = () => {
   };
 
   const handleShareCombo = (combo: Combination) => {
-    if (combo.id <= 0) return;
+    const isCustomMix = combo.id === 0;
     const query = serializeUrlState({
       viewMode: 'combinations',
+      colorsLayout: 'grid',
+      hasKanjiOnly: false,
       volumeFilter: 'all',
       seasonFilter: 'all',
       monthFilter: 'all',
@@ -606,16 +641,24 @@ export const App: React.FC = () => {
       searchQuery: '',
       onlyFavorites: false,
       compareKeys: [],
-      comboKey: getComboKey(combo.id, combo.volume),
+      comboKey: isCustomMix ? null : getComboKey(combo.id, combo.volume),
+      mixIds: isCustomMix ? combo.colors.map((c) => c.id) : [],
       colorId: null,
     });
     const shareUrl = `${window.location.origin}${window.location.pathname}${query}`;
-    handleCopyText(shareUrl, `Copied share link for Vol.${combo.volume} № ${combo.id}`);
+    handleCopyText(
+      shareUrl,
+      isCustomMix
+        ? 'Copied share link for Custom Mix'
+        : `Copied share link for Vol.${combo.volume} № ${combo.id}`
+    );
   };
 
   const handleShareColor = (color: ColorItem) => {
     const query = serializeUrlState({
       viewMode: 'colors',
+      colorsLayout: 'grid',
+      hasKanjiOnly: false,
       volumeFilter: 'all',
       seasonFilter: 'all',
       monthFilter: 'all',
@@ -628,6 +671,7 @@ export const App: React.FC = () => {
       onlyFavorites: false,
       compareKeys: [],
       comboKey: null,
+      mixIds: [],
       colorId: color.id,
     });
     const shareUrl = `${window.location.origin}${window.location.pathname}${query}`;

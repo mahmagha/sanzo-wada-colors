@@ -3,3 +3,4 @@ import './paletteData.test';
 import './urlState.test';
 import './searchUtils.test';
 import './imageQuantize.test';
+import './spectrumMap.test';

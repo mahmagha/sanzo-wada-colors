@@ -375,14 +375,44 @@ export function findClosestColors(
     .slice(0, limit);
 }
 
+/**
+ * Compute clean 60/30/10-inspired proportional percentages summing to 100 for any palette size.
+ */
+export function getProportionWeights(count: number): number[] {
+  if (count <= 1) return [100];
+  if (count === 2) return [70, 30];
+  if (count === 3) return [60, 30, 10];
+  if (count === 4) return [60, 20, 10, 10];
+  if (count === 5) return [55, 25, 8, 6, 6];
+
+  const tailCount = count - 2;
+  const tailBudget = 25;
+  const base = Math.floor(tailBudget / tailCount);
+  const rem = tailBudget % tailCount;
+  return [
+    50,
+    25,
+    ...Array.from({ length: tailCount }, (_, idx) => base + (idx < rem ? 1 : 0)),
+  ];
+}
+
 function getComboTitle(combo: Combination): string {
+  if (combo.id === 0) {
+    return `Sanzo Wada Custom Mix (${combo.size}-Color)`;
+  }
   return combo.volume === 2
     ? `Sanzo Wada Vol. 2 № ${combo.id} (${combo.monthName} / ${combo.monthJa})`
     : `Sanzo Wada Vol. 1 № ${combo.id} (${combo.size}-Color)`;
 }
 
 function getComboPrefix(combo: Combination): string {
+  if (combo.id === 0) return 'wada-custom';
   return combo.volume === 2 ? `wada-v2-${combo.id}` : `wada-${combo.id}`;
+}
+
+function getComboFileBase(combo: Combination): string {
+  if (combo.id === 0) return 'sanzo-wada-custom-mix';
+  return `sanzo-wada-vol${combo.volume}-combo-${combo.id}`;
 }
 
 export function generateCssVariables(
@@ -578,48 +608,98 @@ export function escapeXml(value: string): string {
     .replace(/'/g, '&apos;');
 }
 
-export function buildSvgCardMarkup(combo: Combination): string {
+export interface PosterExportOptions {
+  weighted?: boolean;
+}
+
+function getPosterBarRects(
+  count: number,
+  weighted: boolean
+): Array<{ y: number; height: number; weightPct: number }> {
+  const startY = 240;
+  const gap = 6;
+  const totalHeight = 560;
+
+  if (!weighted || count <= 1) {
+    const slot = Math.floor(510 / Math.max(1, count));
+    const eqPct = Math.round(100 / Math.max(1, count));
+    return Array.from({ length: count }, (_, idx) => ({
+      y: startY + idx * slot,
+      height: slot - gap,
+      weightPct: eqPct,
+    }));
+  }
+
+  const weights = getProportionWeights(count);
+  const usableHeight = totalHeight - gap * (count - 1);
+  let cursorY = startY;
+  return weights.map((pct, idx) => {
+    const rawH = Math.round((pct / 100) * usableHeight);
+    const h = idx === count - 1 ? Math.max(26, startY + totalHeight - cursorY) : Math.max(26, rawH);
+    const rect = { y: cursorY, height: h, weightPct: pct };
+    cursorY += h + gap;
+    return rect;
+  });
+}
+
+export function buildSvgCardMarkup(
+  combo: Combination,
+  options: PosterExportOptions = {}
+): string {
   const width = 800;
   const height = 1000;
   const swatchesCount = combo.colors.length;
   const swatchWidth = 600;
-  const swatchHeight = Math.floor(510 / swatchesCount);
+  const weighted = Boolean(options.weighted);
+  const rects = getPosterBarRects(swatchesCount, weighted);
 
   const swatchesSvg = combo.colors
     .map((c, idx) => {
-      const y = 240 + idx * swatchHeight;
+      const { y, height: barH, weightPct } = rects[idx];
       const textFill = getIdealTextColor(c.hex);
-      const displayName = escapeXml(c.ja ? `${c.name} (${c.ja})` : c.name);
-      const showDetails = swatchHeight >= 45;
+      const rawName = c.ja ? `${c.name} (${c.ja})` : c.name;
+      const showTwoLines = barH >= 48;
+      const singleLineText = escapeXml(
+        weighted
+          ? `${rawName} • ${c.hex.toUpperCase()} (${weightPct}%)`
+          : `${rawName} • ${c.hex.toUpperCase()}`
+      );
+      const titleText = escapeXml(weighted ? `${rawName} (${weightPct}%)` : rawName);
       const detailsText = escapeXml(
         `${c.hex.toUpperCase()} • RGB(${c.rgb.join(', ')}) • CMYK(${c.cmyk.join(', ')})`
       );
       return `
       <g transform="translate(80, ${y})">
-        <rect width="${swatchWidth}" height="${swatchHeight - 6}" fill="${escapeXml(c.hex)}" rx="4" />
-        <text x="20" y="${showDetails ? swatchHeight / 2 - 5 : swatchHeight / 2 + 4}" fill="${textFill}" font-family="'Noto Serif JP', Georgia, serif" font-size="${swatchHeight < 55 ? 14 : 17}" font-weight="bold">${displayName}</text>
+        <rect width="${swatchWidth}" height="${barH}" fill="${escapeXml(c.hex)}" rx="4" />
+        <text x="20" y="${showTwoLines ? barH / 2 - 4 : barH / 2 + 5}" fill="${textFill}" font-family="'Noto Serif JP', Georgia, serif" font-size="${barH < 44 ? 13 : 17}" font-weight="bold">${showTwoLines ? titleText : singleLineText}</text>
         ${
-          showDetails
-            ? `<text x="20" y="${swatchHeight / 2 + 16}" fill="${textFill}" opacity="0.85" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11">${detailsText}</text>`
+          showTwoLines
+            ? `<text x="20" y="${barH / 2 + 16}" fill="${textFill}" opacity="0.85" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11">${detailsText}</text>`
             : ''
         }
       </g>`;
     })
     .join('');
 
-  const rawSubtitle =
-    combo.volume === 2
-      ? `VOLUME 2 • ${(combo.monthName || '').toUpperCase()} (${combo.monthJa || ''} • ${(combo.monthMeaning || '').toUpperCase()})`
-      : `${combo.size}-COLOR HARMONY`;
+  const isCustom = combo.id === 0;
+  const rawSubtitle = isCustom
+    ? `${combo.size}-COLOR CUSTOM COMPOSITION`
+    : combo.volume === 2
+    ? `VOLUME 2 • ${(combo.monthName || '').toUpperCase()} (${combo.monthJa || ''} • ${(combo.monthMeaning || '').toUpperCase()})`
+    : `${combo.size}-COLOR HARMONY`;
   const subtitle = escapeXml(rawSubtitle);
-  const titleNum =
-    combo.volume === 2
-      ? `VOL. 2 CARD № ${combo.id.toString().padStart(2, '0')}`
-      : `VOL. 1 № ${combo.id.toString().padStart(3, '0')}`;
+  const titleNum = isCustom
+    ? 'CUSTOM MIX'
+    : combo.volume === 2
+    ? `VOL. 2 CARD № ${combo.id.toString().padStart(2, '0')}`
+    : `VOL. 1 № ${combo.id.toString().padStart(3, '0')}`;
   const volLabel = escapeXml(
-    `和田三造 (Sanzo Wada, 1933) — 配色総鑑${combo.volume === 2 ? ' B篇' : ''}`
+    isCustom
+      ? '和田三造 (Sanzo Wada) — Custom Palette Study'
+      : `和田三造 (Sanzo Wada, 1933) — 配色総鑑${combo.volume === 2 ? ' B篇' : ''}`
   );
-  const verticalCharacters = combo.volume === 2 ? ['配', '色', '総', '鑑', 'B'] : ['配', '色', '総', '鑑'];
+  const verticalCharacters =
+    !isCustom && combo.volume === 2 ? ['配', '色', '総', '鑑', 'B'] : ['配', '色', '総', '鑑'];
   const verticalSvg = verticalCharacters
     .map(
       (ch, idx) =>
@@ -669,16 +749,19 @@ function triggerBlobDownload(blob: Blob, filename: string): void {
   URL.revokeObjectURL(url);
 }
 
-export function downloadSvgCard(combo: Combination): void {
-  const svgContent = buildSvgCardMarkup(combo);
+export function downloadSvgCard(
+  combo: Combination,
+  options: PosterExportOptions = {}
+): void {
+  const svgContent = buildSvgCardMarkup(combo, options);
   const blob = new Blob([svgContent], { type: 'image/svg+xml;charset=utf-8' });
-  triggerBlobDownload(blob, `sanzo-wada-vol${combo.volume}-combo-${combo.id}.svg`);
+  triggerBlobDownload(blob, `${getComboFileBase(combo)}.svg`);
 }
 
 export function downloadGplPalette(combo: Combination): void {
   const gpl = generateGplPalette(combo);
   const blob = new Blob([gpl], { type: 'text/plain;charset=utf-8' });
-  triggerBlobDownload(blob, `sanzo-wada-vol${combo.volume}-combo-${combo.id}.gpl`);
+  triggerBlobDownload(blob, `${getComboFileBase(combo)}.gpl`);
 }
 
 export function downloadAsePalette(combo: Combination): void {
@@ -686,7 +769,7 @@ export function downloadAsePalette(combo: Combination): void {
   const copy = new Uint8Array(bytes.byteLength);
   copy.set(bytes);
   const blob = new Blob([copy.buffer], { type: 'application/octet-stream' });
-  triggerBlobDownload(blob, `sanzo-wada-vol${combo.volume}-combo-${combo.id}.ase`);
+  triggerBlobDownload(blob, `${getComboFileBase(combo)}.ase`);
 }
 
 function drawRoundedRect(
@@ -706,10 +789,17 @@ function drawRoundedRect(
  * Render a crisp 2x Showa Art Print poster directly onto a Canvas and download as PNG,
  * awaiting document.fonts.ready so web fonts render cleanly.
  */
-export async function downloadPngCard(combo: Combination): Promise<void> {
-  if (typeof document !== 'undefined' && document.fonts?.ready) {
+export async function downloadPngCard(
+  combo: Combination,
+  options: PosterExportOptions = {}
+): Promise<void> {
+  if (typeof document !== 'undefined' && document.fonts) {
     try {
-      await document.fonts.ready;
+      await Promise.all([
+        document.fonts.load('700 24px "Cinzel"'),
+        document.fonts.load('400 12px "JetBrains Mono"'),
+        document.fonts.ready,
+      ]);
     } catch {
       // Ignore font readiness failures and draw with available fonts
     }
@@ -726,6 +816,9 @@ export async function downloadPngCard(combo: Combination): Promise<void> {
 
   ctx.scale(scale, scale);
 
+  const isCustom = combo.id === 0;
+  const weighted = Boolean(options.weighted);
+
   ctx.fillStyle = '#FAF7F2';
   ctx.fillRect(0, 0, width, height);
   ctx.strokeStyle = 'rgba(43, 43, 43, 0.25)';
@@ -739,25 +832,29 @@ export async function downloadPngCard(combo: Combination): Promise<void> {
   ctx.fillStyle = '#6B665E';
   ctx.font = '400 15px "Noto Serif JP", Georgia, serif';
   ctx.fillText(
-    `和田三造 (Sanzo Wada, 1933) — 配色総鑑${combo.volume === 2 ? ' B篇' : ''}`,
+    isCustom
+      ? '和田三造 (Sanzo Wada) — Custom Palette Study'
+      : `和田三造 (Sanzo Wada, 1933) — 配色総鑑${combo.volume === 2 ? ' B篇' : ''}`,
     80,
     118
   );
 
   ctx.fillStyle = '#B93826';
   ctx.font = '700 22px "Cinzel", Georgia, serif';
-  const titleNum =
-    combo.volume === 2
-      ? `VOL. 2 CARD № ${combo.id.toString().padStart(2, '0')}`
-      : `VOL. 1 № ${combo.id.toString().padStart(3, '0')}`;
+  const titleNum = isCustom
+    ? 'CUSTOM MIX'
+    : combo.volume === 2
+    ? `VOL. 2 CARD № ${combo.id.toString().padStart(2, '0')}`
+    : `VOL. 1 № ${combo.id.toString().padStart(3, '0')}`;
   ctx.fillText(titleNum, 80, 168);
 
   ctx.fillStyle = '#888177';
   ctx.font = '500 12px "Noto Serif JP", Georgia, serif';
-  const subtitle =
-    combo.volume === 2
-      ? `VOLUME 2 • ${(combo.monthName || '').toUpperCase()} (${combo.monthJa || ''} • ${(combo.monthMeaning || '').toUpperCase()})`
-      : `${combo.size}-COLOR HARMONY`;
+  const subtitle = isCustom
+    ? `${combo.size}-COLOR CUSTOM COMPOSITION`
+    : combo.volume === 2
+    ? `VOLUME 2 • ${(combo.monthName || '').toUpperCase()} (${combo.monthJa || ''} • ${(combo.monthMeaning || '').toUpperCase()})`
+    : `${combo.size}-COLOR HARMONY`;
   ctx.fillText(subtitle, 80, 198);
 
   ctx.strokeStyle = '#B93826';
@@ -771,38 +868,46 @@ export async function downloadPngCard(combo: Combination): Promise<void> {
 
   ctx.fillStyle = '#8C8478';
   ctx.font = '700 22px "Noto Serif JP", Georgia, serif';
-  const chars = combo.volume === 2 ? ['配', '色', '総', '鑑', 'B'] : ['配', '色', '総', '鑑'];
+  const chars =
+    !isCustom && combo.volume === 2 ? ['配', '色', '総', '鑑', 'B'] : ['配', '色', '総', '鑑'];
   chars.forEach((ch, idx) => ctx.fillText(ch, 720, 265 + idx * 32));
   ctx.textAlign = 'left';
 
-  const swatchesCount = combo.colors.length;
   const swatchWidth = 600;
-  const swatchHeight = Math.floor(510 / swatchesCount);
+  const rects = getPosterBarRects(combo.colors.length, weighted);
   combo.colors.forEach((c, idx) => {
-    const y = 240 + idx * swatchHeight;
+    const { y, height: barH, weightPct } = rects[idx];
     const textFill = getIdealTextColor(c.hex);
-    const displayName = c.ja ? `${c.name} (${c.ja})` : c.name;
-    const showDetails = swatchHeight >= 45;
+    const rawName = c.ja ? `${c.name} (${c.ja})` : c.name;
+    const showTwoLines = barH >= 48;
 
     ctx.fillStyle = c.hex;
-    drawRoundedRect(ctx, 80, y, swatchWidth, swatchHeight - 6, 4);
+    drawRoundedRect(ctx, 80, y, swatchWidth, barH, 4);
     ctx.fill();
 
     ctx.fillStyle = textFill;
-    ctx.font = `700 ${swatchHeight < 55 ? 14 : 17}px "Noto Serif JP", Georgia, serif`;
+    ctx.font = `700 ${barH < 44 ? 13 : 17}px "Noto Serif JP", Georgia, serif`;
+    const primaryLine = showTwoLines
+      ? weighted
+        ? `${rawName} (${weightPct}%)`
+        : rawName
+      : weighted
+      ? `${rawName} • ${c.hex.toUpperCase()} (${weightPct}%)`
+      : `${rawName} • ${c.hex.toUpperCase()}`;
+
     ctx.fillText(
-      displayName,
+      primaryLine,
       100,
-      y + (showDetails ? swatchHeight / 2 - 5 : swatchHeight / 2 + 4)
+      y + (showTwoLines ? barH / 2 - 4 : barH / 2 + 5)
     );
 
-    if (showDetails) {
+    if (showTwoLines) {
       ctx.globalAlpha = 0.85;
       ctx.font = '500 11px "JetBrains Mono", ui-monospace, monospace';
       ctx.fillText(
         `${c.hex.toUpperCase()} • RGB(${c.rgb.join(', ')}) • CMYK(${c.cmyk.join(', ')})`,
         100,
-        y + swatchHeight / 2 + 16
+        y + barH / 2 + 16
       );
       ctx.globalAlpha = 1;
     }
@@ -833,7 +938,7 @@ export async function downloadPngCard(combo: Combination): Promise<void> {
         reject(new Error('Failed to generate PNG blob'));
         return;
       }
-      triggerBlobDownload(blob, `sanzo-wada-vol${combo.volume}-combo-${combo.id}.png`);
+      triggerBlobDownload(blob, `${getComboFileBase(combo)}.png`);
       resolve();
     }, 'image/png');
   });
