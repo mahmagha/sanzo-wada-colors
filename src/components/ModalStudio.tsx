@@ -56,6 +56,7 @@ import {
 } from '../utils/menswearUtils';
 import { MenswearIllustration } from './MenswearIllustration';
 import { WeavePreview } from './WeavePreview';
+import { GarmentWeave, GarmentWeaveControls } from './GarmentWeaveControls';
 
 interface ModalStudioProps {
   combination: Combination | null;
@@ -137,6 +138,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
   const [exportFormat, setExportFormat] = useState<ExportFormat>('css');
   const [cssUseOklch, setCssUseOklch] = useState(false);
   const [cvdMode, setCvdMode] = useState<CvdMode>('normal');
+  const [garmentWeave, setGarmentWeave] = useState<GarmentWeave>(null);
   const [weightedBars, setWeightedBars] = useState(false);
 
   const initialColors = combination?.colors ?? [];
@@ -1317,7 +1319,9 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                     pieces={pieces}
                     outfit={outfitColors}
                     cvdMode={cvdMode}
+                    weave={garmentWeave}
                   />
+                  <GarmentWeaveControls value={garmentWeave} onChange={setGarmentWeave} />
                 </div>
 
                 <div className="md:col-span-6 space-y-3">

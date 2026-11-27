@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useId } from 'react';
 import { ColorItem, CvdMode } from '../types/color';
 import { getLuminance, hexToRgb, simulateColorVision } from '../utils/colorUtils';
 import {
@@ -8,6 +8,7 @@ import {
   getSlotDisplayLabel,
   STYLE_PRESET_PIECES,
 } from '../utils/menswearUtils';
+import { WeavePattern, buildGarmentWeaveTile } from '../utils/weaveUtils';
 
 interface MenswearIllustrationProps {
   style: GarmentStyle;
@@ -16,6 +17,8 @@ interface MenswearIllustrationProps {
   cvdMode?: CvdMode;
   activeSlot?: GarmentSlotKey | null;
   onSelectSlot?: (slot: GarmentSlotKey) => void;
+  /** Show cloth garments (coat, top, bottom) as woven fabric. Omit or pass null for flat color. */
+  weave?: { pattern: WeavePattern; cell: number } | null;
 }
 
 function getSeamStroke(hex: string): string {
@@ -40,7 +43,9 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
   cvdMode = 'normal',
   activeSlot = null,
   onSelectSlot,
+  weave = null,
 }) => {
+  const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
   const shown = {
     outerwear: simulateColorVision(outfit.outerwear.hex, cvdMode),
     top: simulateColorVision(outfit.top.hex, cvdMode),
@@ -74,6 +79,25 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
     };
   };
 
+  const clothSlots = ['outerwear', 'top', 'bottom'] as const;
+  const cloth = (slot: (typeof clothSlots)[number]) =>
+    weave ? `url(#wv-${uid}-${slot})` : shown[slot];
+  const weaveDefs = weave
+    ? clothSlots.map((slot) => {
+        const tile = buildGarmentWeaveTile(shown[slot], weave.pattern, weave.cell, `wg-${uid}-${slot}`);
+        return (
+          <pattern
+            key={slot}
+            id={`wv-${uid}-${slot}`}
+            patternUnits="userSpaceOnUse"
+            width={tile.size}
+            height={tile.size}
+            dangerouslySetInnerHTML={{ __html: tile.markup }}
+          />
+        );
+      })
+    : null;
+
   const hasCoat = pieces.outerwear !== 'none';
   const showBareForearms = !hasCoat && pieces.top === 'camp-shirt';
   const showBareCalves = pieces.bottom === 'shorts';
@@ -93,6 +117,8 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
       role="img"
       aria-label={`Menswear lookbook illustration (${style})`}
     >
+      {weaveDefs && <defs>{weaveDefs}</defs>}
+
       {/* Ground Shadow */}
       <ellipse cx="180" cy="466" rx="68" ry="8" fill="rgba(0,0,0,0.08)" />
 
@@ -152,13 +178,13 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
           <>
             <path
               d="M99 215 L117 215 L110 245 L94 245 Z"
-              fill={shown.top}
+              fill={cloth('top')}
               stroke={getSeamStroke(shown.top)}
               strokeWidth="0.9"
             />
             <path
               d="M243 215 L261 215 L266 245 L250 245 Z"
-              fill={shown.top}
+              fill={cloth('top')}
               stroke={getSeamStroke(shown.top)}
               strokeWidth="0.9"
             />
@@ -330,7 +356,7 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
                   ? 'M134 228 L226 228 C231 268, 229 344, 221 430 L195 430 C191 364, 187 308, 180 282 C173 308, 169 364, 165 430 L139 430 C131 344, 129 268, 134 228 Z'
                   : 'M133 228 L227 228 C232 272, 230 350, 223 434 L194 434 C191 368, 187 310, 180 282 C173 310, 169 368, 166 434 L137 434 C130 350, 128 272, 133 228 Z'
               }
-              fill={shown.bottom}
+              fill={cloth('bottom')}
               stroke={getSeamStroke(shown.bottom)}
               strokeWidth="1.05"
             />
@@ -354,7 +380,7 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
           <>
             <path
               d="M133 228 L227 228 C232 278, 229 354, 222 434 L194 434 C190 368, 186 310, 180 284 C174 310, 170 368, 166 434 L138 434 C131 354, 128 278, 133 228 Z"
-              fill={shown.bottom}
+              fill={cloth('bottom')}
               stroke={getSeamStroke(shown.bottom)}
               strokeWidth="1.05"
             />
@@ -370,7 +396,7 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
           <>
             <path
               d="M133 228 L227 228 C232 260, 232 292, 229 324 L189 324 C186 300, 184 286, 180 278 C176 286, 174 300, 171 324 L131 324 C128 292, 128 260, 133 228 Z"
-              fill={shown.bottom}
+              fill={cloth('bottom')}
               stroke={getSeamStroke(shown.bottom)}
               strokeWidth="1.05"
             />
@@ -385,7 +411,7 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
           <>
             <path
               d="M132 224 L228 224 C238 286, 242 362, 238 434 L187 434 C184 374, 183 324, 180 296 C177 324, 176 374, 173 434 L122 434 C118 362, 122 286, 132 224 Z"
-              fill={shown.bottom}
+              fill={cloth('bottom')}
               stroke={getSeamStroke(shown.bottom)}
               strokeWidth="1.05"
             />
@@ -410,7 +436,7 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
               <>
                 <path
                   d="M164 76 C146 80, 128 84, 121 93 C114 102, 108 122, 102 150 L127 154 L134 128 L133 230 C164 235, 196 235, 227 230 L226 128 L233 154 L258 150 C252 122, 246 102, 239 93 C232 84, 214 80, 196 76 Q180 94 164 76 Z"
-                  fill={shown.top}
+                  fill={cloth('top')}
                   stroke={getSeamStroke(shown.top)}
                   strokeWidth="1.05"
                 />
@@ -427,7 +453,7 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
               <>
                 <path
                   d="M164 76 C146 80, 128 84, 120 94 S97 168, 92 242 L110 245 C115 204, 123 158, 134 128 C136 164, 135 200, 133 230 C164 235, 196 235, 227 230 C225 200, 224 164, 226 128 C237 158, 245 204, 250 245 L268 242 C263 168, 248 104, 240 94 S214 80, 196 76 Q180 88 164 76 Z"
-                  fill={shown.top}
+                  fill={cloth('top')}
                   stroke={getSeamStroke(shown.top)}
                   strokeWidth="1.05"
                 />
@@ -441,14 +467,14 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
           <>
             <path
               d="M150 77 L210 77 L218 232 L142 232 Z"
-              fill={shown.top}
+              fill={cloth('top')}
               stroke={getSeamStroke(shown.top)}
               strokeWidth="0.95"
             />
             {pieces.outerwear !== 'haori' && pieces.top !== 'camp-shirt' && (
               <>
-                <path d="M91 236 L109 240 L108 247 L90 243 Z" fill={shown.top} stroke={getSeamStroke(shown.top)} strokeWidth="0.9" />
-                <path d="M269 236 L251 240 L252 247 L270 243 Z" fill={shown.top} stroke={getSeamStroke(shown.top)} strokeWidth="0.9" />
+                <path d="M91 236 L109 240 L108 247 L90 243 Z" fill={cloth('top')} stroke={getSeamStroke(shown.top)} strokeWidth="0.9" />
+                <path d="M269 236 L251 240 L252 247 L270 243 Z" fill={cloth('top')} stroke={getSeamStroke(shown.top)} strokeWidth="0.9" />
               </>
             )}
           </>
@@ -457,8 +483,8 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
         {/* Top Neckline & Details */}
         {pieces.top === 'dress-shirt' && (
           <>
-            <path d="M164 76 Q172 86 180 91 L160 95 Q157 85 164 76 Z" fill={shown.top} stroke={getSeamStroke(shown.top)} strokeWidth="1" />
-            <path d="M196 76 Q188 86 180 91 L200 95 Q203 85 196 76 Z" fill={shown.top} stroke={getSeamStroke(shown.top)} strokeWidth="1" />
+            <path d="M164 76 Q172 86 180 91 L160 95 Q157 85 164 76 Z" fill={cloth('top')} stroke={getSeamStroke(shown.top)} strokeWidth="1" />
+            <path d="M196 76 Q188 86 180 91 L200 95 Q203 85 196 76 Z" fill={cloth('top')} stroke={getSeamStroke(shown.top)} strokeWidth="1" />
             <line x1="180" y1="91" x2="180" y2="230" stroke={getSeamStroke(shown.top)} strokeWidth="0.95" />
             <circle cx="180" cy="122" r="1.6" fill={getSeamStroke(shown.top)} />
             <circle cx="180" cy="152" r="1.6" fill={getSeamStroke(shown.top)} />
@@ -480,7 +506,7 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
           <>
             <path
               d="M164 62 C164 58, 196 58, 196 62 L200 81 C188 86, 172 86, 160 81 Z"
-              fill={shown.top}
+              fill={cloth('top')}
               stroke={getSeamStroke(shown.top)}
               strokeWidth="1.05"
             />
@@ -493,7 +519,7 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
             {/* Natural Rolled Neck Hood without pointy corners */}
             <path
               d="M160 75 C159 66, 169 65, 180 74 C191 65, 201 66, 200 75 C202 86, 192 95, 180 97 C168 95, 158 86, 160 75 Z"
-              fill={shown.top}
+              fill={cloth('top')}
               stroke={getSeamStroke(shown.top)}
               strokeWidth="1.05"
             />
@@ -533,13 +559,13 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
             <>
               <path
                 d="M163 75 C144 79, 126 83, 118 93 S95 166, 90 238 L109 242 C115 202, 124 156, 134 128 C134 172, 131 214, 132 248 C148 253, 165 253, 179 242 L179 160 Z"
-                fill={shown.outerwear}
+                fill={cloth('outerwear')}
                 stroke={getSeamStroke(shown.outerwear)}
                 strokeWidth="1.05"
               />
               <path
                 d="M197 75 C216 79, 234 83, 242 93 S265 166, 270 238 L251 242 C245 202, 236 156, 226 128 C226 172, 229 214, 228 248 C212 253, 195 253, 181 242 L181 160 Z"
-                fill={shown.outerwear}
+                fill={cloth('outerwear')}
                 stroke={getSeamStroke(shown.outerwear)}
                 strokeWidth="1.05"
               />
@@ -557,13 +583,13 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
             <>
               <path
                 d="M161 74 C142 78, 123 82, 115 93 S93 168, 88 242 L108 246 C114 204, 123 156, 132 128 C126 206, 122 278, 124 338 C144 342, 163 343, 179 341 L179 166 Z"
-                fill={shown.outerwear}
+                fill={cloth('outerwear')}
                 stroke={getSeamStroke(shown.outerwear)}
                 strokeWidth="1.05"
               />
               <path
                 d="M199 74 C218 78, 237 82, 245 93 S267 168, 272 242 L252 246 C246 204, 237 156, 228 128 C234 206, 238 278, 236 338 C216 342, 197 343, 181 341 L181 166 Z"
-                fill={shown.outerwear}
+                fill={cloth('outerwear')}
                 stroke={getSeamStroke(shown.outerwear)}
                 strokeWidth="1.05"
               />
@@ -580,13 +606,13 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
             <>
               <path
                 d="M161 76 C142 80, 124 85, 116 95 S94 166, 90 236 L111 240 C116 198, 125 154, 134 132 L133 228 L167 228 L167 88 Z"
-                fill={shown.outerwear}
+                fill={cloth('outerwear')}
                 stroke={getSeamStroke(shown.outerwear)}
                 strokeWidth="1.05"
               />
               <path
                 d="M199 76 C218 80, 236 85, 244 95 S266 166, 270 236 L249 240 C244 198, 235 154, 226 132 L227 228 L193 228 L193 88 Z"
-                fill={shown.outerwear}
+                fill={cloth('outerwear')}
                 stroke={getSeamStroke(shown.outerwear)}
                 strokeWidth="1.05"
               />
@@ -603,13 +629,13 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
             <>
               <path
                 d="M161 75 C142 79, 124 84, 116 94 S94 166, 90 238 L110 242 C116 200, 125 156, 134 130 L132 242 L166 242 L166 87 Z"
-                fill={shown.outerwear}
+                fill={cloth('outerwear')}
                 stroke={getSeamStroke(shown.outerwear)}
                 strokeWidth="1.05"
               />
               <path
                 d="M199 75 C218 79, 236 84, 244 94 S266 166, 270 238 L250 242 C244 200, 235 156, 226 130 L228 242 L194 242 L194 87 Z"
-                fill={shown.outerwear}
+                fill={cloth('outerwear')}
                 stroke={getSeamStroke(shown.outerwear)}
                 strokeWidth="1.05"
               />
@@ -625,13 +651,13 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
               {/* Smooth Rounded Drop-Shoulder Haori Mantle */}
               <path
                 d="M159 75 C135 80, 108 85, 90 95 C84 128, 84 176, 87 216 Q106 220, 129 216 C130 186, 130 156, 130 142 C128 188, 128 232, 131 264 L165 264 L165 83 Z"
-                fill={shown.outerwear}
+                fill={cloth('outerwear')}
                 stroke={getSeamStroke(shown.outerwear)}
                 strokeWidth="1.05"
               />
               <path
                 d="M201 75 C225 80, 252 85, 270 95 C276 128, 276 176, 273 216 Q254 220, 231 216 C230 186, 230 156, 230 142 C232 188, 232 232, 229 264 L195 264 L195 83 Z"
-                fill={shown.outerwear}
+                fill={cloth('outerwear')}
                 stroke={getSeamStroke(shown.outerwear)}
                 strokeWidth="1.05"
               />

@@ -65,3 +65,17 @@ describe('weaveUtils', () => {
     assert.equal((svg.match(/<rect /g) ?? []).length, 1 + 4 * 4 * 2);
   });
 });
+
+import { WEAVE_REPEAT, buildGarmentWeaveTile } from '../src/utils/weaveUtils';
+
+describe('garment weave tile', () => {
+  it('builds a tile sized to the pattern repeat with unique gradient ids', () => {
+    for (const key of Object.keys(WEAVE_REPEAT) as Array<keyof typeof WEAVE_REPEAT>) {
+      const tile = buildGarmentWeaveTile('#12354e', key, 3, 'wg-test');
+      assert.equal(tile.size, WEAVE_REPEAT[key] * 3);
+      const n = WEAVE_REPEAT[key];
+      assert.equal((tile.markup.match(/<rect /g) ?? []).length, 1 + n * n * 2);
+      assert.ok(tile.markup.includes('id="wg-testV"') && tile.markup.includes('url(#wg-testH)'));
+    }
+  });
+});

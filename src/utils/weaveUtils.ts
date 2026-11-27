@@ -150,3 +150,63 @@ export function buildWeaveSvg(grid: WeaveGrid, cellPx = 12, title = 'Weave previ
   parts.push('</svg>');
   return parts.join('');
 }
+
+/** Number of threads after which each interlacement repeats. */
+export const WEAVE_REPEAT: Record<WeavePattern, number> = {
+  plain: 2,
+  twill: 4,
+  herringbone: 8,
+  basket: 4,
+  satin: 5,
+};
+
+function shade(hex: string, factor: number): string {
+  const m = /^#?([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  const ch = (v: number) => Math.max(0, Math.min(255, Math.round(v * factor)));
+  const r = ch((n >> 16) & 255);
+  const g = ch((n >> 8) & 255);
+  const b = ch(n & 255);
+  return `#${[r, g, b].map((v) => v.toString(16).padStart(2, '0')).join('')}`;
+}
+
+/**
+ * One repeating tile of a single-color cloth, for use inside an SVG <pattern>.
+ * The weft is a touch darker than the warp so the structure reads on a plain color.
+ * `idPrefix` keeps the gradient ids unique when several tiles share one SVG.
+ */
+export function buildGarmentWeaveTile(
+  hex: string,
+  pattern: WeavePattern,
+  cell: number,
+  idPrefix: string,
+): { size: number; markup: string } {
+  const n = WEAVE_REPEAT[pattern];
+  const size = n * cell;
+  const gap = Math.max(0.06, cell * 0.07);
+  const r = cell * 0.2;
+  const weft = shade(hex, 0.9);
+  const parts: string[] = [
+    `<linearGradient id="${idPrefix}V" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#000" stop-opacity="0.22"/><stop offset="0.5" stop-color="#fff" stop-opacity="0.14"/><stop offset="1" stop-color="#000" stop-opacity="0.22"/></linearGradient>`,
+    `<linearGradient id="${idPrefix}H" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity="0.22"/><stop offset="0.5" stop-color="#fff" stop-opacity="0.14"/><stop offset="1" stop-color="#000" stop-opacity="0.22"/></linearGradient>`,
+    `<rect width="${size}" height="${size}" fill="${shade(hex, 0.62)}"/>`,
+  ];
+  for (let y = 0; y < n; y++) {
+    for (let x = 0; x < n; x++) {
+      const up = isWarpOnTop(pattern, x, y);
+      const px = x * cell;
+      const py = y * cell;
+      const rx = up ? px + gap : px;
+      const ry = up ? py : py + gap;
+      const rw = up ? cell - gap * 2 : cell;
+      const rh = up ? cell : cell - gap * 2;
+      const dims = `x="${rx.toFixed(3)}" y="${ry.toFixed(3)}" width="${rw.toFixed(3)}" height="${rh.toFixed(3)}" rx="${r.toFixed(3)}"`;
+      parts.push(
+        `<rect ${dims} fill="${up ? hex : weft}"/>`,
+        `<rect ${dims} fill="url(#${idPrefix}${up ? 'V' : 'H'})"/>`,
+      );
+    }
+  }
+  return { size, markup: parts.join('') };
+}
