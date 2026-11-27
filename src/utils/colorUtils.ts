@@ -1,4 +1,4 @@
-import { ColorItem, Combination, ToneFilter } from '../types/color';
+import { ColorItem, Combination, CvdMode, ToneFilter } from '../types/color';
 
 /**
  * Normalize 3- or 6-character hex strings into lowercase `#rrggbb`, or return null if invalid.
@@ -29,6 +29,16 @@ export function hexToRgb(hex: string): [number, number, number] {
   const g = (bigint >> 8) & 255;
   const b = bigint & 255;
   return [r, g, b];
+}
+
+export function rgbToHex(r: number, g: number, b: number): string {
+  const clamp = (n: number) => Math.min(255, Math.max(0, Math.round(n)));
+  return (
+    '#' +
+    [clamp(r), clamp(g), clamp(b)]
+      .map((v) => v.toString(16).padStart(2, '0'))
+      .join('')
+  );
 }
 
 export function getLuminance(r: number, g: number, b: number): number {
@@ -89,20 +99,16 @@ export function getMaxPaletteContrast(combination: Pick<Combination, 'colors'>):
   return maxRatio;
 }
 
-export function classifyColorTone(
-  rgb: [number, number, number]
-): Exclude<ToneFilter, 'all'> {
+/**
+ * Convert sRGB (0-255) to HSL [hue 0-360, saturation 0-1, lightness 0-1].
+ */
+export function rgbToHsl(rgb: [number, number, number]): [number, number, number] {
   const [r, g, b] = rgb;
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
   const d = max - min;
-  const l = (max + min) / (2 * 255);
+  const l = (max + min) / 510;
   const s = d === 0 ? 0 : l > 0.5 ? d / (510 - max - min) : d / (max + min);
-  const sHsv = max === 0 ? 0 : d / max;
-
-  if (s < 0.09) return 'neutral';
-  if (l > 0.72 && sHsv < 0.42) return 'pastel';
-  if (l < 0.30) return 'deep';
 
   let h = 0;
   if (d > 0) {
@@ -113,6 +119,23 @@ export function classifyColorTone(
     if (h < 0) h += 360;
   }
 
+  return [h, s, l];
+}
+
+export function classifyColorTone(
+  rgb: [number, number, number]
+): Exclude<ToneFilter, 'all'> {
+  const [r, g, b] = rgb;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const d = max - min;
+  const [h, s, l] = rgbToHsl(rgb);
+  const sHsv = max === 0 ? 0 : d / max;
+
+  if (s < 0.09) return 'neutral';
+  if (l > 0.72 && sHsv < 0.42) return 'pastel';
+  if (l < 0.30) return 'deep';
+
   // Earthy tones: browns, ochre, muted greens/khaki
   if (s < 0.5 && l >= 0.25 && l <= 0.65 && ((h >= 20 && h <= 100) || h >= 340)) {
     return 'earthy';
@@ -120,6 +143,64 @@ export function classifyColorTone(
 
   if (h >= 340 || h <= 75) return 'warm';
   return 'cool';
+}
+
+const CVD_MATRICES: Record<Exclude<CvdMode, 'normal' | 'achromatopsia'>, number[]> = {
+  // Machado et al. (2009) severe dichromacy matrices in linear sRGB
+  protanopia: [
+    0.152286, 1.052583, -0.204868,
+    0.114503, 0.786281, 0.099216,
+    -0.003882, -0.048116, 1.051998,
+  ],
+  deuteranopia: [
+    0.367322, 0.860646, -0.227968,
+    0.280085, 0.672501, 0.047413,
+    -0.011820, 0.042940, 0.968881,
+  ],
+  tritanopia: [
+    1.255528, -0.076749, -0.178779,
+    -0.078411, 0.930809, 0.147602,
+    0.004733, 0.691367, 0.303900,
+  ],
+};
+
+/**
+ * Simulate how a hex color appears under color vision deficiency (CVD) in linear sRGB.
+ */
+export function simulateColorVision(hex: string, mode: CvdMode): string {
+  const normalized = normalizeHex(hex);
+  if (!normalized) return hex;
+  if (mode === 'normal') return normalized;
+
+  const [r, g, b] = hexToRgb(normalized);
+  const toLinear = (c: number) => {
+    const s = c / 255;
+    return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  };
+  const toSrgb = (c: number) => {
+    const clamped = Math.min(1, Math.max(0, c));
+    return (
+      (clamped <= 0.0031308
+        ? 12.92 * clamped
+        : 1.055 * Math.pow(clamped, 1 / 2.4) - 0.055) * 255
+    );
+  };
+
+  const rL = toLinear(r);
+  const gL = toLinear(g);
+  const bL = toLinear(b);
+
+  if (mode === 'achromatopsia') {
+    const lum = 0.2126 * rL + 0.7152 * gL + 0.0722 * bL;
+    const gray = toSrgb(lum);
+    return rgbToHex(gray, gray, gray);
+  }
+
+  const m = CVD_MATRICES[mode];
+  const simR = toSrgb(m[0] * rL + m[1] * gL + m[2] * bL);
+  const simG = toSrgb(m[3] * rL + m[4] * gL + m[5] * bL);
+  const simB = toSrgb(m[6] * rL + m[7] * gL + m[8] * bL);
+  return rgbToHex(simR, simG, simB);
 }
 
 /**
@@ -184,7 +265,7 @@ export function getDeltaE2000(
   const [L2, a2, b2] = lab2;
   const deg2rad = Math.PI / 180;
   const rad2deg = 180 / Math.PI;
-  const pow25_7 = 6103515625; // 25^7
+  const pow25_7 = 6103515625;
 
   const C1 = Math.hypot(a1, b1);
   const C2 = Math.hypot(a2, b2);
@@ -297,6 +378,13 @@ export function generateCssVariables(
   return `/* ${getComboTitle(combo)} */\n:root {\n${lines.join('\n')}\n}`;
 }
 
+export function generateRoleCssVariables(
+  combo: Combination,
+  roles: { bg: ColorItem; surface: ColorItem; accent: ColorItem; textHex: string }
+): string {
+  return `/* Semantic UI Roles — ${getComboTitle(combo)} */\n:root {\n  --color-bg: ${roles.bg.hex}; /* ${roles.bg.name} */\n  --color-surface: ${roles.surface.hex}; /* ${roles.surface.name} */\n  --color-accent: ${roles.accent.hex}; /* ${roles.accent.name} */\n  --color-text: ${roles.textHex};\n}`;
+}
+
 export function generateTailwindV4Theme(combo: Combination): string {
   const volPrefix = getComboPrefix(combo);
   const lines = combo.colors.map(
@@ -339,6 +427,122 @@ export function generateJsonExport(combo: Combination): string {
     null,
     2
   );
+}
+
+/**
+ * W3C Design Tokens / Figma Tokens Studio compatible JSON output.
+ */
+export function generateDesignTokensJson(combo: Combination): string {
+  const groupKey = getComboPrefix(combo);
+  const tokens: Record<string, { $value: string; $type: 'color'; $description: string }> = {};
+  combo.colors.forEach((c, i) => {
+    tokens[`color-${i + 1}`] = {
+      $value: c.hex.toUpperCase(),
+      $type: 'color',
+      $description: `${c.name}${c.ja ? ` (${c.ja})` : ''} — ${formatOklch(c.rgb)}`,
+    };
+  });
+  return JSON.stringify({ [groupKey]: tokens }, null, 2);
+}
+
+/**
+ * GIMP / Inkscape / Krita / Procreate compatible .gpl palette format.
+ */
+export function generateGplPalette(combo: Combination): string {
+  const header = [
+    'GIMP Palette',
+    `Name: ${getComboTitle(combo)}`,
+    `Columns: ${Math.min(combo.colors.length, 4)}`,
+    '# Digitized from Sanzo Wada Haishoku Sokan (1933-1935)',
+  ];
+  const entries = combo.colors.map(
+    (c) =>
+      `${c.rgb[0].toString().padStart(3, ' ')} ${c.rgb[1].toString().padStart(3, ' ')} ${c.rgb[2].toString().padStart(3, ' ')}\t${c.name}${c.ja ? ` (${c.ja})` : ''}`
+  );
+  return [...header, ...entries].join('\n');
+}
+
+/**
+ * Inline SVG <palette> snippet (useful for Coolors/design workflows).
+ */
+export function generateSvgPaletteSnippet(combo: Combination): string {
+  const width = combo.colors.length * 100;
+  const rects = combo.colors
+    .map(
+      (c, i) =>
+        `  <rect x="${i * 100}" y="0" width="100" height="100" fill="${escapeXml(c.hex)}"><title>${escapeXml(c.name)}</title></rect>`
+    )
+    .join('\n');
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} 100">\n${rects}\n</svg>`;
+}
+
+/**
+ * Encode a combination as an Adobe Swatch Exchange (.ase v1.0) binary buffer.
+ */
+export function buildAseBytes(combo: Combination): Uint8Array {
+  const encoder = new TextEncoder();
+  const encodeUtf16BeNull = (text: string): Uint8Array => {
+    const out = new Uint8Array((text.length + 1) * 2);
+    const view = new DataView(out.buffer);
+    for (let i = 0; i < text.length; i++) {
+      view.setUint16(i * 2, text.charCodeAt(i), false);
+    }
+    view.setUint16(text.length * 2, 0, false);
+    return out;
+  };
+
+  const chunks: Uint8Array[] = [];
+
+  // Group start block (0xC001)
+  const groupNameBytes = encodeUtf16BeNull(getComboTitle(combo));
+  const groupStart = new Uint8Array(6 + 2 + groupNameBytes.length);
+  const gsView = new DataView(groupStart.buffer);
+  gsView.setUint16(0, 0xc001, false);
+  gsView.setUint32(2, 2 + groupNameBytes.length, false);
+  gsView.setUint16(6, combo.colors.length + 1, false);
+  groupStart.set(groupNameBytes, 8);
+  chunks.push(groupStart);
+
+  // Color entry blocks (0x0001)
+  for (const c of combo.colors) {
+    const label = c.ja ? `${c.name} (${c.ja})` : c.name;
+    const nameBytes = encodeUtf16BeNull(label);
+    const blockDataLen = 2 + nameBytes.length + 4 + 12 + 2;
+    const block = new Uint8Array(6 + blockDataLen);
+    const bv = new DataView(block.buffer);
+    let offset = 0;
+    bv.setUint16(offset, 0x0001, false); offset += 2;
+    bv.setUint32(offset, blockDataLen, false); offset += 4;
+    bv.setUint16(offset, label.length + 1, false); offset += 2;
+    block.set(nameBytes, offset); offset += nameBytes.length;
+    block.set(encoder.encode('RGB '), offset); offset += 4;
+    bv.setFloat32(offset, c.rgb[0] / 255, false); offset += 4;
+    bv.setFloat32(offset, c.rgb[1] / 255, false); offset += 4;
+    bv.setFloat32(offset, c.rgb[2] / 255, false); offset += 4;
+    bv.setUint16(offset, 2, false); // Normal color type
+    chunks.push(block);
+  }
+
+  // Group end block (0xC002)
+  const groupEnd = new Uint8Array(6);
+  new DataView(groupEnd.buffer).setUint16(0, 0xc002, false);
+  chunks.push(groupEnd);
+
+  const totalBodyLen = chunks.reduce((sum, ch) => sum + ch.length, 0);
+  const result = new Uint8Array(12 + totalBodyLen);
+  const headerView = new DataView(result.buffer);
+  result.set(encoder.encode('ASEF'), 0);
+  headerView.setUint16(4, 1, false);
+  headerView.setUint16(6, 0, false);
+  headerView.setUint32(8, chunks.length, false);
+
+  let cursor = 12;
+  for (const chunk of chunks) {
+    result.set(chunk, cursor);
+    cursor += chunk.length;
+  }
+
+  return result;
 }
 
 export function escapeXml(value: string): string {
@@ -447,6 +651,20 @@ export function downloadSvgCard(combo: Combination): void {
   triggerBlobDownload(blob, `sanzo-wada-vol${combo.volume}-combo-${combo.id}.svg`);
 }
 
+export function downloadGplPalette(combo: Combination): void {
+  const gpl = generateGplPalette(combo);
+  const blob = new Blob([gpl], { type: 'text/plain;charset=utf-8' });
+  triggerBlobDownload(blob, `sanzo-wada-vol${combo.volume}-combo-${combo.id}.gpl`);
+}
+
+export function downloadAsePalette(combo: Combination): void {
+  const bytes = buildAseBytes(combo);
+  const copy = new Uint8Array(bytes.byteLength);
+  copy.set(bytes);
+  const blob = new Blob([copy.buffer], { type: 'application/octet-stream' });
+  triggerBlobDownload(blob, `sanzo-wada-vol${combo.volume}-combo-${combo.id}.ase`);
+}
+
 function drawRoundedRect(
   ctx: CanvasRenderingContext2D,
   x: number,
@@ -461,9 +679,18 @@ function drawRoundedRect(
 }
 
 /**
- * Render a crisp 2x Showa Art Print poster directly onto a Canvas and download as PNG.
+ * Render a crisp 2x Showa Art Print poster directly onto a Canvas and download as PNG,
+ * awaiting document.fonts.ready so web fonts render cleanly.
  */
-export function downloadPngCard(combo: Combination): Promise<void> {
+export async function downloadPngCard(combo: Combination): Promise<void> {
+  if (typeof document !== 'undefined' && document.fonts?.ready) {
+    try {
+      await document.fonts.ready;
+    } catch {
+      // Ignore font readiness failures and draw with available fonts
+    }
+  }
+
   const scale = 2;
   const width = 800;
   const height = 1000;
@@ -471,18 +698,16 @@ export function downloadPngCard(combo: Combination): Promise<void> {
   canvas.width = width * scale;
   canvas.height = height * scale;
   const ctx = canvas.getContext('2d');
-  if (!ctx) return Promise.reject(new Error('Canvas 2D context unavailable'));
+  if (!ctx) throw new Error('Canvas 2D context unavailable');
 
   ctx.scale(scale, scale);
 
-  // Paper background & inner frame
   ctx.fillStyle = '#FAF7F2';
   ctx.fillRect(0, 0, width, height);
   ctx.strokeStyle = 'rgba(43, 43, 43, 0.25)';
   ctx.lineWidth = 1.5;
   ctx.strokeRect(30, 30, width - 60, height - 60);
 
-  // Header typography
   ctx.fillStyle = '#1C1A17';
   ctx.font = '700 24px "Cinzel", Georgia, serif';
   ctx.fillText('A DICTIONARY OF COLOR COMBINATIONS', 80, 85);
@@ -511,7 +736,6 @@ export function downloadPngCard(combo: Combination): Promise<void> {
       : `${combo.size}-COLOR HARMONY`;
   ctx.fillText(subtitle, 80, 198);
 
-  // Hanko seal
   ctx.strokeStyle = '#B93826';
   ctx.lineWidth = 2.5;
   drawRoundedRect(ctx, 680, 72, 56, 56, 6);
@@ -521,14 +745,12 @@ export function downloadPngCard(combo: Combination): Promise<void> {
   ctx.textAlign = 'center';
   ctx.fillText('三造', 708, 108);
 
-  // Vertical Kanji spine
   ctx.fillStyle = '#8C8478';
   ctx.font = '700 22px "Noto Serif JP", Georgia, serif';
   const chars = combo.volume === 2 ? ['配', '色', '総', '鑑', 'B'] : ['配', '色', '総', '鑑'];
   chars.forEach((ch, idx) => ctx.fillText(ch, 720, 265 + idx * 32));
   ctx.textAlign = 'left';
 
-  // Swatch bars
   const swatchesCount = combo.colors.length;
   const swatchWidth = 600;
   const swatchHeight = Math.floor(510 / swatchesCount);
@@ -562,7 +784,6 @@ export function downloadPngCard(combo: Combination): Promise<void> {
     }
   });
 
-  // Footer
   ctx.strokeStyle = '#D6CFC2';
   ctx.lineWidth = 1;
   ctx.beginPath();

@@ -8,10 +8,12 @@ describe('URL state parsing and serialization', () => {
     assert.equal(empty.viewMode, 'combinations');
     assert.equal(empty.volumeFilter, 'all');
     assert.equal(empty.monthFilter, 'all');
+    assert.equal(empty.colorSort, 'id-asc');
+    assert.equal(empty.swatchId, null);
     assert.equal(empty.comboKey, null);
     assert.equal(empty.colorId, null);
 
-    const invalid = parseUrlState('?view=bad&vol=9&season=monsoon&month=13&size=9&tone=neon&sort=foo&combo=bad&color=-3');
+    const invalid = parseUrlState('?view=bad&vol=9&season=monsoon&month=13&size=9&tone=neon&sort=foo&csort=bad&swatch=-1&combo=bad&color=-3');
     assert.equal(invalid.viewMode, 'combinations');
     assert.equal(invalid.volumeFilter, 'all');
     assert.equal(invalid.seasonFilter, 'all');
@@ -19,6 +21,8 @@ describe('URL state parsing and serialization', () => {
     assert.equal(invalid.sizeFilter, 'all');
     assert.equal(invalid.toneFilter, 'all');
     assert.equal(invalid.sortBy, 'number-asc');
+    assert.equal(invalid.colorSort, 'id-asc');
+    assert.equal(invalid.swatchId, null);
     assert.equal(invalid.comboKey, null);
     assert.equal(invalid.colorId, null);
   });
@@ -32,6 +36,8 @@ describe('URL state parsing and serialization', () => {
       sizeFilter: 5,
       toneFilter: 'neutral',
       sortBy: 'popularity',
+      colorSort: 'hue',
+      swatchId: 12,
       searchQuery: 'sakura',
       onlyFavorites: true,
       comboKey: 'v2-14',
@@ -47,6 +53,8 @@ describe('URL state parsing and serialization', () => {
       sizeFilter: 5,
       toneFilter: 'neutral',
       sortBy: 'popularity',
+      colorSort: 'hue',
+      swatchId: 12,
       searchQuery: 'sakura',
       onlyFavorites: true,
       comboKey: 'v2-14',
@@ -62,6 +70,8 @@ describe('URL state parsing and serialization', () => {
         sizeFilter: 'all',
         toneFilter: 'all',
         sortBy: 'number-asc',
+        colorSort: 'id-asc',
+        swatchId: null,
         searchQuery: '',
         onlyFavorites: false,
         comboKey: null,

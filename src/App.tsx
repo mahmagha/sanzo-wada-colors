@@ -1,9 +1,10 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
-import confetti from 'canvas-confetti';
+import React, { Suspense, lazy, useState, useMemo, useEffect, useCallback } from 'react';
+import { Columns2, X } from 'lucide-react';
 import rawCombinations from './data/wadaCombinations.json';
 import rawColors from './data/wadaColors.json';
 import {
   ColorItem,
+  ColorSortOption,
   Combination,
   HydratedCombination,
   RawCombination,
@@ -17,17 +18,29 @@ import {
 } from './types/color';
 import { classifyColorTone } from './utils/colorUtils';
 import { hydrateCombinations, SEASON_MONTHS } from './utils/paletteData';
+import { matchesColorTokens, matchesCombinationTokens, sortMasterColors } from './utils/searchUtils';
 import { parseUrlState, serializeUrlState } from './utils/urlState';
 import { Header } from './components/Header';
 import { FiltersBar } from './components/FiltersBar';
 import { CombinationCard } from './components/CombinationCard';
 import { ColorSwatchCard } from './components/ColorSwatchCard';
-import { ColorMatcherPanel } from './components/ColorMatcherPanel';
-import { ModalStudio } from './components/ModalStudio';
-import { ColorDetailModal } from './components/ColorDetailModal';
 import { Toast } from './components/Toast';
 
+const ModalStudio = lazy(() =>
+  import('./components/ModalStudio').then((m) => ({ default: m.ModalStudio }))
+);
+const ColorDetailModal = lazy(() =>
+  import('./components/ColorDetailModal').then((m) => ({ default: m.ColorDetailModal }))
+);
+const ColorMatcherPanel = lazy(() =>
+  import('./components/ColorMatcherPanel').then((m) => ({ default: m.ColorMatcherPanel }))
+);
+const CompareModal = lazy(() =>
+  import('./components/CompareModal').then((m) => ({ default: m.CompareModal }))
+);
+
 const PAGE_SIZE = 48;
+const MAX_COMPARE = 3;
 
 const allColors: ColorItem[] = rawColors as ColorItem[];
 const allCombinations: HydratedCombination[] = hydrateCombinations(
@@ -52,22 +65,23 @@ function getInitialUrlState() {
 export const App: React.FC = () => {
   const initialUrl = useMemo(getInitialUrlState, []);
 
-  // Theme state
+  // Theme state (respects saved preference, falls back to OS dark preference or Washi)
   const [theme, setTheme] = useState<ThemeMode>(() => {
     try {
       const saved = localStorage.getItem('sanzo-wada-theme');
       if (saved === 'washi' || saved === 'studio' || saved === 'dark') return saved;
+      if (window.matchMedia?.('(prefers-color-scheme: dark)').matches) return 'dark';
     } catch {
-      // Ignore storage access errors
+      // Ignore storage / matchMedia errors
     }
     return 'washi';
   });
 
-  // View & UI panels state
+  // View & panels state
   const [viewMode, setViewMode] = useState<ViewMode>(initialUrl.viewMode);
   const [matcherOpen, setMatcherOpen] = useState(false);
 
-  // Favorites state (stored as "v1-42" or "v2-10")
+  // Favorites state
   const [favorites, setFavorites] = useState<string[]>(() => {
     try {
       const saved = localStorage.getItem('sanzo-wada-favorites-v2');
@@ -83,6 +97,10 @@ export const App: React.FC = () => {
     }
   });
 
+  // Compare state (up to 3 combination keys)
+  const [compareKeys, setCompareKeys] = useState<string[]>([]);
+  const [compareOpen, setCompareOpen] = useState(false);
+
   // Filters state
   const [volumeFilter, setVolumeFilter] = useState<VolumeFilter>(initialUrl.volumeFilter);
   const [onlyFavorites, setOnlyFavorites] = useState(initialUrl.onlyFavorites);
@@ -92,6 +110,9 @@ export const App: React.FC = () => {
   const [seasonFilter, setSeasonFilter] = useState<SeasonFilter>(initialUrl.seasonFilter);
   const [monthFilter, setMonthFilter] = useState<number | 'all'>(initialUrl.monthFilter);
   const [sortBy, setSortBy] = useState<SortOption>(initialUrl.sortBy);
+  const [colorSort, setColorSort] = useState<ColorSortOption>(initialUrl.colorSort);
+  const [hasKanjiOnly, setHasKanjiOnly] = useState(false);
+  const [swatchIdFilter, setSwatchIdFilter] = useState<number | null>(initialUrl.swatchId);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   // Modals & navigation history state
@@ -105,15 +126,36 @@ export const App: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const favoriteSet = useMemo(() => new Set(favorites), [favorites]);
+  const compareSet = useMemo(() => new Set(compareKeys), [compareKeys]);
+
+  const activeSwatch = useMemo(
+    () => (swatchIdFilter !== null ? colorById.get(swatchIdFilter) ?? null : null),
+    [swatchIdFilter]
+  );
+
+  const comparedCombinations = useMemo(
+    () =>
+      compareKeys
+        .map((key) => comboByKey.get(key))
+        .filter((c): c is HydratedCombination => Boolean(c)),
+    [compareKeys]
+  );
 
   // Sync theme
   useEffect(() => {
     try {
       localStorage.setItem('sanzo-wada-theme', theme);
     } catch {
-      // Ignore storage access errors
+      // Ignore storage errors
     }
     document.documentElement.className = `theme-${theme} ${theme === 'dark' ? 'dark' : ''}`;
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) {
+      metaTheme.setAttribute(
+        'content',
+        theme === 'dark' ? '#121214' : theme === 'studio' ? '#FAFAFA' : '#F7F4EC'
+      );
+    }
   }, [theme]);
 
   // Sync favorites
@@ -121,7 +163,7 @@ export const App: React.FC = () => {
     try {
       localStorage.setItem('sanzo-wada-favorites-v2', JSON.stringify(favorites));
     } catch {
-      // Ignore storage access errors
+      // Ignore storage errors
     }
   }, [favorites]);
 
@@ -135,6 +177,8 @@ export const App: React.FC = () => {
       sizeFilter,
       toneFilter,
       sortBy,
+      colorSort,
+      swatchId: swatchIdFilter,
       searchQuery,
       onlyFavorites,
       comboKey: selectedCombo ? getComboKey(selectedCombo.id, selectedCombo.volume) : null,
@@ -152,6 +196,8 @@ export const App: React.FC = () => {
     sizeFilter,
     toneFilter,
     sortBy,
+    colorSort,
+    swatchIdFilter,
     searchQuery,
     onlyFavorites,
     selectedCombo,
@@ -169,6 +215,8 @@ export const App: React.FC = () => {
       setSizeFilter(parsed.sizeFilter);
       setToneFilter(parsed.toneFilter);
       setSortBy(parsed.sortBy);
+      setColorSort(parsed.colorSort);
+      setSwatchIdFilter(parsed.swatchId);
       setSearchQuery(parsed.searchQuery);
       setOnlyFavorites(parsed.onlyFavorites);
       setSelectedCombo(parsed.comboKey ? comboByKey.get(parsed.comboKey) ?? null : null);
@@ -182,7 +230,17 @@ export const App: React.FC = () => {
   // Reset progressive pagination when filters change
   useEffect(() => {
     setVisibleCount(PAGE_SIZE);
-  }, [volumeFilter, onlyFavorites, seasonFilter, monthFilter, sizeFilter, toneFilter, searchQuery, sortBy]);
+  }, [
+    volumeFilter,
+    onlyFavorites,
+    seasonFilter,
+    monthFilter,
+    sizeFilter,
+    toneFilter,
+    swatchIdFilter,
+    searchQuery,
+    sortBy,
+  ]);
 
   const toggleFavorite = useCallback((id: number, volume: number) => {
     const key = getComboKey(id, volume);
@@ -194,6 +252,20 @@ export const App: React.FC = () => {
         exists ? `Removed ${volLabel} from favorites` : `Saved ${volLabel} to favorites`
       );
       return next;
+    });
+  }, []);
+
+  const toggleCompare = useCallback((combo: Combination) => {
+    const key = getComboKey(combo.id, combo.volume);
+    setCompareKeys((prev) => {
+      if (prev.includes(key)) {
+        return prev.filter((k) => k !== key);
+      }
+      if (prev.length >= MAX_COMPARE) {
+        setToastMessage(`Compare tray holds up to ${MAX_COMPARE} palettes — remove one first`);
+        return prev;
+      }
+      return [...prev, key];
     });
   }, []);
 
@@ -214,6 +286,9 @@ export const App: React.FC = () => {
   }, []);
 
   const handleSeasonChange = (season: SeasonFilter) => {
+    if (volumeFilter === 1 && season !== 'all') {
+      setVolumeFilter(2);
+    }
     setSeasonFilter(season);
     if (season !== 'all' && monthFilter !== 'all' && !SEASON_MONTHS[season].includes(monthFilter)) {
       setMonthFilter('all');
@@ -221,6 +296,9 @@ export const App: React.FC = () => {
   };
 
   const handleMonthChange = (month: number | 'all') => {
+    if (volumeFilter === 1 && month !== 'all') {
+      setVolumeFilter(2);
+    }
     setMonthFilter(month);
     if (month !== 'all' && seasonFilter !== 'all' && !SEASON_MONTHS[seasonFilter].includes(month)) {
       setSeasonFilter('all');
@@ -233,6 +311,7 @@ export const App: React.FC = () => {
     setToneFilter('all');
     setSeasonFilter('all');
     setMonthFilter('all');
+    setSwatchIdFilter(null);
     setSearchQuery('');
     setOnlyFavorites(false);
     setSortBy('number-asc');
@@ -244,6 +323,7 @@ export const App: React.FC = () => {
     toneFilter !== 'all' ||
     seasonFilter !== 'all' ||
     monthFilter !== 'all' ||
+    swatchIdFilter !== null ||
     Boolean(searchQuery.trim()) ||
     onlyFavorites;
 
@@ -253,6 +333,10 @@ export const App: React.FC = () => {
 
     if (volumeFilter !== 'all') {
       result = result.filter((c) => c.volume === volumeFilter);
+    }
+
+    if (swatchIdFilter !== null) {
+      result = result.filter((c) => c.colors.some((color) => color.id === swatchIdFilter));
     }
 
     if (seasonFilter !== 'all') {
@@ -281,24 +365,7 @@ export const App: React.FC = () => {
     }
 
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      const numMatch = q.replace(/^#/, '');
-
-      result = result.filter((c) => {
-        if (c.id.toString() === numMatch || `#${c.id}` === q || getComboKey(c.id, c.volume) === numMatch) {
-          return true;
-        }
-        if (c.monthName?.toLowerCase().includes(q)) return true;
-        if (c.monthJa?.includes(q)) return true;
-        if (c.monthMeaning?.toLowerCase().includes(q)) return true;
-        return c.colors.some(
-          (color) =>
-            color.name.toLowerCase().includes(q) ||
-            color.ja?.includes(q) ||
-            color.reading?.toLowerCase().includes(q) ||
-            color.hex.toLowerCase().includes(q)
-        );
-      });
+      result = result.filter((c) => matchesCombinationTokens(c, searchQuery));
     }
 
     if (sortBy === 'number-asc') {
@@ -312,7 +379,16 @@ export const App: React.FC = () => {
     }
 
     return result;
-  }, [volumeFilter, seasonFilter, monthFilter, sizeFilter, toneFilter, searchQuery, sortBy]);
+  }, [
+    volumeFilter,
+    swatchIdFilter,
+    seasonFilter,
+    monthFilter,
+    sizeFilter,
+    toneFilter,
+    searchQuery,
+    sortBy,
+  ]);
 
   const filteredCombinations = useMemo(() => {
     if (!onlyFavorites) return baseFilteredCombinations;
@@ -324,12 +400,16 @@ export const App: React.FC = () => {
     [filteredCombinations, visibleCount]
   );
 
-  // Filtered Master Colors
+  // Filtered & Sorted Master Colors
   const filteredColors = useMemo(() => {
-    let result = [...allColors];
+    let result = allColors;
 
     if (volumeFilter !== 'all') {
       result = result.filter((c) => c.volume === volumeFilter);
+    }
+
+    if (hasKanjiOnly) {
+      result = result.filter((c) => Boolean(c.ja));
     }
 
     if (toneFilter !== 'all') {
@@ -337,22 +417,13 @@ export const App: React.FC = () => {
     }
 
     if (searchQuery.trim()) {
-      const q = searchQuery.toLowerCase().trim();
-      const numMatch = q.replace(/^#/, '');
-      result = result.filter(
-        (c) =>
-          c.name.toLowerCase().includes(q) ||
-          c.ja?.includes(q) ||
-          c.reading?.toLowerCase().includes(q) ||
-          c.hex.toLowerCase().includes(q) ||
-          c.id.toString() === numMatch
-      );
+      result = result.filter((c) => matchesColorTokens(c, searchQuery));
     }
 
-    return result;
-  }, [volumeFilter, toneFilter, searchQuery]);
+    return sortMasterColors(result, colorSort);
+  }, [volumeFilter, hasKanjiOnly, toneFilter, searchQuery, colorSort]);
 
-  const handleRandomPalette = () => {
+  const handleRandomPalette = async () => {
     const pool = filteredCombinations.length > 0 ? filteredCombinations : allCombinations;
     const randomIndex = Math.floor(Math.random() * pool.length);
     const randomCombo = pool[randomIndex];
@@ -360,12 +431,17 @@ export const App: React.FC = () => {
     setSelectedColor(null);
     setSelectedCombo(randomCombo);
 
-    confetti({
-      particleCount: 40,
-      spread: 60,
-      origin: { y: 0.6 },
-      colors: randomCombo.colors.map((c) => c.hex),
-    });
+    try {
+      const { default: confetti } = await import('canvas-confetti');
+      confetti({
+        particleCount: 40,
+        spread: 60,
+        origin: { y: 0.6 },
+        colors: randomCombo.colors.map((c) => c.hex),
+      });
+    } catch {
+      // Ignore confetti load errors offline
+    }
 
     const volLabel =
       randomCombo.volume === 2 ? `Vol. 2 Card № ${randomCombo.id}` : `Vol. 1 № ${randomCombo.id}`;
@@ -408,6 +484,8 @@ export const App: React.FC = () => {
       sizeFilter: 'all',
       toneFilter: 'all',
       sortBy: 'number-asc',
+      colorSort: 'id-asc',
+      swatchId: null,
       searchQuery: '',
       onlyFavorites: false,
       comboKey: getComboKey(combo.id, combo.volume),
@@ -426,6 +504,8 @@ export const App: React.FC = () => {
       sizeFilter: 'all',
       toneFilter: 'all',
       sortBy: 'number-asc',
+      colorSort: 'id-asc',
+      swatchId: null,
       searchQuery: '',
       onlyFavorites: false,
       comboKey: null,
@@ -455,16 +535,18 @@ export const App: React.FC = () => {
 
       {/* Main Content Area */}
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 w-full">
-        {/* Closest Wada Color Matcher */}
+        {/* Lazy-loaded Closest Wada Color Matcher */}
         {matcherOpen && (
-          <ColorMatcherPanel
-            allColors={allColors}
-            onSelectColor={(color) => {
-              setReturnCombo(null);
-              setSelectedColor(color);
-            }}
-            onClose={() => setMatcherOpen(false)}
-          />
+          <Suspense fallback={null}>
+            <ColorMatcherPanel
+              allColors={allColors}
+              onSelectColor={(color) => {
+                setReturnCombo(null);
+                setSelectedColor(color);
+              }}
+              onClose={() => setMatcherOpen(false)}
+            />
+          </Suspense>
         )}
 
         {/* Filter Controls (for combinations view) */}
@@ -485,23 +567,25 @@ export const App: React.FC = () => {
             totalFiltered={filteredCombinations.length}
             hasActiveFilters={hasActiveFilters}
             onResetFilters={resetFilters}
+            activeSwatch={activeSwatch}
+            onClearSwatch={() => setSwatchIdFilter(null)}
           />
         )}
 
         {/* Master Colors View Header (when in colors view) */}
         {viewMode === 'colors' && (
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 py-3 border-b border-stone-300/30 dark:border-stone-800 mb-6">
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 py-3 border-b border-stone-300/30 dark:border-stone-800 mb-6">
             <div className="flex items-center gap-2 flex-wrap">
               <h2 className="text-base font-editorial font-bold text-stone-900 dark:text-stone-100">
                 171 Master Color Swatches
               </h2>
-              <span className="text-xs text-stone-500 font-code">
+              <span className="text-xs text-stone-500 font-code tabular-nums min-w-[6.5rem]">
                 (Showing {filteredColors.length})
               </span>
             </div>
 
             <div className="flex items-center gap-3 flex-wrap">
-              {/* Tone Quick Filter in Colors view */}
+              {/* Tone Quick Filter */}
               <div className="flex items-center gap-1 flex-wrap">
                 {(['all', 'warm', 'cool', 'earthy', 'pastel', 'deep', 'neutral'] as const).map(
                   (tone) => (
@@ -509,9 +593,10 @@ export const App: React.FC = () => {
                       type="button"
                       key={tone}
                       onClick={() => setToneFilter(tone)}
-                      className={`px-1.5 py-0.5 text-xs capitalize rounded transition-colors ${
+                      aria-pressed={toneFilter === tone}
+                      className={`px-1.5 py-0.5 text-xs font-medium capitalize rounded transition-colors cursor-pointer ${
                         toneFilter === tone
-                          ? 'font-semibold text-amber-950 dark:text-amber-200 underline underline-offset-4 decoration-amber-600'
+                          ? 'text-amber-950 dark:text-amber-200 underline underline-offset-4 decoration-2 decoration-amber-700 dark:decoration-amber-400'
                           : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
                       }`}
                     >
@@ -521,12 +606,41 @@ export const App: React.FC = () => {
                 )}
               </div>
 
-              {/* Quick Volume Switcher in Colors view */}
+              {/* Kanji documented toggle */}
+              <button
+                type="button"
+                onClick={() => setHasKanjiOnly((prev) => !prev)}
+                aria-pressed={hasKanjiOnly}
+                className={`px-2 py-1 text-xs font-medium rounded border transition-colors cursor-pointer ${
+                  hasKanjiOnly
+                    ? 'bg-amber-900 text-amber-50 border-amber-900 dark:bg-amber-700 dark:border-amber-700'
+                    : 'border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-200/50 dark:hover:bg-stone-800'
+                }`}
+                title="Filter to swatches with documented Japanese kanji (36)"
+              >
+                Kanji (36)
+              </button>
+
+              {/* Master Colors Sort */}
+              <select
+                aria-label="Sort master colors"
+                value={colorSort}
+                onChange={(e) => setColorSort(e.target.value as ColorSortOption)}
+                className="w-36 px-2 py-1 text-xs rounded border border-stone-300 dark:border-stone-700 bg-white/70 dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 dark:focus-visible:ring-amber-400 cursor-pointer"
+              >
+                <option value="id-asc"># Swatch ID</option>
+                <option value="hue">Hue Spectrum</option>
+                <option value="lightness">Lightness</option>
+                <option value="popularity">Most Used</option>
+                <option value="name">Name (A–Z)</option>
+              </select>
+
+              {/* Quick Volume Switcher */}
               <div className="flex items-center gap-1 bg-stone-200/60 dark:bg-stone-800 p-0.5 rounded-lg text-xs">
                 <button
                   type="button"
                   onClick={() => setVolumeFilter('all')}
-                  className={`px-2.5 py-1 rounded font-medium transition-all ${
+                  className={`px-2.5 py-1 rounded font-medium transition-colors cursor-pointer ${
                     volumeFilter === 'all'
                       ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
                       : 'text-stone-600 dark:text-stone-400'
@@ -537,7 +651,7 @@ export const App: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setVolumeFilter(1)}
-                  className={`px-2.5 py-1 rounded font-medium transition-all ${
+                  className={`px-2.5 py-1 rounded font-medium transition-colors cursor-pointer ${
                     volumeFilter === 1
                       ? 'bg-amber-900 text-amber-50 dark:bg-amber-700 shadow-xs'
                       : 'text-stone-600 dark:text-stone-400'
@@ -548,13 +662,13 @@ export const App: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setVolumeFilter(2)}
-                  className={`px-2.5 py-1 rounded font-medium transition-all ${
+                  className={`px-2.5 py-1 rounded font-medium transition-colors cursor-pointer ${
                     volumeFilter === 2
                       ? 'bg-emerald-800 text-emerald-50 dark:bg-emerald-700 shadow-xs'
                       : 'text-stone-600 dark:text-stone-400'
                   }`}
                 >
-                  Vol. 2 New (12)
+                  Vol. 2 (12)
                 </button>
               </div>
             </div>
@@ -572,7 +686,9 @@ export const App: React.FC = () => {
                       key={`${combo.volume}-${combo.id}`}
                       combination={combo}
                       isFavorite={favoriteSet.has(getComboKey(combo.id, combo.volume))}
+                      isCompared={compareSet.has(getComboKey(combo.id, combo.volume))}
                       onToggleFavorite={toggleFavorite}
+                      onToggleCompare={toggleCompare}
                       onSelect={(c) => {
                         setReturnCombo(null);
                         setSelectedCombo(c);
@@ -584,7 +700,7 @@ export const App: React.FC = () => {
 
                 {visibleCombinations.length < filteredCombinations.length && (
                   <div className="mt-8 flex flex-col items-center gap-2">
-                    <p className="text-xs font-code text-stone-500 dark:text-stone-400">
+                    <p className="text-xs font-code tabular-nums text-stone-500 dark:text-stone-400">
                       Showing {visibleCombinations.length} of {filteredCombinations.length} combinations
                     </p>
                     <div className="flex items-center gap-3">
@@ -593,7 +709,9 @@ export const App: React.FC = () => {
                         onClick={() => setVisibleCount((prev) => prev + PAGE_SIZE)}
                         className="px-4 py-2 text-xs sm:text-sm font-medium rounded-lg bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 hover:opacity-90 transition-opacity cursor-pointer"
                       >
-                        Load {Math.min(PAGE_SIZE, filteredCombinations.length - visibleCombinations.length)} More
+                        Load{' '}
+                        {Math.min(PAGE_SIZE, filteredCombinations.length - visibleCombinations.length)}{' '}
+                        More
                       </button>
                       <button
                         type="button"
@@ -614,7 +732,7 @@ export const App: React.FC = () => {
                 <button
                   type="button"
                   onClick={resetFilters}
-                  className="px-4 py-2 text-xs font-semibold rounded-lg bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 hover:opacity-90"
+                  className="px-4 py-2 text-xs font-semibold rounded-lg bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 hover:opacity-90 cursor-pointer"
                 >
                   Clear All Filters
                 </button>
@@ -651,8 +769,9 @@ export const App: React.FC = () => {
                     setSearchQuery('');
                     setVolumeFilter('all');
                     setToneFilter('all');
+                    setHasKanjiOnly(false);
                   }}
-                  className="px-4 py-2 text-xs font-semibold rounded-lg bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900"
+                  className="px-4 py-2 text-xs font-semibold rounded-lg bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 cursor-pointer"
                 >
                   Clear Filters
                 </button>
@@ -661,6 +780,41 @@ export const App: React.FC = () => {
           </>
         )}
       </main>
+
+      {/* Floating Compare Palettes Tray */}
+      {comparedCombinations.length > 0 && !compareOpen && (
+        <div className="fixed bottom-5 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 px-4 py-2 rounded-full bg-stone-900/95 text-stone-100 shadow-2xl border border-stone-700 backdrop-blur-md animate-in fade-in slide-in-from-bottom-3">
+          <div className="flex items-center gap-1.5">
+            {comparedCombinations.map((combo) => (
+              <div
+                key={`${combo.volume}-${combo.id}`}
+                className="flex h-5 w-10 rounded overflow-hidden border border-white/20"
+                title={`Vol.${combo.volume} № ${combo.id}`}
+              >
+                {combo.colors.map((c) => (
+                  <div key={c.id} style={{ backgroundColor: c.hex }} className="flex-1 h-full" />
+                ))}
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setCompareOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-600 hover:bg-amber-500 text-white text-xs font-medium transition-colors cursor-pointer"
+          >
+            <Columns2 size={13} />
+            <span className="tabular-nums">Compare ({comparedCombinations.length}/3)</span>
+          </button>
+          <button
+            type="button"
+            aria-label="Clear comparison tray"
+            onClick={() => setCompareKeys([])}
+            className="p-1 rounded-full text-stone-400 hover:text-white hover:bg-stone-800 cursor-pointer"
+          >
+            <X size={14} />
+          </button>
+        </div>
+      )}
 
       {/* Footer */}
       <footer className="mt-16 border-t border-stone-300/40 dark:border-stone-800 py-8 text-center text-xs text-stone-500 space-y-2">
@@ -680,53 +834,81 @@ export const App: React.FC = () => {
         </p>
       </footer>
 
-      {/* Modals & Toast */}
-      {selectedCombo && (
-        <ModalStudio
-          combination={selectedCombo}
-          onClose={() => setSelectedCombo(null)}
-          isFavorite={favoriteSet.has(getComboKey(selectedCombo.id, selectedCombo.volume))}
-          onToggleFavorite={toggleFavorite}
-          onCopyText={handleCopyText}
-          onSelectColor={(color) => {
-            setReturnCombo(selectedCombo);
-            setSelectedCombo(null);
-            setSelectedColor(color);
-          }}
-          onPrev={handlePrevCombo}
-          onNext={handleNextCombo}
-          hasPrev={currentStepIndex > 0}
-          hasNext={currentStepIndex >= 0 && currentStepIndex < comboListForStepping.length - 1}
-          onShareLink={handleShareCombo}
-        />
-      )}
+      {/* Lazy-Loaded Modals */}
+      <Suspense fallback={null}>
+        {selectedCombo && (
+          <ModalStudio
+            combination={selectedCombo}
+            onClose={() => setSelectedCombo(null)}
+            isFavorite={favoriteSet.has(getComboKey(selectedCombo.id, selectedCombo.volume))}
+            isCompared={compareSet.has(getComboKey(selectedCombo.id, selectedCombo.volume))}
+            onToggleFavorite={toggleFavorite}
+            onToggleCompare={toggleCompare}
+            onCopyText={handleCopyText}
+            onSelectColor={(color) => {
+              setReturnCombo(selectedCombo);
+              setSelectedCombo(null);
+              setSelectedColor(color);
+            }}
+            onPrev={handlePrevCombo}
+            onNext={handleNextCombo}
+            hasPrev={currentStepIndex > 0}
+            hasNext={currentStepIndex >= 0 && currentStepIndex < comboListForStepping.length - 1}
+            onShareLink={handleShareCombo}
+          />
+        )}
 
-      {selectedColor && (
-        <ColorDetailModal
-          color={selectedColor}
-          onClose={() => {
-            setSelectedColor(null);
-            setReturnCombo(null);
-          }}
-          allCombinations={allCombinations}
-          onSelectCombination={(combo) => {
-            setReturnCombo(null);
-            setSelectedCombo(combo);
-          }}
-          onCopyText={handleCopyText}
-          onBackToCombo={
-            returnCombo
-              ? () => {
-                  const back = returnCombo;
-                  setSelectedColor(null);
-                  setReturnCombo(null);
-                  setSelectedCombo(back);
-                }
-              : undefined
-          }
-          onShareLink={handleShareColor}
-        />
-      )}
+        {selectedColor && (
+          <ColorDetailModal
+            color={selectedColor}
+            onClose={() => {
+              setSelectedColor(null);
+              setReturnCombo(null);
+            }}
+            allCombinations={allCombinations}
+            onSelectCombination={(combo) => {
+              setReturnCombo(null);
+              setSelectedCombo(combo);
+            }}
+            onCopyText={handleCopyText}
+            onBackToCombo={
+              returnCombo
+                ? () => {
+                    const back = returnCombo;
+                    setSelectedColor(null);
+                    setReturnCombo(null);
+                    setSelectedCombo(back);
+                  }
+                : undefined
+            }
+            onShareLink={handleShareColor}
+            onFilterBySwatch={(color) => {
+              setReturnCombo(null);
+              setViewMode('combinations');
+              setVolumeFilter('all');
+              setSeasonFilter('all');
+              setMonthFilter('all');
+              setSwatchIdFilter(color.id);
+            }}
+          />
+        )}
+
+        {compareOpen && (
+          <CompareModal
+            combinations={comparedCombinations}
+            onClose={() => setCompareOpen(false)}
+            onRemove={(id, volume) =>
+              setCompareKeys((prev) => prev.filter((k) => k !== getComboKey(id, volume)))
+            }
+            onClearAll={() => setCompareKeys([])}
+            onSelectCombo={(combo) => {
+              setReturnCombo(null);
+              setSelectedCombo(combo);
+            }}
+            onCopyText={handleCopyText}
+          />
+        )}
+      </Suspense>
 
       <Toast message={toastMessage} onClose={() => setToastMessage(null)} />
     </div>

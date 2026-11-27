@@ -1,12 +1,14 @@
 import React from 'react';
-import { Heart, Copy, Sliders } from 'lucide-react';
+import { Heart, Copy, Sliders, Columns2 } from 'lucide-react';
 import { Combination, ColorItem } from '../types/color';
 import { getIdealTextColor } from '../utils/colorUtils';
 
 interface CombinationCardProps {
   combination: Combination;
   isFavorite: boolean;
+  isCompared: boolean;
   onToggleFavorite: (id: number, volume: number) => void;
+  onToggleCompare: (combo: Combination) => void;
   onSelect: (combo: Combination) => void;
   onCopyText: (text: string, label: string) => void;
 }
@@ -14,7 +16,9 @@ interface CombinationCardProps {
 export const CombinationCard: React.FC<CombinationCardProps> = ({
   combination,
   isFavorite,
+  isCompared,
   onToggleFavorite,
+  onToggleCompare,
   onSelect,
   onCopyText,
 }) => {
@@ -45,7 +49,6 @@ export const CombinationCard: React.FC<CombinationCardProps> = ({
               className="relative flex-1 h-full transition-all duration-300 group/swatch overflow-hidden"
               title={`${color.name}${color.ja ? ` (${color.ja})` : ''} — ${color.hex}`}
             >
-              {/* Primary click area to open studio */}
               <button
                 type="button"
                 onClick={() => onSelect(combination)}
@@ -65,7 +68,6 @@ export const CombinationCard: React.FC<CombinationCardProps> = ({
                 </div>
               </button>
 
-              {/* Sibling Quick Copy Action (never nested inside another button) */}
               <button
                 type="button"
                 onClick={() => handleCopySingleHex(color)}
@@ -93,7 +95,6 @@ export const CombinationCard: React.FC<CombinationCardProps> = ({
               {comboTitle}
             </span>
 
-            {/* Volume Badge */}
             <span
               className={`px-1.5 py-0.2 text-[9px] font-code font-bold rounded uppercase ${
                 volume === 2
@@ -104,7 +105,6 @@ export const CombinationCard: React.FC<CombinationCardProps> = ({
               {volume === 2 ? 'Seasonal' : `${size}-Color`}
             </span>
 
-            {/* Seasonal Month Pill if Vol 2 */}
             {volume === 2 && monthName && (
               <span className="px-1.5 py-0.2 text-[9px] font-editorial rounded bg-amber-100 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300">
                 {monthName} • {monthJa}
@@ -112,13 +112,28 @@ export const CombinationCard: React.FC<CombinationCardProps> = ({
             )}
           </div>
 
-          <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate max-w-[170px] sm:max-w-[210px] mt-0.5 font-editorial">
+          <p className="text-[11px] text-stone-500 dark:text-stone-400 truncate max-w-[160px] sm:max-w-[190px] mt-0.5 font-editorial">
             {colors.map((c) => c.name).join(' • ')}
           </p>
         </button>
 
         {/* Action Buttons */}
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => onToggleCompare(combination)}
+            aria-label={isCompared ? `Remove ${comboTitle} from comparison` : `Add ${comboTitle} to compare`}
+            aria-pressed={isCompared}
+            className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+              isCompared
+                ? 'text-amber-800 dark:text-amber-300 bg-amber-100 dark:bg-amber-950/50'
+                : 'text-stone-400 hover:text-amber-800 dark:hover:text-amber-300 hover:bg-stone-200/50 dark:hover:bg-stone-800'
+            }`}
+            title={isCompared ? 'Remove from comparison' : 'Compare palette (up to 3)'}
+          >
+            <Columns2 size={15} />
+          </button>
+
           <button
             type="button"
             onClick={handleCopyAllHex}
@@ -147,7 +162,7 @@ export const CombinationCard: React.FC<CombinationCardProps> = ({
           <button
             type="button"
             onClick={() => onSelect(combination)}
-            className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg bg-stone-100 dark:bg-stone-800 hover:bg-amber-800 hover:text-white dark:hover:bg-amber-600 transition-all text-stone-700 dark:text-stone-200 cursor-pointer"
+            className="flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-lg bg-stone-100 dark:bg-stone-800 hover:bg-amber-800 hover:text-white dark:hover:bg-amber-600 transition-colors text-stone-700 dark:text-stone-200 cursor-pointer"
             title="Open studio inspector"
           >
             <Sliders size={13} />

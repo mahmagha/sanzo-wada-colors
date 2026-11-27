@@ -1,4 +1,5 @@
 import {
+  ColorSortOption,
   PaletteSizeFilter,
   SeasonFilter,
   SortOption,
@@ -15,6 +16,8 @@ export interface UrlAppState {
   sizeFilter: PaletteSizeFilter;
   toneFilter: ToneFilter;
   sortBy: SortOption;
+  colorSort: ColorSortOption;
+  swatchId: number | null;
   searchQuery: string;
   onlyFavorites: boolean;
   comboKey: string | null;
@@ -36,6 +39,13 @@ const VALID_SORTS = new Set<SortOption>([
   'number-desc',
   'contrast-desc',
   'popularity',
+]);
+const VALID_COLOR_SORTS = new Set<ColorSortOption>([
+  'id-asc',
+  'hue',
+  'lightness',
+  'popularity',
+  'name',
 ]);
 
 export function parseUrlState(search: string): UrlAppState {
@@ -71,6 +81,14 @@ export function parseUrlState(search: string): UrlAppState {
   const sortParam = params.get('sort') as SortOption | null;
   const sortBy: SortOption = sortParam && VALID_SORTS.has(sortParam) ? sortParam : 'number-asc';
 
+  const colorSortParam = params.get('csort') as ColorSortOption | null;
+  const colorSort: ColorSortOption =
+    colorSortParam && VALID_COLOR_SORTS.has(colorSortParam) ? colorSortParam : 'id-asc';
+
+  const swatchRaw = params.get('swatch');
+  const swatchParsed = swatchRaw ? Number(swatchRaw) : NaN;
+  const swatchId = Number.isInteger(swatchParsed) && swatchParsed > 0 ? swatchParsed : null;
+
   const searchQuery = params.get('q') || '';
   const onlyFavorites = params.get('fav') === '1';
 
@@ -89,6 +107,8 @@ export function parseUrlState(search: string): UrlAppState {
     sizeFilter,
     toneFilter,
     sortBy,
+    colorSort,
+    swatchId,
     searchQuery,
     onlyFavorites,
     comboKey,
@@ -106,6 +126,8 @@ export function serializeUrlState(state: UrlAppState): string {
   if (state.sizeFilter !== 'all') params.set('size', String(state.sizeFilter));
   if (state.toneFilter !== 'all') params.set('tone', state.toneFilter);
   if (state.sortBy !== 'number-asc') params.set('sort', state.sortBy);
+  if (state.colorSort !== 'id-asc') params.set('csort', state.colorSort);
+  if (state.swatchId !== null) params.set('swatch', String(state.swatchId));
   if (state.searchQuery.trim()) params.set('q', state.searchQuery.trim());
   if (state.onlyFavorites) params.set('fav', '1');
   if (state.comboKey) params.set('combo', state.comboKey);

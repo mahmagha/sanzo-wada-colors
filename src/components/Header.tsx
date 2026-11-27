@@ -69,7 +69,7 @@ export const Header: React.FC<HeaderProps> = ({
               type="button"
               onClick={onToggleMatcher}
               aria-pressed={matcherOpen}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border transition-all duration-200 active:scale-95 ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border transition-colors duration-150 cursor-pointer ${
                 matcherOpen
                   ? 'bg-amber-800 text-amber-50 border-amber-800 dark:bg-amber-700 dark:border-amber-700 shadow-xs'
                   : 'border-stone-300 dark:border-stone-700 hover:bg-stone-200/50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300'
@@ -84,19 +84,19 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               type="button"
               onClick={onRandomPalette}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 bg-red-800 hover:bg-red-900 text-red-50 shadow-sm hover:shadow active:scale-95"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-colors duration-150 bg-red-800 hover:bg-red-900 text-red-50 shadow-sm hover:shadow cursor-pointer"
               title="Roll a random combination"
             >
               <Sparkles size={15} />
               <span>Surprise Me</span>
             </button>
 
-            {/* Favorites Filter */}
+            {/* Favorites Filter (always reserves counter width so adjacent controls never shift) */}
             <button
               type="button"
               onClick={onToggleOnlyFavorites}
               aria-pressed={onlyFavorites}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border transition-all duration-200 active:scale-95 ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border transition-colors duration-150 cursor-pointer ${
                 onlyFavorites
                   ? 'bg-rose-500/15 border-rose-500/40 text-rose-600 dark:text-rose-400'
                   : 'border-stone-300 dark:border-stone-700 hover:bg-stone-200/50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300'
@@ -108,11 +108,15 @@ export const Header: React.FC<HeaderProps> = ({
                 className={onlyFavorites || favoritesCount > 0 ? 'fill-rose-500 text-rose-500' : ''}
               />
               <span>Favorites</span>
-              {favoritesCount > 0 && (
-                <span className="ml-0.5 px-1.5 py-0.2 text-[11px] rounded-full bg-rose-500 text-white font-code">
-                  {favoritesCount}
-                </span>
-              )}
+              <span
+                className={`ml-0.5 min-w-[1.35rem] px-1.5 py-0.2 text-[11px] rounded-full font-code tabular-nums text-center ${
+                  favoritesCount > 0
+                    ? 'bg-rose-500 text-white'
+                    : 'bg-stone-300/60 dark:bg-stone-700 text-stone-600 dark:text-stone-300'
+                }`}
+              >
+                {favoritesCount}
+              </span>
             </button>
 
             {/* Theme Switcher */}
@@ -126,7 +130,7 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={() => onThemeChange('washi')}
                 aria-label="Washi Paper Theme"
                 aria-pressed={theme === 'washi'}
-                className={`p-1.5 rounded text-xs transition-colors ${
+                className={`p-1.5 rounded text-xs transition-colors cursor-pointer ${
                   theme === 'washi'
                     ? 'bg-amber-100 text-amber-900 shadow-xs'
                     : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
@@ -140,7 +144,7 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={() => onThemeChange('studio')}
                 aria-label="White Studio Theme"
                 aria-pressed={theme === 'studio'}
-                className={`p-1.5 rounded text-xs transition-colors ${
+                className={`p-1.5 rounded text-xs transition-colors cursor-pointer ${
                   theme === 'studio'
                     ? 'bg-white text-stone-900 shadow-xs'
                     : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
@@ -154,7 +158,7 @@ export const Header: React.FC<HeaderProps> = ({
                 onClick={() => onThemeChange('dark')}
                 aria-label="Dark Gallery Theme"
                 aria-pressed={theme === 'dark'}
-                className={`p-1.5 rounded text-xs transition-colors ${
+                className={`p-1.5 rounded text-xs transition-colors cursor-pointer ${
                   theme === 'dark'
                     ? 'bg-stone-900 text-stone-100 shadow-xs'
                     : 'text-stone-500 hover:text-stone-900 dark:hover:text-stone-200'
@@ -180,7 +184,7 @@ export const Header: React.FC<HeaderProps> = ({
               role="tab"
               aria-selected={viewMode === 'combinations'}
               onClick={() => onViewModeChange('combinations')}
-              className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all ${
+              className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors cursor-pointer ${
                 viewMode === 'combinations'
                   ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
                   : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
@@ -193,7 +197,7 @@ export const Header: React.FC<HeaderProps> = ({
               role="tab"
               aria-selected={viewMode === 'colors'}
               onClick={() => onViewModeChange('colors')}
-              className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all ${
+              className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors cursor-pointer ${
                 viewMode === 'colors'
                   ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
                   : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
@@ -203,31 +207,31 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           </div>
 
-          {/* Search Box */}
+          {/* Search Box (supports multi-term matching) */}
           <div className="relative flex-1 sm:max-w-md">
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
             <input
               type="text"
               aria-label={
                 viewMode === 'combinations'
-                  ? 'Search combinations by name, romaji, hex, month, or plate number'
+                  ? 'Search combinations by multiple terms, name, romaji, hex, month, or plate number'
                   : 'Search master colors by name, Japanese, romaji, or hex'
               }
               placeholder={
                 viewMode === 'combinations'
-                  ? 'Search name, romaji, hex, month, or #number (e.g. "Spring", "#180")'
+                  ? 'Search (e.g. "pink blue", "Spring", "#180")'
                   : 'Search 171 colors by name, Japanese, romaji, or hex...'
               }
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              className="w-full pl-9 pr-8 py-1.5 text-xs sm:text-sm rounded-lg border border-stone-300 dark:border-stone-700 bg-white/70 dark:bg-stone-900/70 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus:ring-1 focus:ring-amber-800 dark:focus:ring-amber-400 transition-colors"
+              className="w-full pl-9 pr-8 py-1.5 text-xs sm:text-sm rounded-lg border border-stone-300 dark:border-stone-700 bg-white/70 dark:bg-stone-900/70 text-stone-900 dark:text-stone-100 placeholder:text-stone-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 dark:focus-visible:ring-amber-400 transition-colors"
             />
             {searchQuery && (
               <button
                 type="button"
                 aria-label="Clear search"
                 onClick={() => onSearchChange('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 cursor-pointer"
               >
                 <X size={14} />
               </button>

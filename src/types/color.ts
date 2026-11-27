@@ -51,6 +51,8 @@ export type PaletteSizeFilter = 'all' | 2 | 3 | 4 | 5;
 export type ToneFilter = 'all' | 'warm' | 'cool' | 'earthy' | 'pastel' | 'deep' | 'neutral';
 export type SeasonFilter = 'all' | 'spring' | 'summer' | 'autumn' | 'winter';
 export type SortOption = 'number-asc' | 'number-desc' | 'contrast-desc' | 'popularity';
+export type ColorSortOption = 'id-asc' | 'hue' | 'lightness' | 'popularity' | 'name';
+export type CvdMode = 'normal' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'achromatopsia';
 
 export interface FilterState {
   volume: VolumeFilter;
@@ -60,5 +62,7 @@ export interface FilterState {
   season: SeasonFilter;
   month: number | 'all';
   sortBy: SortOption;
+  colorSort: ColorSortOption;
+  swatchId: number | null;
   onlyFavorites: boolean;
 }

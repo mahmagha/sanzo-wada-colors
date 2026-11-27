@@ -1,0 +1,17 @@
+{
+  "name": "Sanzo Wada — Dictionary of Color Combinations",
+  "short_name": "Sanzo Wada",
+  "description": "Interactive viewer and color studio for Sanzo Wada's Haishoku Sokan Volumes 1 & 2 (420 combinations, 171 master colors).",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#F7F4EC",
+  "theme_color": "#9A3412",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

@@ -1,7 +1,17 @@
-import React, { useEffect, useRef } from 'react';
-import { X, Copy, ExternalLink, Layers, Sparkles, ArrowLeft, Share2 } from 'lucide-react';
+import React, { useRef } from 'react';
+import {
+  X,
+  Copy,
+  ExternalLink,
+  Layers,
+  Sparkles,
+  ArrowLeft,
+  Share2,
+  Filter,
+} from 'lucide-react';
 import { ColorItem, Combination } from '../types/color';
 import { formatOklch, getIdealTextColor } from '../utils/colorUtils';
+import { useModalDialog } from '../utils/useModalDialog';
 
 interface ColorDetailModalProps {
   color: ColorItem | null;
@@ -11,6 +21,7 @@ interface ColorDetailModalProps {
   onCopyText: (text: string, label: string) => void;
   onBackToCombo?: () => void;
   onShareLink?: (color: ColorItem) => void;
+  onFilterBySwatch?: (color: ColorItem) => void;
 }
 
 export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
@@ -21,27 +32,15 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
   onCopyText,
   onBackToCombo,
   onShareLink,
+  onFilterBySwatch,
 }) => {
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    if (!color) return;
-    const previousFocus = document.activeElement as HTMLElement | null;
-    dialogRef.current?.focus();
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        onClose();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      previousFocus?.focus?.();
-    };
-  }, [color, onClose]);
+  useModalDialog({
+    isOpen: Boolean(color),
+    dialogRef,
+    onClose,
+  });
 
   if (!color) return null;
 
@@ -135,7 +134,7 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
             >
               {color.name}
             </h2>
-            <div className="flex items-center gap-3 mt-2">
+            <div className="flex items-center gap-3 mt-2 flex-wrap">
               <span className="text-sm font-code uppercase tracking-wider font-semibold">
                 {color.hex}
               </span>
@@ -148,6 +147,20 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
                 <Copy size={12} />
                 <span>Copy Hex</span>
               </button>
+              {onFilterBySwatch && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    onFilterBySwatch(color);
+                  }}
+                  style={{ color: textColor }}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded bg-black/20 hover:bg-black/30 backdrop-blur-xs text-xs font-medium transition-colors cursor-pointer"
+                >
+                  <Filter size={12} />
+                  <span>Show in Grid ({matchedCombinations.length})</span>
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -209,7 +222,6 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
                   className="group p-3 rounded-xl border border-stone-200 dark:border-stone-800 hover:border-amber-800/40 dark:hover:border-amber-500/40 bg-stone-50/50 dark:bg-stone-900/40 hover:bg-white dark:hover:bg-stone-800 transition-all cursor-pointer flex items-center justify-between text-left"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    {/* Swatch Bar */}
                     <div className="w-14 h-9 rounded overflow-hidden flex border border-stone-300 dark:border-stone-700 shrink-0">
                       {combo.colors.map((c) => (
                         <div

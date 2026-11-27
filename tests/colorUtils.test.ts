@@ -3,13 +3,18 @@ import assert from 'node:assert/strict';
 import colorsData from '../src/data/wadaColors.json';
 import { ColorItem, Combination } from '../src/types/color';
 import {
+  buildAseBytes,
   buildSvgCardMarkup,
   classifyColorTone,
   escapeXml,
   findClosestColors,
   formatOklch,
   generateCssVariables,
+  generateDesignTokensJson,
+  generateGplPalette,
   generateJsonExport,
+  generateRoleCssVariables,
+  generateSvgPaletteSnippet,
   generateTailwindConfig,
   generateTailwindV4Theme,
   getAccessibleBadgeColors,
@@ -20,6 +25,7 @@ import {
   normalizeHex,
   rgbToLab,
   rgbToOklch,
+  simulateColorVision,
 } from '../src/utils/colorUtils';
 
 const masterColors = colorsData as ColorItem[];
@@ -143,6 +149,47 @@ describe('SVG & code exporters', () => {
     assert.equal(parsedJson.volume, 2);
     assert.equal(parsedJson.colors.length, 2);
     assert.equal(parsedJson.colors[0].oklch.length, 3);
+
+    const roleCss = generateRoleCssVariables(sampleCombo, {
+      bg: masterColors[0],
+      surface: masterColors[1],
+      accent: masterColors[0],
+      textHex: '#111314',
+    });
+    assert.ok(roleCss.includes('--color-bg:'));
+    assert.ok(roleCss.includes('--color-text: #111314;'));
+
+    const tokens = JSON.parse(generateDesignTokensJson(sampleCombo));
+    assert.equal(tokens['wada-v2-1']['color-1'].$type, 'color');
+
+    const gpl = generateGplPalette(sampleCombo);
+    assert.ok(gpl.startsWith('GIMP Palette\nName: Sanzo Wada Vol. 2'));
+
+    const svgSnippet = generateSvgPaletteSnippet(sampleCombo);
+    assert.ok(svgSnippet.includes('viewBox="0 0 200 100"'));
+
+    const ase = buildAseBytes(sampleCombo);
+    assert.equal(String.fromCharCode(ase[0], ase[1], ase[2], ase[3]), 'ASEF');
+    const aseView = new DataView(ase.buffer);
+    assert.equal(aseView.getUint16(4, false), 1); // major version 1
+    assert.equal(aseView.getUint32(8, false), 4); // group start + 2 colors + group end
+  });
+
+  it('simulates color vision deficiency across protanopia, deuteranopia, tritanopia, and achromatopsia', () => {
+    assert.equal(simulateColorVision('#C54432', 'normal'), '#c54432');
+
+    const mono = simulateColorVision('#c54432', 'achromatopsia');
+    const [mr, mg, mb] = hexToRgb(mono);
+    assert.equal(mr, mg);
+    assert.equal(mg, mb);
+
+    const protan = simulateColorVision('#ff0000', 'protanopia');
+    assert.notEqual(protan, '#ff0000');
+    const [pr] = hexToRgb(protan);
+    assert.ok(pr < 200); // Pure red loses luminance/chroma under protanopia
+
+    const tritan = simulateColorVision('#0000ff', 'tritanopia');
+    assert.notEqual(tritan, '#0000ff');
   });
 
   it('escapes all five XML special characters', () => {

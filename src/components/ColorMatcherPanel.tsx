@@ -60,7 +60,7 @@ export const ColorMatcherPanel: React.FC<ColorMatcherPanelProps> = ({
               onChange={(e) => setHexInput(e.target.value)}
               placeholder="#c54432"
               maxLength={7}
-              className="w-24 text-xs font-code uppercase bg-transparent text-stone-900 dark:text-stone-100 focus:outline-none"
+              className="w-24 text-xs font-code uppercase bg-transparent text-stone-900 dark:text-stone-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 dark:focus-visible:ring-amber-400 rounded px-1"
             />
           </label>
           <button

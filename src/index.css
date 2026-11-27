@@ -2,6 +2,10 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer base {
+  html {
+    scrollbar-gutter: stable;
+  }
+
   :root {
     --font-serif: 'Noto Serif JP', 'Cinzel', serif;
     --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
