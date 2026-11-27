@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "tsc -p tsconfig.test.json --noEmit && jiti tests/all.test.ts",
     "test:e2e": "node tests/e2e.mjs",
-    "prepare-data": "node scripts/build-all-data.mjs"
+    "prepare-data": "node scripts/build-all-data.mjs",
+    "audit-data": "node scripts/audit-data.mjs"
   },
   "keywords": [
     "sanzo-wada",

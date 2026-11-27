@@ -83,3 +83,9 @@ Every push to `main` runs unit tests, builds `dist/`, runs headless Chrome CDP E
 ## 📜 License
 
 MIT License. Color research originally by Sanzo Wada (1883–1967).
+
+---
+
+## 🔍 Data and sources
+
+See [SOURCES.md](SOURCES.md) for where the data comes from, what has and has not been verified (Japanese names, hex accuracy, licensing), and `npm run audit-data` for the consistency check.
