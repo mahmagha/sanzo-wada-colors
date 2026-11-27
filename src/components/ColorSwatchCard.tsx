@@ -17,23 +17,21 @@ export const ColorSwatchCard: React.FC<ColorSwatchCardProps> = ({
   const textColor = getIdealTextColor(color.hex);
   const totalCombos = (color.combinations?.length || 0) + (color.vol2Cards?.length || 0);
 
-  const handleCopyHex = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleCopyHex = () => {
     onCopyText(color.hex, `Copied ${color.name} (${color.hex})`);
   };
 
   return (
-    <div
-      onClick={() => onSelectColor(color)}
-      className="group relative flex flex-col rounded-xl overflow-hidden border border-stone-300/60 dark:border-stone-800 bg-white/70 dark:bg-stone-900/60 shadow-xs hover:shadow-lg hover:border-amber-800/40 dark:hover:border-amber-500/40 transition-all duration-300 cursor-pointer"
-    >
+    <article className="group relative flex flex-col rounded-xl overflow-hidden border border-stone-300/60 dark:border-stone-800 bg-white/70 dark:bg-stone-900/60 shadow-xs hover:shadow-lg hover:border-amber-800/40 dark:hover:border-amber-500/40 transition-all duration-300">
       {/* Big Swatch Preview */}
-      <div
-        style={{ backgroundColor: color.hex }}
-        className="h-36 w-full relative p-3 flex flex-col justify-between transition-transform duration-300"
-      >
-        <div className="flex justify-between items-start">
-          <div className="flex items-center gap-1">
+      <div style={{ backgroundColor: color.hex }} className="h-36 w-full relative">
+        <button
+          type="button"
+          onClick={() => onSelectColor(color)}
+          aria-label={`Inspect swatch #${color.id} ${color.name} (${color.hex})`}
+          className="w-full h-full p-3 flex flex-col justify-between text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-amber-600 cursor-pointer"
+        >
+          <div className="flex items-center gap-1 pr-8">
             <span
               style={{ color: textColor }}
               className="text-[10px] font-code opacity-85 uppercase tracking-wider"
@@ -46,30 +44,34 @@ export const ColorSwatchCard: React.FC<ColorSwatchCardProps> = ({
               </span>
             )}
           </div>
-          <button
-            onClick={handleCopyHex}
-            style={{ color: textColor }}
-            className="p-1.5 rounded-full bg-black/20 hover:bg-black/35 backdrop-blur-xs transition-opacity opacity-0 group-hover:opacity-100"
-            title={`Copy ${color.hex}`}
-          >
-            <Copy size={13} />
-          </button>
-        </div>
 
-        <div style={{ color: textColor }}>
-          {color.ja && (
-            <div className="text-xs font-editorial font-semibold opacity-90">
-              {color.ja}
-              {color.reading && <span className="text-[10px] opacity-75 font-sans ml-1">({color.reading})</span>}
+          <div style={{ color: textColor }} className="w-full">
+            {color.ja && (
+              <div className="text-xs font-editorial font-semibold opacity-90 truncate">
+                {color.ja}
+                {color.reading && (
+                  <span className="text-[10px] opacity-75 font-sans ml-1">({color.reading})</span>
+                )}
+              </div>
+            )}
+            <div className="text-sm sm:text-base font-editorial font-bold leading-tight truncate">
+              {color.name}
             </div>
-          )}
-          <div className="text-sm sm:text-base font-editorial font-bold leading-tight">
-            {color.name}
+            <div className="text-xs font-code opacity-85 uppercase">{color.hex}</div>
           </div>
-          <div className="text-xs font-code opacity-85 uppercase">
-            {color.hex}
-          </div>
-        </div>
+        </button>
+
+        {/* Sibling Quick Copy Button */}
+        <button
+          type="button"
+          onClick={handleCopyHex}
+          style={{ color: textColor }}
+          aria-label={`Copy hex ${color.hex}`}
+          className="p-1.5 rounded-full bg-black/20 hover:bg-black/35 backdrop-blur-xs transition-opacity opacity-0 group-hover:opacity-100 focus:opacity-100 absolute top-2.5 right-2.5 cursor-pointer"
+          title={`Copy ${color.hex}`}
+        >
+          <Copy size={13} />
+        </button>
       </div>
 
       {/* Swatch Color Specs Footer */}
@@ -87,11 +89,15 @@ export const ColorSwatchCard: React.FC<ColorSwatchCardProps> = ({
             <Layers size={12} />
             <span>Used in {totalCombos} palettes</span>
           </span>
-          <span className="text-[10px] text-stone-400 underline group-hover:text-stone-700 dark:group-hover:text-stone-200">
+          <button
+            type="button"
+            onClick={() => onSelectColor(color)}
+            className="text-[10px] text-stone-500 underline hover:text-stone-800 dark:hover:text-stone-200 cursor-pointer"
+          >
             View →
-          </span>
+          </button>
         </div>
       </div>
-    </div>
+    </article>
   );
 };

@@ -13,6 +13,18 @@ export interface ColorItem {
   vol2Cards?: number[];
 }
 
+export interface RawCombination {
+  id: number;
+  volume: 1 | 2;
+  size: number;
+  month?: number;
+  monthName?: string;
+  monthJa?: string;
+  monthMeaning?: string;
+  cardInMonth?: number;
+  colorIds: number[];
+}
+
 export interface Combination {
   id: number;
   volume: 1 | 2;
@@ -23,13 +35,20 @@ export interface Combination {
   monthMeaning?: string;
   cardInMonth?: number;
   colors: ColorItem[];
+  maxContrast?: number;
+  popularity?: number;
+}
+
+export interface HydratedCombination extends Combination {
+  maxContrast: number;
+  popularity: number;
 }
 
 export type ThemeMode = 'washi' | 'studio' | 'dark';
 export type ViewMode = 'combinations' | 'colors';
 export type VolumeFilter = 'all' | 1 | 2;
-export type PaletteSizeFilter = 'all' | 2 | 3 | 4 | 5 | 6;
-export type ToneFilter = 'all' | 'warm' | 'cool' | 'earthy' | 'pastel' | 'deep';
+export type PaletteSizeFilter = 'all' | 2 | 3 | 4 | 5;
+export type ToneFilter = 'all' | 'warm' | 'cool' | 'earthy' | 'pastel' | 'deep' | 'neutral';
 export type SeasonFilter = 'all' | 'spring' | 'summer' | 'autumn' | 'winter';
 export type SortOption = 'number-asc' | 'number-desc' | 'contrast-desc' | 'popularity';
 

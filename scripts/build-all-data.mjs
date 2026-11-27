@@ -162,21 +162,13 @@ async function main() {
 
   const allCombinations = [];
 
-  // Add Vol 1 combinations
+  // Add Vol 1 combinations (normalized to colorIds; hydrated at runtime from wadaColors.json)
   for (const [id, comboColors] of vol1CombosMap.entries()) {
     allCombinations.push({
       id,
       volume: 1,
       size: comboColors.length,
-      colors: comboColors.map(c => ({
-        id: c.id,
-        name: c.name,
-        ja: c.ja,
-        hex: c.hex,
-        rgb: c.rgb,
-        cmyk: c.cmyk,
-        lab: c.lab
-      }))
+      colorIds: comboColors.map(c => c.id)
     });
   }
 
@@ -187,22 +179,14 @@ async function main() {
     const monthInfo = MONTH_DATA[monthNum - 1];
     const colorIndices = seasons[cardIdx];
 
-    const comboColors = [];
+    const comboColorIds = [];
     colorIndices.forEach(idx => {
       const c = masterColors[idx];
       if (c) {
         if (!c.vol2Cards.includes(cardNum)) {
           c.vol2Cards.push(cardNum);
         }
-        comboColors.push({
-          id: c.id,
-          name: c.name,
-          ja: c.ja,
-          hex: c.hex,
-          rgb: c.rgb,
-          cmyk: c.cmyk,
-          lab: c.lab
-        });
+        comboColorIds.push(c.id);
       }
     });
 
@@ -214,14 +198,14 @@ async function main() {
       monthJa: monthInfo.ja,
       monthMeaning: monthInfo.meaning,
       cardInMonth: (cardIdx % 6) + 1,
-      size: comboColors.length,
-      colors: comboColors
+      size: comboColorIds.length,
+      colorIds: comboColorIds
     });
   }
 
   const outDir = path.join(__dirname, '..', 'src', 'data');
   fs.writeFileSync(path.join(outDir, 'wadaColors.json'), JSON.stringify(masterColors, null, 2));
-  fs.writeFileSync(path.join(outDir, 'wadaCombinations.json'), JSON.stringify(allCombinations, null, 2));
+  fs.writeFileSync(path.join(outDir, 'wadaCombinations.json'), JSON.stringify(allCombinations));
 
   console.log(`Success! Saved ${masterColors.length} colors and ${allCombinations.length} combinations.`);
   console.log(`- Volume 1: 348 combinations (IDs 1-348)`);

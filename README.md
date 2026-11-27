@@ -6,7 +6,7 @@ An interactive, responsive digital viewer and color harmony studio for **Sanzo W
 
 Digitized archive containing:
 - **420 Color Combinations** (348 Vol. 1 harmonies + 72 Vol. 2 seasonal plates across the 12 calendar months)
-- **171 Master Colors** (159 Vol. 1 swatches + 12 newly introduced in Vol. 2) with English & Japanese names (*Kanji* and *Romaji*).
+- **171 Master Colors** (159 Vol. 1 swatches + 12 newly introduced in Vol. 2) with English & Japanese names (*Kanji* and *Romaji* where documented).
 
 ---
 
@@ -14,22 +14,24 @@ Digitized archive containing:
 
 - **420 Combinations Across Both Volumes**:
   - **Volume Filter**: Switch between **All Volumes (420)**, **Vol. 1: Harmony (348)**, or **Vol. 2: Seasonal (72)**.
-  - **Seasonal / Month Filtering (Vol. 2)**: Filter by season (🌸 Spring, 🌿 Summer, 🍁 Autumn, ❄️ Winter) or explore all 12 Japanese calendar months (*睦月 Mutsuki*, *如月 Kisaragi*, *弥生 Yayoi*, etc.).
+  - **Seasonal & 12-Month Calendar Filtering (Vol. 2)**: Filter by season (🌸 Spring, 🌿 Summer, 🍁 Autumn, ❄️ Winter) or pick any of the 12 Japanese calendar months (*睦月 Mutsuki*, *如月 Kisaragi*, *弥生 Yayoi*, etc.).
   - **Color Count**: Filter by 2-color, 3-color, 4-color, and 5+ color combinations (up to 7 colors on Vol. 2 seasonal plates).
-  - **Tone Filter**: *Warm*, *Cool*, *Earthy*, *Pastel*, or *Deep*.
-  - **Sort Options**: By plate number, contrast ratio, or color frequency.
-- **171 Master Color Swatches**:
-  - Full color space profiles: **HEX**, **RGB**, **CMYK** (for print reproduction), and **CIE-LAB** (perceptual color space).
-  - Japanese names (Kanji and reading) alongside Ridgway/Wada English nomenclature.
-  - Reverse lookup: Inspect every combination in Vol. 1 and Vol. 2 that uses a specific swatch.
+  - **Tone Filter**: *Warm*, *Cool*, *Earthy*, *Pastel*, *Deep*, or *Neutral*.
+  - **Sort Options**: By plate number, precomputed contrast ratio, or color frequency.
+  - **Progressive Loading & URL Deep-Linking**: Shareable URL parameters for active filters, palettes (`?combo=v1-42`), and swatches (`?color=42`).
+- **171 Master Color Swatches & Closest Match (CIEDE2000)**:
+  - **Color Match Tool**: Pick or enter any HEX color to rank the perceptually closest Wada swatches by $\Delta E_{00}$ and jump directly to their combinations.
+  - **Full Color Space Profiles**: **HEX**, **OKLCH**, **RGB**, **CMYK**, and **CIE-LAB**.
+  - **Bidirectional Lookup**: Inspect every combination that uses a swatch, or click any swatch inside a palette to open its color profile and jump back.
 - **Deep Inspection Studio (Modal)**:
-  - **Showa Art Print**: Authentic Japanese editorial poster with vertical kanji (*配色総鑑*), Wada Sanzo hanko seal (*三造*), seasonal metadata, and print-ready **SVG Card Export**.
-  - **Live UI Component Mockup**: See the palette applied to a real interactive web interface (Hero, Navbar, Action Buttons, KPI metric cards, Badges) with a live **Color Role Switcher** to reassign or shuffle background, surface, and CTA accent colors.
-  - **Color Science & WCAG Contrast**: Full pairwise accessibility matrix displaying contrast ratios and **WCAG 2.1 AAA / AA** compliance badges.
-  - **Developer Export**: One-click copy for **CSS custom properties (`:root`)**, **Tailwind CSS config**, and **JSON**.
+  - **Showa Art Print**: Japanese editorial poster with vertical kanji spine (*配色総鑑*), Wada Sanzo hanko seal (*三造*), seasonal metadata, and print-ready **SVG** & **2× PNG** poster exports.
+  - **Live UI Component Mockup**: Preview the palette applied to a web interface with a live **Color Role Switcher**, shuffle button, and contrast-safe badge colors.
+  - **Color Science & WCAG Contrast**: Pairwise accessibility matrix displaying contrast ratios and **WCAG 2.1 AAA / AA** compliance badges.
+  - **Developer Export**: One-click copy for **CSS custom properties (`:root` HEX or OKLCH)**, **Tailwind CSS v4 (`@theme`)**, **Tailwind v3 config**, and **JSON**.
+  - **Keyboard Navigation**: `Escape` to close modals and `←` / `→` arrows to step through palettes.
 - **Delightful Details**:
   - **Surprise Me / Randomizer**: Rolls a random palette with celebratory confetti.
-  - **Three Themes**: **Washi Paper** (textured cream background `#F7F4EC`), **Clean Studio** (gallery white), and **Dark Gallery** (obsidian `#121214`).
+  - **Three Themes**: **Washi Paper** (`#F7F4EC`), **Clean Studio** (`#FAFAFA`), and **Dark Gallery** (`#121214`).
   - **Favorites**: Star favorite combinations saved automatically to `localStorage`.
 
 ---
@@ -42,6 +44,12 @@ npm install
 
 # 2. Start the development server
 npm run dev
+
+# 3. Run unit tests
+npm test
+
+# 4. Typecheck and create production build
+npm run build
 ```
 
 Visit `http://localhost:5173` in your browser.

@@ -1,7 +1,7 @@
-import React from 'react';
-import { X, Copy, ExternalLink, Layers, Sparkles } from 'lucide-react';
+import React, { useEffect, useRef } from 'react';
+import { X, Copy, ExternalLink, Layers, Sparkles, ArrowLeft, Share2 } from 'lucide-react';
 import { ColorItem, Combination } from '../types/color';
-import { getIdealTextColor } from '../utils/colorUtils';
+import { formatOklch, getIdealTextColor } from '../utils/colorUtils';
 
 interface ColorDetailModalProps {
   color: ColorItem | null;
@@ -9,6 +9,8 @@ interface ColorDetailModalProps {
   allCombinations: Combination[];
   onSelectCombination: (combo: Combination) => void;
   onCopyText: (text: string, label: string) => void;
+  onBackToCombo?: () => void;
+  onShareLink?: (color: ColorItem) => void;
 }
 
 export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
@@ -17,7 +19,30 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
   allCombinations,
   onSelectCombination,
   onCopyText,
+  onBackToCombo,
+  onShareLink,
 }) => {
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!color) return;
+    const previousFocus = document.activeElement as HTMLElement | null;
+    dialogRef.current?.focus();
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      previousFocus?.focus?.();
+    };
+  }, [color, onClose]);
+
   if (!color) return null;
 
   const textColor = getIdealTextColor(color.hex);
@@ -28,18 +53,37 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
   );
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
+    <div
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/60 backdrop-blur-sm animate-in fade-in"
+    >
       <div
-        className="relative w-full max-w-3xl max-h-[90vh] flex flex-col rounded-2xl shadow-2xl overflow-hidden border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100"
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="color-modal-title"
+        tabIndex={-1}
+        className="relative w-full max-w-3xl max-h-[90vh] flex flex-col rounded-2xl shadow-2xl overflow-hidden border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:outline-none"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Swatch Header Banner */}
         <div
           style={{ backgroundColor: color.hex, color: textColor }}
-          className="p-8 sm:p-10 relative flex flex-col justify-between min-h-[190px] shrink-0"
+          className="p-6 sm:p-10 relative flex flex-col justify-between min-h-[190px] shrink-0"
         >
-          <div className="flex justify-between items-start">
-            <div className="flex items-center gap-2">
+          <div className="flex justify-between items-start gap-3">
+            <div className="flex items-center gap-2 flex-wrap">
+              {onBackToCombo && (
+                <button
+                  type="button"
+                  onClick={onBackToCombo}
+                  style={{ color: textColor }}
+                  className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/20 hover:bg-black/35 backdrop-blur-xs text-xs font-medium transition-colors cursor-pointer"
+                >
+                  <ArrowLeft size={13} />
+                  <span>Back to Palette</span>
+                </button>
+              )}
               <span className="text-xs font-code uppercase tracking-widest opacity-85">
                 Color #{color.id.toString().padStart(3, '0')} • Swatch {color.swatch}
               </span>
@@ -49,23 +93,46 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
                 </span>
               )}
             </div>
-            <button
-              onClick={onClose}
-              style={{ color: textColor }}
-              className="p-1.5 rounded-full bg-black/20 hover:bg-black/35 backdrop-blur-xs transition-opacity"
-            >
-              <X size={18} />
-            </button>
+            <div className="flex items-center gap-1.5">
+              {onShareLink && (
+                <button
+                  type="button"
+                  onClick={() => onShareLink(color)}
+                  style={{ color: textColor }}
+                  aria-label="Copy shareable link to this swatch"
+                  title="Copy shareable link"
+                  className="p-1.5 rounded-full bg-black/20 hover:bg-black/35 backdrop-blur-xs transition-opacity cursor-pointer"
+                >
+                  <Share2 size={16} />
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={onClose}
+                style={{ color: textColor }}
+                aria-label="Close color details"
+                className="p-1.5 rounded-full bg-black/20 hover:bg-black/35 backdrop-blur-xs transition-opacity cursor-pointer"
+              >
+                <X size={18} />
+              </button>
+            </div>
           </div>
 
-          <div>
+          <div className="mt-4">
             {color.ja && (
               <div className="text-sm font-editorial font-bold opacity-90 mb-1">
                 {color.ja}
-                {color.reading && <span className="font-sans font-normal text-xs ml-1.5 opacity-80">({color.reading})</span>}
+                {color.reading && (
+                  <span className="font-sans font-normal text-xs ml-1.5 opacity-80">
+                    ({color.reading})
+                  </span>
+                )}
               </div>
             )}
-            <h2 className="text-2xl sm:text-4xl font-editorial font-bold tracking-tight">
+            <h2
+              id="color-modal-title"
+              className="text-2xl sm:text-4xl font-editorial font-bold tracking-tight"
+            >
               {color.name}
             </h2>
             <div className="flex items-center gap-3 mt-2">
@@ -73,9 +140,10 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
                 {color.hex}
               </span>
               <button
+                type="button"
                 onClick={() => onCopyText(color.hex, `Copied ${color.name} (${color.hex})`)}
                 style={{ color: textColor }}
-                className="flex items-center gap-1 px-2.5 py-1 rounded bg-black/20 hover:bg-black/30 backdrop-blur-xs text-xs font-medium transition-colors"
+                className="flex items-center gap-1 px-2.5 py-1 rounded bg-black/20 hover:bg-black/30 backdrop-blur-xs text-xs font-medium transition-colors cursor-pointer"
               >
                 <Copy size={12} />
                 <span>Copy Hex</span>
@@ -87,7 +155,7 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
         {/* Modal Body */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Color Values Metrics */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             <div className="p-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-800/40">
               <span className="text-[11px] text-stone-500 font-medium">RGB</span>
               <div className="text-xs sm:text-sm font-code font-bold mt-1">
@@ -104,6 +172,12 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
               <span className="text-[11px] text-stone-500 font-medium">CIE-LAB</span>
               <div className="text-xs sm:text-sm font-code font-bold mt-1">
                 {color.lab.map((v) => v.toFixed(1)).join(', ')}
+              </div>
+            </div>
+            <div className="p-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-800/40 sm:col-span-2">
+              <span className="text-[11px] text-stone-500 font-medium">OKLCH</span>
+              <div className="text-xs sm:text-sm font-code font-bold mt-1">
+                {formatOklch(color.rgb)}
               </div>
             </div>
             <div className="p-3 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50 dark:bg-stone-800/40">
@@ -125,15 +199,16 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {matchedCombinations.map((combo) => (
-                <div
+                <button
+                  type="button"
                   key={`${combo.volume}-${combo.id}`}
                   onClick={() => {
                     onClose();
                     onSelectCombination(combo);
                   }}
-                  className="group p-3 rounded-xl border border-stone-200 dark:border-stone-800 hover:border-amber-800/40 dark:hover:border-amber-500/40 bg-stone-50/50 dark:bg-stone-900/40 hover:bg-white dark:hover:bg-stone-800 transition-all cursor-pointer flex items-center justify-between"
+                  className="group p-3 rounded-xl border border-stone-200 dark:border-stone-800 hover:border-amber-800/40 dark:hover:border-amber-500/40 bg-stone-50/50 dark:bg-stone-900/40 hover:bg-white dark:hover:bg-stone-800 transition-all cursor-pointer flex items-center justify-between text-left"
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
                     {/* Swatch Bar */}
                     <div className="w-14 h-9 rounded overflow-hidden flex border border-stone-300 dark:border-stone-700 shrink-0">
                       {combo.colors.map((c) => (
@@ -144,10 +219,12 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
                         />
                       ))}
                     </div>
-                    <div>
+                    <div className="min-w-0">
                       <div className="text-xs font-editorial font-bold flex items-center gap-1.5">
                         <span>
-                          {combo.volume === 2 ? `Vol. 2 Card № ${combo.id}` : `№ ${combo.id.toString().padStart(3, '0')}`}
+                          {combo.volume === 2
+                            ? `Vol. 2 Card № ${combo.id}`
+                            : `№ ${combo.id.toString().padStart(3, '0')}`}
                         </span>
                         {combo.volume === 2 && combo.monthName && (
                           <span className="text-[10px] font-sans font-medium text-amber-800 dark:text-amber-400">
@@ -161,10 +238,10 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
                     </div>
                   </div>
 
-                  <span className="text-stone-400 group-hover:text-amber-800 dark:group-hover:text-amber-400 transition-colors">
+                  <span className="text-stone-400 group-hover:text-amber-800 dark:group-hover:text-amber-400 transition-colors shrink-0">
                     <ExternalLink size={14} />
                   </span>
-                </div>
+                </button>
               ))}
             </div>
           </div>

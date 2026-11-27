@@ -1,5 +1,5 @@
 import React from 'react';
-import { Sparkles, Heart, Search, X, Sun, Moon, ScrollText } from 'lucide-react';
+import { Sparkles, Heart, Search, X, Sun, Moon, ScrollText, Pipette } from 'lucide-react';
 import { ThemeMode, ViewMode } from '../types/color';
 
 interface HeaderProps {
@@ -13,6 +13,8 @@ interface HeaderProps {
   favoritesCount: number;
   onlyFavorites: boolean;
   onToggleOnlyFavorites: () => void;
+  matcherOpen: boolean;
+  onToggleMatcher: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -26,21 +28,29 @@ export const Header: React.FC<HeaderProps> = ({
   favoritesCount,
   onlyFavorites,
   onToggleOnlyFavorites,
+  matcherOpen,
+  onToggleMatcher,
 }) => {
   return (
-    <header className="border-b transition-colors duration-200 sticky top-0 z-30 backdrop-blur-md bg-opacity-90 border-stone-300/40 dark:border-stone-800">
+    <header className="sticky-header-surface border-b transition-colors duration-200 sticky top-0 z-30 backdrop-blur-md border-stone-300/40 dark:border-stone-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         {/* Top Branding Line */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div className="flex items-center gap-3.5">
             {/* Hanko Seal Motif */}
-            <div className="w-10 h-10 rounded border-2 border-red-700 dark:border-red-600 flex items-center justify-center font-editorial font-bold text-red-700 dark:text-red-500 text-lg shadow-sm shrink-0 bg-red-50/50 dark:bg-red-950/20">
+            <div
+              aria-hidden="true"
+              className="w-10 h-10 rounded border-2 border-red-700 dark:border-red-600 flex items-center justify-center font-editorial font-bold text-red-700 dark:text-red-500 text-lg shadow-sm shrink-0 bg-red-50/50 dark:bg-red-950/20"
+            >
               三造
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-xl sm:text-2xl font-editorial font-bold tracking-tight text-stone-900 dark:text-stone-100">
-                  和田三造 <span className="font-sans font-light text-stone-500 dark:text-stone-400 text-base sm:text-lg">Sanzo Wada</span>
+                  和田三造{' '}
+                  <span className="font-sans font-light text-stone-500 dark:text-stone-400 text-base sm:text-lg">
+                    Sanzo Wada
+                  </span>
                 </h1>
                 <span className="hidden sm:inline-block px-2 py-0.5 text-xs font-code rounded bg-amber-800/10 dark:bg-amber-400/10 text-amber-900 dark:text-amber-300 border border-amber-800/20 dark:border-amber-400/20">
                   Vol. 1 & Vol. 2
@@ -52,10 +62,27 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           </div>
 
-          {/* Quick Actions (Random, Favorites, Theme) */}
-          <div className="flex items-center gap-2 sm:gap-3 shrink-0 flex-wrap">
+          {/* Quick Actions (Color Match, Random, Favorites, Theme) */}
+          <div className="flex items-center gap-2 sm:gap-2.5 shrink-0 flex-wrap">
+            {/* Closest Color Matcher Toggle */}
+            <button
+              type="button"
+              onClick={onToggleMatcher}
+              aria-pressed={matcherOpen}
+              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border transition-all duration-200 active:scale-95 ${
+                matcherOpen
+                  ? 'bg-amber-800 text-amber-50 border-amber-800 dark:bg-amber-700 dark:border-amber-700 shadow-xs'
+                  : 'border-stone-300 dark:border-stone-700 hover:bg-stone-200/50 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-300'
+              }`}
+              title="Find closest Sanzo Wada swatch to any hex color"
+            >
+              <Pipette size={14} />
+              <span>Color Match</span>
+            </button>
+
             {/* Serendipity / Random Palette Button */}
             <button
+              type="button"
               onClick={onRandomPalette}
               className="flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg transition-all duration-200 bg-red-800 hover:bg-red-900 text-red-50 shadow-sm hover:shadow active:scale-95"
               title="Roll a random combination"
@@ -66,7 +93,9 @@ export const Header: React.FC<HeaderProps> = ({
 
             {/* Favorites Filter */}
             <button
+              type="button"
               onClick={onToggleOnlyFavorites}
+              aria-pressed={onlyFavorites}
               className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-lg border transition-all duration-200 active:scale-95 ${
                 onlyFavorites
                   ? 'bg-rose-500/15 border-rose-500/40 text-rose-600 dark:text-rose-400'
@@ -74,7 +103,10 @@ export const Header: React.FC<HeaderProps> = ({
               }`}
               title="View starred favorites"
             >
-              <Heart size={15} className={onlyFavorites || favoritesCount > 0 ? 'fill-rose-500 text-rose-500' : ''} />
+              <Heart
+                size={15}
+                className={onlyFavorites || favoritesCount > 0 ? 'fill-rose-500 text-rose-500' : ''}
+              />
               <span>Favorites</span>
               {favoritesCount > 0 && (
                 <span className="ml-0.5 px-1.5 py-0.2 text-[11px] rounded-full bg-rose-500 text-white font-code">
@@ -84,9 +116,16 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
 
             {/* Theme Switcher */}
-            <div className="flex items-center border border-stone-300 dark:border-stone-700 rounded-lg p-0.5 bg-stone-200/40 dark:bg-stone-800/60">
+            <div
+              role="group"
+              aria-label="Gallery theme"
+              className="flex items-center border border-stone-300 dark:border-stone-700 rounded-lg p-0.5 bg-stone-200/40 dark:bg-stone-800/60"
+            >
               <button
+                type="button"
                 onClick={() => onThemeChange('washi')}
+                aria-label="Washi Paper Theme"
+                aria-pressed={theme === 'washi'}
                 className={`p-1.5 rounded text-xs transition-colors ${
                   theme === 'washi'
                     ? 'bg-amber-100 text-amber-900 shadow-xs'
@@ -97,7 +136,10 @@ export const Header: React.FC<HeaderProps> = ({
                 <ScrollText size={15} />
               </button>
               <button
+                type="button"
                 onClick={() => onThemeChange('studio')}
+                aria-label="White Studio Theme"
+                aria-pressed={theme === 'studio'}
                 className={`p-1.5 rounded text-xs transition-colors ${
                   theme === 'studio'
                     ? 'bg-white text-stone-900 shadow-xs'
@@ -108,7 +150,10 @@ export const Header: React.FC<HeaderProps> = ({
                 <Sun size={15} />
               </button>
               <button
+                type="button"
                 onClick={() => onThemeChange('dark')}
+                aria-label="Dark Gallery Theme"
+                aria-pressed={theme === 'dark'}
                 className={`p-1.5 rounded text-xs transition-colors ${
                   theme === 'dark'
                     ? 'bg-stone-900 text-stone-100 shadow-xs'
@@ -125,8 +170,15 @@ export const Header: React.FC<HeaderProps> = ({
         {/* Lower Row: View Switcher & Search Bar */}
         <div className="mt-4 pt-3 border-t border-stone-200/70 dark:border-stone-800/80 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
           {/* View Mode Tabs */}
-          <div className="flex rounded-lg p-1 bg-stone-200/50 dark:bg-stone-800/60 border border-stone-300/40 dark:border-stone-700/60 self-start sm:self-auto">
+          <div
+            role="tablist"
+            aria-label="Browse view"
+            className="flex rounded-lg p-1 bg-stone-200/50 dark:bg-stone-800/60 border border-stone-300/40 dark:border-stone-700/60 self-start sm:self-auto"
+          >
             <button
+              type="button"
+              role="tab"
+              aria-selected={viewMode === 'combinations'}
               onClick={() => onViewModeChange('combinations')}
               className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all ${
                 viewMode === 'combinations'
@@ -137,6 +189,9 @@ export const Header: React.FC<HeaderProps> = ({
               Combinations <span className="text-[11px] opacity-75 font-code">(420)</span>
             </button>
             <button
+              type="button"
+              role="tab"
+              aria-selected={viewMode === 'colors'}
               onClick={() => onViewModeChange('colors')}
               className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-all ${
                 viewMode === 'colors'
@@ -153,10 +208,15 @@ export const Header: React.FC<HeaderProps> = ({
             <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-stone-400" />
             <input
               type="text"
+              aria-label={
+                viewMode === 'combinations'
+                  ? 'Search combinations by name, romaji, hex, month, or plate number'
+                  : 'Search master colors by name, Japanese, romaji, or hex'
+              }
               placeholder={
                 viewMode === 'combinations'
-                  ? 'Search by name, hex, month, or #number (e.g. "Spring", "#180")'
-                  : 'Search 171 colors by name, Japanese or hex...'
+                  ? 'Search name, romaji, hex, month, or #number (e.g. "Spring", "#180")'
+                  : 'Search 171 colors by name, Japanese, romaji, or hex...'
               }
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
@@ -164,6 +224,8 @@ export const Header: React.FC<HeaderProps> = ({
             />
             {searchQuery && (
               <button
+                type="button"
+                aria-label="Clear search"
                 onClick={() => onSearchChange('')}
                 className="absolute right-2.5 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200"
               >
