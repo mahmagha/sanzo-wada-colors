@@ -83,3 +83,9 @@ Every push to `main` runs unit tests, builds `dist/`, runs headless Chrome CDP E
 ## 📜 License
 
 MIT License. Color research originally by Sanzo Wada (1883–1967).
+
+---
+
+## 🔤 Fonts
+
+All fonts are self-hosted, so the app renders correctly offline and makes no third-party requests. *Noto Serif JP* is stored as a subset of only the characters used in the app (SIL Open Font License 1.1). If you add new Japanese text, rebuild it with `python3 scripts/subset-jp-font.py <path to NotoSerifJP[wght].ttf>`.
