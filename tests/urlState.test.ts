@@ -41,17 +41,24 @@ describe('URL state parsing and serialization', () => {
     const dedupedMix = parseUrlState('?mix=1,74,1,134,999,bad');
     assert.deepEqual(dedupedMix.mixIds, [1, 74, 134]);
 
-    const menswearWheel = parseUrlState('?view=menswear&layout=wheel&mstyle=wafuku&outfit=158,128,132,8,159');
+    const menswearWheel = parseUrlState('?view=menswear&layout=wheel&mstyle=streetwear&outfit=158,128,132,8,159');
     assert.equal(menswearWheel.viewMode, 'menswear');
-    assert.equal(menswearWheel.colorsLayout, 'wheel');
-    assert.equal(menswearWheel.menswearStyle, 'wafuku');
+    assert.equal(menswearWheel.colorsLayout, 'grid');
+    assert.equal(menswearWheel.menswearStyle, 'streetwear');
     assert.deepEqual(menswearWheel.menswearIds, [158, 128, 132, 8, 159]);
+
+    const wheelPage = parseUrlState('?view=colors&layout=wheel');
+    assert.equal(wheelPage.viewMode, 'wheel');
+    assert.equal(wheelPage.colorsLayout, 'grid');
+
+    const legacyCasual = parseUrlState('?view=menswear&mstyle=casual');
+    assert.equal(legacyCasual.menswearStyle, 'smart-casual');
   });
 
   it('serializes and round-trips non-default filter and modal state', () => {
     const query = serializeUrlState({
       viewMode: 'colors',
-      colorsLayout: 'wheel',
+      colorsLayout: 'map',
       hasKanjiOnly: true,
       volumeFilter: 2,
       seasonFilter: 'spring',
@@ -67,20 +74,20 @@ describe('URL state parsing and serialization', () => {
       comboKey: 'v2-14',
       mixIds: [1, 74, 134],
       colorId: 42,
-      menswearStyle: 'casual',
+      menswearStyle: 'resort',
       menswearIds: [110, 42, 82, 14, 87],
     });
 
-    assert.ok(query.includes('layout=wheel'));
+    assert.ok(query.includes('layout=map'));
     assert.ok(query.includes('kanji=1'));
     assert.ok(query.includes('mix='));
-    assert.ok(query.includes('mstyle=casual'));
+    assert.ok(query.includes('mstyle=resort'));
     assert.ok(query.includes('outfit='));
 
     const parsed = parseUrlState(query);
     assert.deepEqual(parsed, {
       viewMode: 'colors',
-      colorsLayout: 'wheel',
+      colorsLayout: 'map',
       hasKanjiOnly: true,
       volumeFilter: 2,
       seasonFilter: 'spring',
@@ -96,7 +103,7 @@ describe('URL state parsing and serialization', () => {
       comboKey: 'v2-14',
       mixIds: [1, 74, 134],
       colorId: 42,
-      menswearStyle: 'casual',
+      menswearStyle: 'resort',
       menswearIds: [110, 42, 82, 14, 87],
     });
 

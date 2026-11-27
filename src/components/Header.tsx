@@ -11,6 +11,7 @@ import {
   Wand2,
   CircleHelp,
   Shirt,
+  CircleDot,
 } from 'lucide-react';
 import { ThemeMode, ViewMode } from '../types/color';
 
@@ -215,14 +216,14 @@ export const Header: React.FC<HeaderProps> = ({
           <div
             role="tablist"
             aria-label="Browse view"
-            className="flex rounded-lg p-1 bg-stone-200/50 dark:bg-stone-800/60 border border-stone-300/40 dark:border-stone-700/60 self-start sm:self-auto"
+            className="flex flex-wrap rounded-lg p-1 bg-stone-200/50 dark:bg-stone-800/60 border border-stone-300/40 dark:border-stone-700/60 self-start sm:self-auto"
           >
             <button
               type="button"
               role="tab"
               aria-selected={viewMode === 'combinations'}
               onClick={() => onViewModeChange('combinations')}
-              className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors cursor-pointer ${
                 viewMode === 'combinations'
                   ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
                   : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
@@ -235,7 +236,7 @@ export const Header: React.FC<HeaderProps> = ({
               role="tab"
               aria-selected={viewMode === 'colors'}
               onClick={() => onViewModeChange('colors')}
-              className={`px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors cursor-pointer ${
+              className={`px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors cursor-pointer ${
                 viewMode === 'colors'
                   ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
                   : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
@@ -246,9 +247,23 @@ export const Header: React.FC<HeaderProps> = ({
             <button
               type="button"
               role="tab"
+              aria-selected={viewMode === 'wheel'}
+              onClick={() => onViewModeChange('wheel')}
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors cursor-pointer ${
+                viewMode === 'wheel'
+                  ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
+                  : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
+              }`}
+            >
+              <CircleDot size={14} />
+              <span>Color Wheel</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
               aria-selected={viewMode === 'menswear'}
               onClick={() => onViewModeChange('menswear')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors cursor-pointer ${
+              className={`flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 text-xs sm:text-sm font-medium rounded-md transition-colors cursor-pointer ${
                 viewMode === 'menswear'
                   ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
                   : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'

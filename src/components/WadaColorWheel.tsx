@@ -125,7 +125,7 @@ export const WadaColorWheel: React.FC<WadaColorWheelProps> = ({
       </div>
 
       {/* Polar Conic Wheel Stage */}
-      <div className="flex justify-center py-1">
+      <div className="flex justify-center py-3 px-2">
         <div
           ref={wheelBoxRef}
           onMouseMove={handleSurfaceMouseMove}
@@ -143,7 +143,7 @@ export const WadaColorWheel: React.FC<WadaColorWheelProps> = ({
               background:
                 'radial-gradient(circle at center, rgba(248,246,240,0.92) 0%, rgba(248,246,240,0.85) 29%, rgba(255,255,255,0.22) 52%, rgba(0,0,0,0.16) 100%), conic-gradient(from 0deg, hsl(0,78%,58%), hsl(45,86%,58%), hsl(90,68%,50%), hsl(135,66%,44%), hsl(180,72%,44%), hsl(225,80%,52%), hsl(270,74%,56%), hsl(315,74%,54%), hsl(360,78%,58%))',
             }}
-            className="absolute inset-[4%] rounded-full border border-stone-400/50 dark:border-stone-600/70 shadow-inner pointer-events-none"
+            className="absolute inset-[4.5%] rounded-full border border-stone-400/50 dark:border-stone-600/70 shadow-inner pointer-events-none"
           />
 
           {/* SVG polar reference rings & cardinal degree ticks */}

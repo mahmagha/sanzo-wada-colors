@@ -1,5 +1,5 @@
 import React, { Suspense, lazy, useState, useMemo, useEffect, useCallback } from 'react';
-import { ArrowUp, CircleDot, Columns2, LayoutGrid, ScatterChart, X } from 'lucide-react';
+import { ArrowUp, Columns2, LayoutGrid, ScatterChart, X } from 'lucide-react';
 import rawCombinations from './data/wadaCombinations.json';
 import rawColors from './data/wadaColors.json';
 import {
@@ -55,8 +55,8 @@ const GuideModal = lazy(() =>
 const SpectrumMap = lazy(() =>
   import('./components/SpectrumMap').then((m) => ({ default: m.SpectrumMap }))
 );
-const WadaColorWheel = lazy(() =>
-  import('./components/WadaColorWheel').then((m) => ({ default: m.WadaColorWheel }))
+const ColorWheelPage = lazy(() =>
+  import('./components/ColorWheelPage').then((m) => ({ default: m.ColorWheelPage }))
 );
 const MenswearStudio = lazy(() =>
   import('./components/MenswearStudio').then((m) => ({ default: m.MenswearStudio }))
@@ -873,19 +873,6 @@ export const App: React.FC = () => {
                   <ScatterChart size={12} />
                   <span>Spectrum</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setColorsLayout('wheel')}
-                  aria-pressed={colorsLayout === 'wheel'}
-                  className={`flex items-center gap-1 px-2 py-1 rounded font-medium transition-colors cursor-pointer ${
-                    colorsLayout === 'wheel'
-                      ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
-                      : 'text-stone-600 dark:text-stone-400'
-                  }`}
-                >
-                  <CircleDot size={12} />
-                  <span>Wheel</span>
-                </button>
               </div>
 
               {/* Quick Volume Switcher */}
@@ -994,23 +981,13 @@ export const App: React.FC = () => {
           </>
         )}
 
-        {/* MASTER COLORS VIEW (GRID, 2D SPECTRUM MAP, OR 360° COLOR WHEEL) */}
+        {/* MASTER COLORS VIEW (GRID OR 2D SPECTRUM MAP) */}
         {viewMode === 'colors' && (
           <>
             {filteredColors.length > 0 ? (
               colorsLayout === 'map' ? (
                 <Suspense fallback={null}>
                   <SpectrumMap
-                    colors={filteredColors}
-                    onSelectColor={(c) => {
-                      setReturnCombo(null);
-                      setSelectedColor(c);
-                    }}
-                  />
-                </Suspense>
-              ) : colorsLayout === 'wheel' ? (
-                <Suspense fallback={null}>
-                  <WadaColorWheel
                     colors={filteredColors}
                     onSelectColor={(c) => {
                       setReturnCombo(null);
@@ -1053,6 +1030,39 @@ export const App: React.FC = () => {
               </div>
             )}
           </>
+        )}
+
+        {/* COLOR WHEEL DEDICATED PAGE */}
+        {viewMode === 'wheel' && (
+          <Suspense fallback={null}>
+            <ColorWheelPage
+              allColors={allColors}
+              filteredColors={filteredColors}
+              allCombinations={allCombinations}
+              volumeFilter={volumeFilter}
+              onVolumeChange={setVolumeFilter}
+              toneFilter={toneFilter}
+              onToneChange={setToneFilter}
+              hasKanjiOnly={hasKanjiOnly}
+              onToggleKanji={() => setHasKanjiOnly((prev) => !prev)}
+              kanjiTotalCount={kanjiTotalCount}
+              onResetFilters={() => {
+                setSearchQuery('');
+                setVolumeFilter('all');
+                setToneFilter('all');
+                setHasKanjiOnly(false);
+              }}
+              onSelectColorModal={(c) => {
+                setReturnCombo(null);
+                setSelectedColor(c);
+              }}
+              onSelectCombo={(combo) => {
+                setReturnCombo(null);
+                setSelectedCombo(combo);
+              }}
+              onAddToCustom={addColorToCustomMix}
+            />
+          </Suspense>
         )}
 
         {/* MENSWEAR GARMENT COLOR CHOOSER VIEW */}

@@ -60,7 +60,14 @@ const VALID_COLOR_SORTS = new Set<ColorSortOption>([
   'name',
 ]);
 const COMBO_KEY_RE = /^v[12]-\d+$/;
-const VALID_MENSWEAR_STYLES = new Set<GarmentStyle>(['suit', 'casual', 'wafuku']);
+const VALID_MENSWEAR_STYLES = new Set<GarmentStyle>([
+  'suit',
+  'smart-casual',
+  'overcoat',
+  'streetwear',
+  'resort',
+  'wafuku',
+]);
 const DEFAULT_OUTFIT_PARAM = serializeOutfitIds(DEFAULT_MENSWEAR_OUTFIT).join(',');
 
 export const DEFAULT_URL_STATE: UrlAppState = {
@@ -89,16 +96,17 @@ export function parseUrlState(search: string): UrlAppState {
   const params = new URLSearchParams(search);
 
   const viewParam = params.get('view');
+  const layoutParam = params.get('layout');
   const viewMode: ViewMode =
-    viewParam === 'colors'
+    viewParam === 'wheel' || (viewParam === 'colors' && layoutParam === 'wheel')
+      ? 'wheel'
+      : viewParam === 'colors'
       ? 'colors'
       : viewParam === 'menswear'
       ? 'menswear'
       : 'combinations';
 
-  const layoutParam = params.get('layout');
-  const colorsLayout: ColorsLayout =
-    layoutParam === 'map' ? 'map' : layoutParam === 'wheel' ? 'wheel' : 'grid';
+  const colorsLayout: ColorsLayout = layoutParam === 'map' ? 'map' : 'grid';
 
   const hasKanjiOnly = params.get('kanji') === '1';
 
@@ -168,9 +176,13 @@ export function parseUrlState(search: string): UrlAppState {
   const colorParsed = colorRaw ? Number(colorRaw) : NaN;
   const colorId = Number.isInteger(colorParsed) && colorParsed > 0 ? colorParsed : null;
 
-  const mstyleRaw = params.get('mstyle') as GarmentStyle | null;
+  const mstyleRaw = params.get('mstyle');
   const menswearStyle: GarmentStyle =
-    mstyleRaw && VALID_MENSWEAR_STYLES.has(mstyleRaw) ? mstyleRaw : 'suit';
+    mstyleRaw === 'casual'
+      ? 'smart-casual'
+      : mstyleRaw && VALID_MENSWEAR_STYLES.has(mstyleRaw as GarmentStyle)
+      ? (mstyleRaw as GarmentStyle)
+      : 'suit';
 
   const outfitRaw = params.get('outfit') || '';
   const parsedOutfit = outfitRaw

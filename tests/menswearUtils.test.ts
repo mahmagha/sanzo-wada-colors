@@ -11,6 +11,7 @@ import {
   mapComboToGarmentOutfit,
   MENSWEAR_PRESETS,
   serializeOutfitIds,
+  STYLE_PRESET_PIECES,
 } from '../src/utils/menswearUtils';
 
 const colors = rawColors as ColorItem[];
@@ -54,14 +55,21 @@ describe('Menswear garment mapping & harmony analysis', () => {
       footwear: colorById.get(preset.footwear)!,
     };
 
-    const report = analyzeOutfitHarmony(outfitColors, combos);
-    assert.ok(report.jacketShirtContrast > 8);
-    assert.ok(report.jacketTrousersDeltaE >= 0);
+    const report = analyzeOutfitHarmony(outfitColors, combos, STYLE_PRESET_PIECES.suit);
+    assert.ok(report.primaryContrast > 8);
+    assert.ok(report.separationDeltaE >= 0);
     assert.equal(report.matchedCombos.length, 3);
-    assert.ok(report.trousersNote.length > 0);
+    assert.ok(report.separationNote.length > 0);
 
-    const css = generateMenswearCss('suit', outfitColors);
+    const noCoatReport = analyzeOutfitHarmony(outfitColors, combos, STYLE_PRESET_PIECES['smart-casual']);
+    assert.equal(noCoatReport.primaryLabel, 'Shirt / Bottom Contrast');
+
+    const css = generateMenswearCss('suit', outfitColors, STYLE_PRESET_PIECES.suit);
     assert.ok(css.includes('--garment-outerwear:'));
     assert.ok(css.includes('--garment-footwear:'));
+
+    const noCoatCss = generateMenswearCss('resort', outfitColors, STYLE_PRESET_PIECES.resort);
+    assert.ok(!noCoatCss.includes('--garment-outerwear:'));
+    assert.ok(noCoatCss.includes('--garment-top:'));
   });
 });

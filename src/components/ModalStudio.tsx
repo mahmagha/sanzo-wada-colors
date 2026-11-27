@@ -45,11 +45,13 @@ import { useModalDialog } from '../utils/useModalDialog';
 import { MONTH_OPTIONS } from '../utils/paletteData';
 import {
   GARMENT_SLOT_ORDER,
-  GARMENT_STYLE_CONFIG,
+  GARMENT_STYLE_META,
   GarmentOutfitIds,
   GarmentSlotKey,
   GarmentStyle,
+  getSlotDisplayLabel,
   mapComboToGarmentOutfit,
+  STYLE_PRESET_PIECES,
 } from '../utils/menswearUtils';
 import { MenswearIllustration } from './MenswearIllustration';
 
@@ -148,8 +150,28 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
   const [accentIndex, setAccentIndex] = useState<number>(initialDefaults.accent);
   // -1 means Auto WCAG high-contrast text; >= 0 picks a palette color as custom Ink/Text
   const [textIndex, setTextIndex] = useState<number>(-1);
+  const [showTabLabels, setShowTabLabels] = useState<boolean>(() =>
+    typeof window !== 'undefined' ? window.innerWidth >= 820 : true
+  );
 
   const dialogRef = useRef<HTMLDivElement>(null);
+  const subnavRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = subnavRef.current;
+    if (!el || typeof ResizeObserver === 'undefined') return;
+    const updateFit = (width: number) => {
+      setShowTabLabels(width >= 690);
+    };
+    updateFit(el.getBoundingClientRect().width);
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        updateFit(entry.contentRect.width);
+      }
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [combination]);
 
   const comboColorSignature = combination?.colors.map((c) => c.id).join(',') ?? '';
 
@@ -494,42 +516,49 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
         </div>
 
         {/* Studio Subnav Tabs + CVD Vision Selector */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 px-4 sm:px-6 border-b border-stone-200 dark:border-stone-800 bg-stone-100/50 dark:bg-stone-900/50 shrink-0">
+        <div
+          ref={subnavRef}
+          className="flex items-center justify-between gap-2 px-3 sm:px-6 border-b border-stone-200 dark:border-stone-800 bg-stone-100/50 dark:bg-stone-900/50 shrink-0"
+        >
           <div
             role="tablist"
             aria-label="Studio tools"
-            className="flex items-center gap-1 overflow-x-auto"
+            className="flex items-center gap-0.5 sm:gap-1 flex-1 min-w-0"
           >
             {(
               [
-                ['art-print', 'Showa Art Print', Palette],
-                ['ui-mockup', 'Interactive UI Mockup', Layout],
-                ['menswear', 'Menswear Look', Shirt],
-                ['contrast-matrix', 'Color Science & Contrast', Eye],
-                ['export', 'Code & Swatch Export', FileCode],
+                ['art-print', 'Art Print', 'Showa Art Print', Palette],
+                ['ui-mockup', 'UI Mockup', 'Interactive UI Mockup', Layout],
+                ['menswear', 'Menswear', 'Menswear Look', Shirt],
+                ['contrast-matrix', 'Contrast', 'Color Science & Contrast', Eye],
+                ['export', 'Export', 'Code & Swatch Export', FileCode],
               ] as const
-            ).map(([key, label, Icon]) => (
+            ).map(([key, shortLabel, fullLabel, Icon]) => (
               <button
                 type="button"
                 role="tab"
                 key={key}
                 aria-selected={activeTab === key}
+                aria-label={fullLabel}
+                title={fullLabel}
                 onClick={() => setActiveTab(key)}
-                className={`flex items-center gap-1.5 py-3 px-3 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
+                className={`flex items-center justify-center gap-1.5 py-3 ${
+                  showTabLabels ? 'px-2.5 sm:px-3' : 'px-2.5 flex-1'
+                } text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap cursor-pointer ${
                   activeTab === key
                     ? 'border-amber-800 text-amber-900 dark:border-amber-500 dark:text-amber-400'
                     : 'border-transparent text-stone-500 hover:text-stone-800 dark:hover:text-stone-200'
                 }`}
               >
-                <Icon size={15} />
-                <span>{label}</span>
+                <Icon size={16} className="shrink-0" />
+                <span className={showTabLabels ? 'inline' : 'sr-only'}>{shortLabel}</span>
               </button>
             ))}
           </div>
 
           {/* Color Vision Deficiency Simulator */}
-          <div className="flex items-center gap-1.5 pb-2 md:pb-0 text-xs shrink-0">
-            <span className="text-stone-500 font-medium">Vision:</span>
+          <div className="flex items-center gap-1.5 text-xs shrink-0">
+            <span className="hidden sm:inline text-stone-500 font-medium">Vision:</span>
             <select
               aria-label="Simulate color vision deficiency"
               value={cvdMode}
@@ -1253,33 +1282,36 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
               accent: byId.get(menswearOutfit.accent) ?? fallback,
               footwear: byId.get(menswearOutfit.footwear) ?? fallback,
             };
-            const styleConfig = GARMENT_STYLE_CONFIG[menswearStyle];
+            const pieces = STYLE_PRESET_PIECES[menswearStyle];
             return (
               <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-center">
                 <div className="md:col-span-6 p-5 rounded-2xl border border-stone-200 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-950/60 flex flex-col items-center">
                   <div
                     role="group"
                     aria-label="Modal menswear style"
-                    className="inline-flex rounded-lg p-0.5 bg-stone-200/70 dark:bg-stone-800 text-xs mb-3"
+                    className="inline-flex flex-wrap justify-center rounded-lg p-0.5 bg-stone-200/70 dark:bg-stone-800 text-xs mb-3"
                   >
-                    {(['suit', 'casual', 'wafuku'] as const).map((s) => (
-                      <button
-                        type="button"
-                        key={s}
-                        onClick={() => setMenswearStyle(s)}
-                        aria-pressed={menswearStyle === s}
-                        className={`px-2.5 py-1 rounded font-medium cursor-pointer ${
-                          menswearStyle === s
-                            ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
-                            : 'text-stone-600 dark:text-stone-400'
-                        }`}
-                      >
-                        {GARMENT_STYLE_CONFIG[s].label}
-                      </button>
-                    ))}
+                    {(['suit', 'smart-casual', 'overcoat', 'streetwear', 'resort', 'wafuku'] as const).map(
+                      (s) => (
+                        <button
+                          type="button"
+                          key={s}
+                          onClick={() => setMenswearStyle(s)}
+                          aria-pressed={menswearStyle === s}
+                          className={`px-2 py-1 rounded font-medium cursor-pointer ${
+                            menswearStyle === s
+                              ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
+                              : 'text-stone-600 dark:text-stone-400'
+                          }`}
+                        >
+                          {GARMENT_STYLE_META[s].shortLabel}
+                        </button>
+                      )
+                    )}
                   </div>
                   <MenswearIllustration
                     style={menswearStyle}
+                    pieces={pieces}
                     outfit={outfitColors}
                     cvdMode={cvdMode}
                   />
@@ -1296,8 +1328,11 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                   </div>
 
                   <div className="space-y-2">
-                    {GARMENT_SLOT_ORDER.map((slot) => {
+                    {GARMENT_SLOT_ORDER.filter(
+                      (slot) => !(slot === 'outerwear' && pieces.outerwear === 'none')
+                    ).map((slot) => {
                       const assigned = outfitColors[slot];
+                      const slotLabel = getSlotDisplayLabel(slot, pieces);
                       return (
                         <div
                           key={slot}
@@ -1309,11 +1344,11 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                               className="w-6 h-6 rounded border border-black/20 shrink-0"
                             />
                             <span className="font-medium text-stone-800 dark:text-stone-200 truncate">
-                              {styleConfig.slots[slot].label}
+                              {slotLabel}
                             </span>
                           </div>
                           <select
-                            aria-label={`Assign palette color for ${styleConfig.slots[slot].label}`}
+                            aria-label={`Assign palette color for ${slotLabel}`}
                             value={assigned.id}
                             onChange={(e) =>
                               setMenswearOutfit((prev) => ({
@@ -1341,7 +1376,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                       className="w-full py-2.5 px-4 rounded-xl text-xs sm:text-sm font-medium bg-amber-900 text-amber-50 hover:bg-amber-800 dark:bg-amber-700 flex items-center justify-center gap-2 cursor-pointer"
                     >
                       <Shirt size={15} />
-                      <span>Customize with All 171 Colors on 360° Wheel →</span>
+                      <span>Open Full Menswear Dressing Room →</span>
                     </button>
                   )}
                 </div>

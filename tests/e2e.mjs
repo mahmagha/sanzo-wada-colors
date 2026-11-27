@@ -329,11 +329,9 @@ async function run() {
     assert.equal(darkState.hasDark, true);
     assert.equal(darkState.bg, 'rgb(18, 18, 20)');
 
-    // 7. Open Color Match panel (HEX Match + Color Wheel + From Image preset + thumbnail preview)
+    // 7. Open Color Match panel (HEX Match + From Image preset + thumbnail preview)
     await client.eval(`Array.from(document.querySelectorAll('header button')).find(b => b.textContent.includes('Color Match')).click()`);
     assert.equal(await waitForText('CIEDE2000'), true);
-    await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Color Wheel').click()`);
-    assert.equal(await waitForText('All-171 Pigment 360° Color Wheel Chooser'), true);
     await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'From Image').click()`);
     assert.equal(await waitForText('Image-to-Sanzo-Wada Palette Extractor'), true);
 
@@ -410,11 +408,54 @@ async function run() {
     await new Promise((r) => setTimeout(r, 80));
     assert.equal(await client.eval(`document.body.style.overflow`), '');
 
-    // 9. Open ModalStudio, switch CVD & all 4 UI templates, verify Tab trap, close with Escape
+    // 9. Open ModalStudio, verify ALL 5 tabs fit without overflow on desktop AND collapse cleanly to icons on narrow viewport
     await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Inspect').click()`);
     await waitForText('Showa Art Print');
     assert.equal(await client.eval(`Boolean(document.getElementById('studio-modal-title'))`), true);
     assert.equal(await client.eval(`document.body.style.overflow`), 'hidden');
+
+    const desktopTabs = await client.eval(`(() => {
+      const list = document.querySelector('[role="tablist"][aria-label="Studio tools"]');
+      const tabs = Array.from(list.querySelectorAll('button[role="tab"]'));
+      const listRect = list.getBoundingClientRect();
+      return {
+        count: tabs.length,
+        overflows: list.scrollWidth > list.clientWidth + 1,
+        allVisible: tabs.every(t => { const r = t.getBoundingClientRect(); return r.left >= listRect.left - 1 && r.right <= listRect.right + 1; }),
+        labelsVisible: tabs.every(t => !t.querySelector('span')?.className.includes('sr-only')),
+      };
+    })()`);
+    assert.equal(desktopTabs.count, 5);
+    assert.equal(desktopTabs.overflows, false);
+    assert.equal(desktopTabs.allVisible, true);
+    assert.equal(desktopTabs.labelsVisible, true);
+
+    // Emulate narrow tablet/mobile screen and assert all 5 icon-only tabs remain visible with zero clipping
+    await client.send('Emulation.setDeviceMetricsOverride', {
+      width: 500,
+      height: 850,
+      deviceScaleFactor: 1,
+      mobile: true,
+    });
+    await new Promise((r) => setTimeout(r, 120));
+    const narrowTabs = await client.eval(`(() => {
+      const list = document.querySelector('[role="tablist"][aria-label="Studio tools"]');
+      const tabs = Array.from(list.querySelectorAll('button[role="tab"]'));
+      const listRect = list.getBoundingClientRect();
+      return {
+        count: tabs.length,
+        overflows: list.scrollWidth > list.clientWidth + 1,
+        allVisible: tabs.every(t => { const r = t.getBoundingClientRect(); return r.left >= listRect.left - 1 && r.right <= listRect.right + 1 && r.width > 20; }),
+        iconsOnly: tabs.every(t => t.querySelector('span')?.className.includes('sr-only')),
+      };
+    })()`);
+    assert.equal(narrowTabs.count, 5);
+    assert.equal(narrowTabs.overflows, false);
+    assert.equal(narrowTabs.allVisible, true);
+    assert.equal(narrowTabs.iconsOnly, true);
+
+    await client.send('Emulation.clearDeviceMetricsOverride');
+    await new Promise((r) => setTimeout(r, 100));
 
     await client.eval(`(() => {
       const sel = document.querySelector('select[aria-label="Simulate color vision deficiency"]');
@@ -425,7 +466,7 @@ async function run() {
     await new Promise((r) => setTimeout(r, 80));
     assert.equal(await client.eval(`document.body.innerText.includes('Simulating Protanopia')`), true);
 
-    await client.eval(`Array.from(document.querySelectorAll('button[role="tab"]')).find(b => b.textContent.includes('Interactive UI Mockup')).click()`);
+    await client.eval(`document.querySelector('[role="dialog"] button[role="tab"][aria-label="Interactive UI Mockup"]').click()`);
     await new Promise((r) => setTimeout(r, 80));
     assert.equal(await client.eval(`document.body.innerText.includes('Text / Ink')`), true);
     assert.equal(await client.eval(`document.body.innerText.includes('Copy Role CSS')`), true);
@@ -452,8 +493,8 @@ async function run() {
     await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === '2-Color').click()`);
     await new Promise((r) => setTimeout(r, 100));
     await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Inspect').click()`);
-    await waitForText('Interactive UI Mockup');
-    await client.eval(`Array.from(document.querySelectorAll('button[role="tab"]')).find(b => b.textContent.includes('Interactive UI Mockup')).click()`);
+    await waitForText('UI Mockup');
+    await client.eval(`document.querySelector('[role="dialog"] button[role="tab"][aria-label="Interactive UI Mockup"]').click()`);
     await new Promise((r) => setTimeout(r, 80));
     const twoColorCheck = await client.eval(`(() => {
       const selects = Array.from(document.querySelectorAll('[role="dialog"] select'));
@@ -496,7 +537,7 @@ async function run() {
     await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Reset').click()`);
     await new Promise((r) => setTimeout(r, 80));
 
-    // 10. Switch to Master Colors, test Kanji (44) filter, 2D Spectrum Map, 360° Color Wheel, Show #IDs, and URL sync
+    // 10. Switch to Master Colors, test Kanji (44) filter, 2D Spectrum Map, Show #IDs, and URL sync
     await client.eval(`Array.from(document.querySelectorAll('button[role="tab"]')).find(b => b.textContent.includes('Master Colors')).click()`);
     await new Promise((r) => setTimeout(r, 100));
     await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Kanji (44)')).click()`);
@@ -514,32 +555,40 @@ async function run() {
     const node5Label = await client.eval(`document.querySelector('button[aria-label^="#5 "]')?.textContent?.trim()`);
     assert.equal(node5Label, '5');
 
-    // Switch to 360-degree Color Wheel in Master Colors and verify full 171 pigments when kanji filter cleared
-    await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Wheel').click()`);
-    assert.equal(await waitForText('360° Wada Color Wheel (44 Pigments)'), true);
-    const wheelUrl = await client.eval(`window.location.search`);
-    assert.ok(wheelUrl.includes('layout=wheel'), `Expected layout=wheel in ${wheelUrl}`);
+    // 10b. Navigate to the separate Color Wheel page (?view=wheel) — verify no Menswear UI is forced here
+    await client.eval(`Array.from(document.querySelectorAll('header button[role="tab"]')).find(b => b.textContent.includes('Color Wheel')).click()`);
+    assert.equal(await waitForText('360° Color Wheel Chooser (44 / 171 Pigments)'), true);
+    const wheelPageUrl = await client.eval(`window.location.search`);
+    assert.ok(wheelPageUrl.includes('view=wheel'), `Expected view=wheel in ${wheelPageUrl}`);
+    assert.equal(await client.eval(`document.querySelector('section[aria-label="Menswear Garment Color Studio"]')`), null);
 
     await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Kanji (44)')).click()`);
-    assert.equal(await waitForText('360° Wada Color Wheel (171 Pigments)'), true);
+    assert.equal(await waitForText('360° Color Wheel Chooser (171 / 171 Pigments)'), true);
+    await client.eval(`document.querySelector('section[aria-label="Sanzo Wada 360° Color Wheel Page"] button[aria-label^="#14 "]')?.click()`);
+    assert.equal(await waitForText('Raw Sienna'), true);
 
-    // 10b. Open Menswear Garment Studio tab, select Trousers slot, pick #14 Raw Sienna on 360° Wheel, switch silhouettes & save look
+    // 10c. Navigate to the separate Menswear page (?view=menswear) — verify no Color Wheel is forced here
     await client.eval(`Array.from(document.querySelectorAll('header button[role="tab"]')).find(b => b.textContent.includes('Menswear')).click()`);
     assert.equal(await waitForText('Menswear Garment Color Chooser'), true);
-    assert.equal(await waitForText('360° Wada Color Wheel (171 Pigments)'), true);
+    assert.equal(await waitForText('All Wada Swatches (171)'), true);
     const menswearUrl = await client.eval(`window.location.search`);
     assert.ok(menswearUrl.includes('view=menswear'), `Expected view=menswear in ${menswearUrl}`);
+    assert.equal(await client.eval(`document.querySelector('section[aria-label="Sanzo Wada 360° Color Wheel Page"]')`), null);
+    assert.equal(await client.eval(`document.querySelector('[aria-label*="360 degree Wada Color Wheel"]')`), null);
 
-    await client.eval(`Array.from(document.querySelectorAll('section[aria-label="Menswear Garment Color Studio"] button')).find(b => b.textContent.includes('Trousers'))?.click()`);
+    await client.eval(`Array.from(document.querySelectorAll('section[aria-label="Menswear Garment Color Studio"] button')).find(b => b.textContent.includes('Tailored Trousers'))?.click()`);
     await new Promise((r) => setTimeout(r, 50));
-    await client.eval(`document.querySelector('section[aria-label="Menswear Garment Color Studio"] button[aria-label^="#14 "]')?.click()`);
-    assert.equal(await waitForText('#14 Raw Sienna'), true);
+    await client.eval(`Array.from(document.querySelectorAll('section[aria-label="Menswear Garment Color Studio"] button')).find(b => b.textContent.includes('#14') && b.textContent.includes('Raw Sienna'))?.click()`);
+    assert.equal(await waitForText('Editing') && await waitForText('#14 Raw Sienna'), true);
 
-    // Switch between Casual Coat & Knit and Haori & Kimono silhouettes
-    await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Casual Coat & Knit').click()`);
-    assert.equal(await waitForText('Chore Coat / Jacket'), true);
+    // Switch through diverse male wardrobe silhouettes (Streetwear hoodie/bomber/denim/sneakers, Summer Shorts, Haori)
+    await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Streetwear Look').click()`);
+    assert.equal(await waitForText('Pullover Hoodie'), true);
+    assert.equal(await waitForText('Low-Top Sneakers'), true);
+    await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Summer & Shorts').click()`);
+    assert.equal(await waitForText('Tailored Shorts'), true);
     await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Haori & Kimono').click()`);
-    assert.equal(await waitForText('Haori Coat (羽織)'), true);
+    assert.equal(await waitForText('Haori Mantle (羽織)'), true);
 
     // Save custom menswear outfit look
     await client.eval(`(() => {
@@ -562,7 +611,7 @@ async function run() {
     assert.equal(await waitForText('3-Color Custom Mix', 3000), true);
     assert.equal(await client.eval(`document.querySelector('[role="dialog"]')?.getAttribute('aria-modal')`), 'true');
 
-    await client.eval(`Array.from(document.querySelectorAll('[role="dialog"] button[role="tab"]')).find(b => b.textContent.includes('Menswear Look')).click()`);
+    await client.eval(`document.querySelector('[role="dialog"] button[role="tab"][aria-label="Menswear Look"]').click()`);
     assert.equal(await waitForText('Palette Mapped to Male Garments'), true);
 
     console.log('CDP_E2E_ALL_PASSED');

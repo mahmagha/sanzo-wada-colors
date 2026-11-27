@@ -21,19 +21,26 @@ import {
 import { classifyColorTone, getIdealTextColor } from '../utils/colorUtils';
 import { matchesColorTokens, matchesCombinationTokens, sortMasterColors } from '../utils/searchUtils';
 import {
+  ACCENT_CUTS,
   analyzeOutfitHarmony,
+  BOTTOM_CUTS,
+  FOOTWEAR_CUTS,
   GARMENT_SLOT_ORDER,
-  GARMENT_STYLE_CONFIG,
+  GARMENT_STYLE_META,
   GarmentOutfitIds,
+  GarmentPieces,
   GarmentSlotKey,
   GarmentStyle,
   generateMenswearCss,
+  getSlotDisplayLabel,
   mapComboToGarmentOutfit,
   MENSWEAR_PRESETS,
+  OUTERWEAR_CUTS,
   SavedMenswearOutfit,
+  STYLE_PRESET_PIECES,
+  TOP_CUTS,
 } from '../utils/menswearUtils';
 import { MenswearIllustration } from './MenswearIllustration';
-import { WadaColorWheel } from './WadaColorWheel';
 
 interface MenswearStudioProps {
   allColors: ColorItem[];
@@ -48,7 +55,7 @@ interface MenswearStudioProps {
   onShareOutfit: () => void;
 }
 
-type ChooserTab = 'wheel' | 'swatches' | 'plates';
+type ChooserTab = 'swatches' | 'plates';
 
 const SAVED_OUTFITS_KEY = 'sanzo-wada-menswear-outfits-v1';
 
@@ -59,6 +66,14 @@ const CVD_OPTIONS: { id: CvdMode; label: string }[] = [
   { id: 'tritanopia', label: 'Tritanopia' },
   { id: 'achromatopsia', label: 'Achromatopsia' },
 ];
+
+const CUT_OPTIONS_BY_SLOT: Record<GarmentSlotKey, { id: string; label: string }[]> = {
+  outerwear: OUTERWEAR_CUTS,
+  top: TOP_CUTS,
+  bottom: BOTTOM_CUTS,
+  accent: ACCENT_CUTS,
+  footwear: FOOTWEAR_CUTS,
+};
 
 export const MenswearStudio: React.FC<MenswearStudioProps> = ({
   allColors,
@@ -72,8 +87,13 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
   onCopyText,
   onShareOutfit,
 }) => {
-  const [activeSlot, setActiveSlot] = useState<GarmentSlotKey>('outerwear');
-  const [chooserTab, setChooserTab] = useState<ChooserTab>('wheel');
+  const [pieces, setPieces] = useState<GarmentPieces>(() => ({
+    ...STYLE_PRESET_PIECES[style],
+  }));
+  const [activeSlot, setActiveSlot] = useState<GarmentSlotKey>(() =>
+    STYLE_PRESET_PIECES[style].outerwear === 'none' ? 'top' : 'outerwear'
+  );
+  const [chooserTab, setChooserTab] = useState<ChooserTab>('swatches');
   const [cvdMode, setCvdMode] = useState<CvdMode>('normal');
   const [searchQuery, setSearchQuery] = useState('');
   const [toneFilter, setToneFilter] = useState<ToneFilter>('all');
@@ -91,6 +111,16 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
     }
     return [];
   });
+
+  useEffect(() => {
+    setPieces({ ...STYLE_PRESET_PIECES[style] });
+    setActiveSlot((prev) => {
+      if (STYLE_PRESET_PIECES[style].outerwear === 'none' && prev === 'outerwear') {
+        return 'top';
+      }
+      return prev;
+    });
+  }, [style]);
 
   useEffect(() => {
     try {
@@ -117,10 +147,10 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
     [outfitIds, colorById, fallbackColor]
   );
 
-  const styleMeta = GARMENT_STYLE_CONFIG[style];
+  const styleMeta = GARMENT_STYLE_META[style];
   const harmony = useMemo(
-    () => analyzeOutfitHarmony(resolvedOutfit, allCombinations),
-    [resolvedOutfit, allCombinations]
+    () => analyzeOutfitHarmony(resolvedOutfit, allCombinations, pieces),
+    [resolvedOutfit, allCombinations, pieces]
   );
 
   const filteredSwatches = useMemo(() => {
@@ -144,6 +174,20 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
     });
   };
 
+  const handleCutChange = (slot: GarmentSlotKey, nextCut: string) => {
+    setPieces((prev) => ({
+      ...prev,
+      [slot]: nextCut,
+    }));
+    if (slot === 'outerwear' && nextCut !== 'none') {
+      setActiveSlot('outerwear');
+    } else if (slot === 'outerwear' && nextCut === 'none' && activeSlot === 'outerwear') {
+      setActiveSlot('top');
+    } else {
+      setActiveSlot(slot);
+    }
+  };
+
   const handleRotateGarments = () => {
     onChangeOutfit({
       outerwear: outfitIds.bottom,
@@ -162,12 +206,13 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
   };
 
   const handleSaveOutfit = () => {
-    const name =
-      lookName.trim() || `${styleMeta.label} (${resolvedOutfit.outerwear.name.split(' ')[0]})`;
+    const anchorColor = pieces.outerwear === 'none' ? resolvedOutfit.top : resolvedOutfit.outerwear;
+    const name = lookName.trim() || `${styleMeta.shortLabel} (${anchorColor.name.split(' ')[0]})`;
     const entry: SavedMenswearOutfit = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       name,
       style,
+      pieces: { ...pieces },
       outfit: { ...outfitIds },
     };
     setSavedOutfits((prev) => [entry, ...prev].slice(0, 10));
@@ -176,7 +221,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
 
   return (
     <section aria-label="Menswear Garment Color Studio" className="space-y-5">
-      {/* Top Studio Header & Presets Bar */}
+      {/* Top Studio Header & Styles/Presets Bar */}
       <div className="rounded-2xl border border-stone-300/70 dark:border-stone-800 bg-white/80 dark:bg-stone-900/80 p-4 sm:p-5 space-y-4 shadow-sm">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
@@ -188,7 +233,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                 Menswear Garment Color Chooser
               </h2>
               <p className="text-xs text-stone-500 dark:text-stone-400">
-                Select any male garment piece, then choose pigments across the 360° Color Wheel or map any 1933–1935 Wada combination.
+                Mix and match male wardrobe cuts—suits, shirts &amp; chinos, overcoats, hoodies &amp; streetwear, shorts, or Japanese haori—across all 171 archival Wada swatches.
               </p>
             </div>
           </div>
@@ -232,7 +277,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
               type="button"
               onClick={() =>
                 onCopyText(
-                  generateMenswearCss(style, resolvedOutfit),
+                  generateMenswearCss(style, resolvedOutfit, pieces),
                   'Copied menswear garment CSS variables'
                 )
               }
@@ -253,32 +298,40 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
           </div>
         </div>
 
-        {/* Silhouette Switcher + Curated Lookbook Presets */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pt-3 border-t border-stone-200/80 dark:border-stone-800">
-          <div
-            role="group"
-            aria-label="Menswear silhouette style"
-            className="inline-flex rounded-lg p-0.5 bg-stone-200/60 dark:bg-stone-800 border border-stone-300/40 dark:border-stone-700/60 self-start text-xs"
-          >
-            {(['suit', 'casual', 'wafuku'] as const).map((s) => (
-              <button
-                type="button"
-                key={s}
-                aria-pressed={style === s}
-                onClick={() => onChangeStyle(s)}
-                className={`px-3 py-1.5 rounded-md font-medium transition-colors cursor-pointer ${
-                  style === s
-                    ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
-                    : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
-                }`}
-              >
-                {GARMENT_STYLE_CONFIG[s].label}
-              </button>
-            ))}
+        {/* Silhouette Switcher (6 Male Wardrobe Categories) + Quick Color Presets */}
+        <div className="space-y-2.5 pt-3 border-t border-stone-200/80 dark:border-stone-800">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div
+              role="group"
+              aria-label="Menswear silhouette style"
+              className="inline-flex flex-wrap rounded-lg p-0.5 bg-stone-200/60 dark:bg-stone-800 border border-stone-300/40 dark:border-stone-700/60 text-xs"
+            >
+              {(['suit', 'smart-casual', 'overcoat', 'streetwear', 'resort', 'wafuku'] as const).map(
+                (s) => (
+                  <button
+                    type="button"
+                    key={s}
+                    aria-pressed={style === s}
+                    onClick={() => onChangeStyle(s)}
+                    className={`px-2.5 py-1.5 rounded-md font-medium transition-colors cursor-pointer ${
+                      style === s
+                        ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
+                        : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
+                    }`}
+                  >
+                    {GARMENT_STYLE_META[s].label}
+                  </button>
+                )
+              )}
+            </div>
+
+            <span className="text-[11px] text-stone-500 dark:text-stone-400">
+              {styleMeta.subtitle}
+            </span>
           </div>
 
           <div className="flex items-center gap-1.5 flex-wrap text-xs">
-            <span className="text-stone-500 font-medium mr-1">Presets:</span>
+            <span className="text-stone-500 font-medium mr-1">Lookbook Presets:</span>
             {MENSWEAR_PRESETS.map((preset) => (
               <button
                 type="button"
@@ -291,8 +344,8 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                 className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
               >
                 <span className="flex h-2.5 w-4 rounded-sm overflow-hidden border border-black/15">
-                  <span style={{ backgroundColor: colorById.get(preset.outfit.outerwear)?.hex }} className="flex-1" />
                   <span style={{ backgroundColor: colorById.get(preset.outfit.top)?.hex }} className="flex-1" />
+                  <span style={{ backgroundColor: colorById.get(preset.outfit.bottom)?.hex }} className="flex-1" />
                   <span style={{ backgroundColor: colorById.get(preset.outfit.accent)?.hex }} className="flex-1" />
                 </span>
                 <span>{preset.name}</span>
@@ -304,7 +357,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
 
       {/* Main Two-Column Dressing Stage + All-Colors Wheel/Picker */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-        {/* LEFT: Interactive Garment Mannequin + Garment Slot List + Harmony Readout */}
+        {/* LEFT: Interactive Garment Croquis + Modular Piece & Color Controls + Harmony */}
         <div className="lg:col-span-5 space-y-4">
           <div className="rounded-2xl border border-stone-300/70 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-900/90 p-5 shadow-sm">
             <div className="flex items-center justify-between text-xs mb-2">
@@ -312,73 +365,110 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                 {styleMeta.label} Lookbook
               </span>
               <span className="font-code text-[11px] text-stone-500">
-                Click any piece to customize
+                Click figure or change garment cuts
               </span>
             </div>
 
             <MenswearIllustration
               style={style}
+              pieces={pieces}
               outfit={resolvedOutfit}
               cvdMode={cvdMode}
               activeSlot={activeSlot}
               onSelectSlot={setActiveSlot}
             />
 
-            {/* 5 Clickable Garment Slots */}
+            {/* 5 Modular Garment Slot Cards (Color + Mix-and-Match Cut Selector) */}
             <div className="mt-4 space-y-2">
               {GARMENT_SLOT_ORDER.map((slot) => {
                 const slotColor = resolvedOutfit[slot];
-                const slotMeta = styleMeta.slots[slot];
+                const slotTitle = getSlotDisplayLabel(slot, pieces);
                 const isActive = activeSlot === slot;
+                const isDisabledCoat = slot === 'outerwear' && pieces.outerwear === 'none';
+
                 return (
                   <div
                     key={slot}
-                    className={`flex items-center justify-between gap-2 p-2 rounded-xl border transition-colors ${
-                      isActive
+                    className={`p-2 rounded-xl border transition-colors space-y-1.5 ${
+                      isDisabledCoat
+                        ? 'border-dashed border-stone-300 dark:border-stone-700 bg-stone-100/50 dark:bg-stone-950/20 opacity-85'
+                        : isActive
                         ? 'border-amber-700 bg-amber-50/70 dark:border-amber-500 dark:bg-amber-950/30 ring-1 ring-amber-600/30'
                         : 'border-stone-300/70 dark:border-stone-800 bg-white/80 dark:bg-stone-950/40'
                     }`}
                   >
-                    <button
-                      type="button"
-                      onClick={() => setActiveSlot(slot)}
-                      aria-pressed={isActive}
-                      className="flex items-center gap-2.5 text-left flex-1 min-w-0 cursor-pointer"
-                    >
-                      <span
-                        style={{ backgroundColor: slotColor.hex }}
-                        className="w-8 h-8 rounded-lg border border-black/20 shrink-0 shadow-xs"
-                      />
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-xs font-semibold text-stone-900 dark:text-stone-100 truncate">
-                            {slotMeta.label}
-                          </span>
-                          {isActive && (
-                            <span className="px-1.5 py-0.2 rounded bg-amber-800 text-amber-50 text-[10px] font-code">
-                              Editing
-                            </span>
-                          )}
-                        </div>
-                        <div className="text-[11px] font-editorial text-stone-600 dark:text-stone-400 truncate">
-                          #{slotColor.id} {slotColor.name}
-                          {slotColor.ja ? ` (${slotColor.ja})` : ''} •{' '}
-                          <span className="font-code uppercase">{slotColor.hex}</span>
-                        </div>
-                      </div>
-                    </button>
-
-                    {onSelectColorDetail && (
+                    <div className="flex items-center justify-between gap-2">
                       <button
                         type="button"
-                        onClick={() => onSelectColorDetail(slotColor)}
-                        aria-label={`Inspect swatch ${slotColor.name}`}
-                        title={`Inspect #${slotColor.id} ${slotColor.name}`}
-                        className="px-2 py-1 text-[11px] font-code rounded border border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 shrink-0 cursor-pointer"
+                        onClick={() => {
+                          if (!isDisabledCoat) setActiveSlot(slot);
+                        }}
+                        disabled={isDisabledCoat}
+                        aria-pressed={isActive}
+                        className="flex items-center gap-2.5 text-left flex-1 min-w-0 cursor-pointer disabled:cursor-default"
                       >
-                        Specs
+                        <span
+                          style={{
+                            backgroundColor: isDisabledCoat ? 'transparent' : slotColor.hex,
+                          }}
+                          className={`w-7 h-7 rounded-lg shrink-0 ${
+                            isDisabledCoat
+                              ? 'border border-dashed border-stone-400'
+                              : 'border border-black/20 shadow-xs'
+                          }`}
+                        />
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-semibold text-stone-900 dark:text-stone-100 truncate">
+                              {slotTitle}
+                            </span>
+                            {isActive && !isDisabledCoat && (
+                              <span className="px-1.5 py-0.2 rounded bg-amber-800 text-amber-50 text-[10px] font-code">
+                                Editing
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-[11px] font-editorial text-stone-600 dark:text-stone-400 truncate">
+                            {isDisabledCoat ? (
+                              'Layer off — choose a coat below to wear over top'
+                            ) : (
+                              <>
+                                #{slotColor.id} {slotColor.name}
+                                {slotColor.ja ? ` (${slotColor.ja})` : ''} •{' '}
+                                <span className="font-code uppercase">{slotColor.hex}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
                       </button>
-                    )}
+
+                      <div className="flex items-center gap-1 shrink-0">
+                        <select
+                          aria-label={`Garment type for ${slot}`}
+                          value={pieces[slot]}
+                          onChange={(e) => handleCutChange(slot, e.target.value)}
+                          className="px-1.5 py-1 text-[11px] rounded border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-200 max-w-[132px] cursor-pointer"
+                        >
+                          {CUT_OPTIONS_BY_SLOT[slot].map((opt) => (
+                            <option key={opt.id} value={opt.id}>
+                              {opt.label}
+                            </option>
+                          ))}
+                        </select>
+
+                        {onSelectColorDetail && !isDisabledCoat && (
+                          <button
+                            type="button"
+                            onClick={() => onSelectColorDetail(slotColor)}
+                            aria-label={`Inspect swatch ${slotColor.name}`}
+                            title={`Inspect #${slotColor.id} ${slotColor.name}`}
+                            className="px-2 py-1 text-[11px] font-code rounded border border-stone-300 dark:border-stone-700 text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
+                          >
+                            Specs
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 );
               })}
@@ -417,14 +507,15 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                         type="button"
                         onClick={() => {
                           onChangeStyle(look.style);
+                          if (look.pieces) setPieces(look.pieces);
                           onChangeOutfit(look.outfit);
                         }}
                         className="flex items-center gap-1.5 px-2.5 py-0.5 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
                       >
                         <span className="flex h-2.5 w-4 rounded-xs overflow-hidden border border-black/15">
-                          <span style={{ backgroundColor: colorById.get(look.outfit.outerwear)?.hex }} className="flex-1" />
                           <span style={{ backgroundColor: colorById.get(look.outfit.top)?.hex }} className="flex-1" />
                           <span style={{ backgroundColor: colorById.get(look.outfit.bottom)?.hex }} className="flex-1" />
+                          <span style={{ backgroundColor: colorById.get(look.outfit.accent)?.hex }} className="flex-1" />
                         </span>
                         <span className="font-medium truncate max-w-[100px]">{look.name}</span>
                       </button>
@@ -454,20 +545,20 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
 
             <div className="grid grid-cols-2 gap-2.5">
               <div className="p-2.5 rounded-xl bg-stone-50 dark:bg-stone-950/60 border border-stone-200 dark:border-stone-800">
-                <div className="text-[11px] text-stone-500">Outerwear / Top Contrast</div>
+                <div className="text-[11px] text-stone-500">{harmony.primaryLabel}</div>
                 <div className="font-code font-bold text-sm text-stone-900 dark:text-stone-100 mt-0.5">
-                  {harmony.jacketShirtContrast.toFixed(1)}:1{' '}
+                  {harmony.primaryContrast.toFixed(1)}:1{' '}
                   <span className="text-[10px] font-normal text-stone-500">
-                    ({harmony.jacketShirtContrast >= 4.5 ? 'Strong Collar Crispness' : 'Soft Tonal'})
+                    ({harmony.primaryContrast >= 4.5 ? 'Strong Crispness' : 'Soft Tonal'})
                   </span>
                 </div>
               </div>
               <div className="p-2.5 rounded-xl bg-stone-50 dark:bg-stone-950/60 border border-stone-200 dark:border-stone-800">
-                <div className="text-[11px] text-stone-500">Jacket / Bottom Separation</div>
+                <div className="text-[11px] text-stone-500">{harmony.separationLabel}</div>
                 <div className="font-code font-bold text-sm text-stone-900 dark:text-stone-100 mt-0.5">
-                  ΔE {harmony.jacketTrousersDeltaE.toFixed(1)}
+                  ΔE {harmony.separationDeltaE.toFixed(1)}
                 </div>
-                <div className="text-[10px] text-stone-500 truncate">{harmony.trousersNote}</div>
+                <div className="text-[10px] text-stone-500 truncate">{harmony.separationNote}</div>
               </div>
             </div>
 
@@ -522,8 +613,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
               >
                 {(
                   [
-                    ['wheel', 'Color Wheel (171)'],
-                    ['swatches', 'All Swatches (171)'],
+                    ['swatches', 'All Wada Swatches (171)'],
                     ['plates', 'Wada Combinations (420)'],
                   ] as const
                 ).map(([key, label]) => (
@@ -600,17 +690,18 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
             )}
           </div>
 
-          {chooserTab === 'wheel' && (
-            <WadaColorWheel
-              colors={filteredSwatches}
-              onSelectColor={handleAssignColor}
-              selectedIds={[outfitIds[activeSlot]]}
-              activeSlotLabel={`${styleMeta.slots[activeSlot].label} (#${resolvedOutfit[activeSlot].id} ${resolvedOutfit[activeSlot].name})`}
-            />
-          )}
-
           {chooserTab === 'swatches' && (
-            <div className="rounded-2xl border border-stone-300/70 dark:border-stone-800 bg-white/80 dark:bg-stone-900/80 p-4 max-h-[600px] overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 shadow-sm">
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between text-xs px-1 text-stone-600 dark:text-stone-300">
+                <span>
+                  Editing <strong className="text-amber-800 dark:text-amber-400">{getSlotDisplayLabel(activeSlot, pieces)}</strong>{' '}
+                  (#{resolvedOutfit[activeSlot].id} {resolvedOutfit[activeSlot].name})
+                </span>
+                <span className="font-code text-[11px] text-stone-400">
+                  {filteredSwatches.length} swatches
+                </span>
+              </div>
+              <div className="rounded-2xl border border-stone-300/70 dark:border-stone-800 bg-white/80 dark:bg-stone-900/80 p-4 max-h-[600px] overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 shadow-sm">
               {filteredSwatches.map((c) => {
                 const isSelected = outfitIds[activeSlot] === c.id;
                 const txt = getIdealTextColor(c.hex);
@@ -635,6 +726,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                   </button>
                 );
               })}
+              </div>
             </div>
           )}
 
