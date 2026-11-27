@@ -1,7 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { X, Sparkles, Shuffle, Trash2, Check, Search, BookmarkPlus } from 'lucide-react';
-import { ColorItem, Combination, ToneFilter } from '../types/color';
-import { classifyColorTone, getIdealTextColor } from '../utils/colorUtils';
+import { X, Sparkles, Shuffle, Trash2, Check, Search, BookmarkPlus, Columns2 } from 'lucide-react';
+import { ColorItem, Combination, HydratedCombination, ToneFilter } from '../types/color';
+import {
+  classifyColorTone,
+  createCustomCombination,
+  getCompareKey,
+  getIdealTextColor,
+} from '../utils/colorUtils';
 import { matchesColorTokens } from '../utils/searchUtils';
 import { useModalDialog } from '../utils/useModalDialog';
 
@@ -18,6 +23,8 @@ interface CustomPaletteModalProps {
   onChangeIds: (ids: number[]) => void;
   onClose: () => void;
   onLaunchStudio: (combo: Combination) => void;
+  onPinCompare?: (combo: HydratedCombination) => void;
+  compareSet?: Set<string>;
 }
 
 const MAX_CUSTOM_COLORS = 6;
@@ -30,6 +37,8 @@ export const CustomPaletteModal: React.FC<CustomPaletteModalProps> = ({
   onChangeIds,
   onClose,
   onLaunchStudio,
+  onPinCompare,
+  compareSet,
 }) => {
   const [query, setQuery] = useState('');
   const [tone, setTone] = useState<ToneFilter>('all');
@@ -224,15 +233,48 @@ export const CustomPaletteModal: React.FC<CustomPaletteModalProps> = ({
               </div>
             </div>
 
-            <button
-              type="button"
-              onClick={handleOpenInStudio}
-              disabled={selectedColors.length < 2}
-              className="flex items-center gap-1.5 px-4 py-1.5 text-xs sm:text-sm font-medium rounded-lg bg-amber-900 text-amber-50 hover:bg-amber-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
-            >
-              <Sparkles size={14} />
-              <span>Open in Studio</span>
-            </button>
+            <div className="flex items-center gap-2">
+              {onPinCompare && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (selectedColors.length >= 2) {
+                      onPinCompare(createCustomCombination(selectedColors));
+                    }
+                  }}
+                  disabled={selectedColors.length < 2}
+                  aria-pressed={
+                    selectedColors.length >= 2
+                      ? compareSet?.has(getCompareKey({ id: 0, volume: 1, colors: selectedColors })) ?? false
+                      : false
+                  }
+                  className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer ${
+                    selectedColors.length >= 2 &&
+                    compareSet?.has(getCompareKey({ id: 0, volume: 1, colors: selectedColors }))
+                      ? 'bg-amber-100 dark:bg-amber-950/50 border-amber-700/40 text-amber-900 dark:text-amber-300'
+                      : 'border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800'
+                  }`}
+                >
+                  <Columns2 size={13} />
+                  <span>
+                    {selectedColors.length >= 2 &&
+                    compareSet?.has(getCompareKey({ id: 0, volume: 1, colors: selectedColors }))
+                      ? 'Pinned to Compare'
+                      : 'Pin to Compare'}
+                  </span>
+                </button>
+              )}
+
+              <button
+                type="button"
+                onClick={handleOpenInStudio}
+                disabled={selectedColors.length < 2}
+                className="flex items-center gap-1.5 px-4 py-1.5 text-xs sm:text-sm font-medium rounded-lg bg-amber-900 text-amber-50 hover:bg-amber-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                <Sparkles size={14} />
+                <span>Open in Studio</span>
+              </button>
+            </div>
           </div>
 
           {/* Saved Custom Mixes Row */}

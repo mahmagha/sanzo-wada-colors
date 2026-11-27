@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowRight, CircleDot, Plus, Sparkles } from 'lucide-react';
+import { ArrowRight, CircleDot, Compass, Plus, Sparkles } from 'lucide-react';
 import {
   ColorItem,
   Combination,
@@ -8,6 +8,11 @@ import {
   VolumeFilter,
 } from '../types/color';
 import { formatOklch, getIdealTextColor } from '../utils/colorUtils';
+import {
+  findHarmonyMatches,
+  HARMONY_RULE_META,
+  HarmonyRule,
+} from '../utils/spectrumLayout';
 import { WadaColorWheel } from './WadaColorWheel';
 
 interface ColorWheelPageProps {
@@ -46,6 +51,8 @@ export const ColorWheelPage: React.FC<ColorWheelPageProps> = ({
   const [selectedColor, setSelectedColor] = useState<ColorItem | null>(
     () => filteredColors[0] ?? allColors[0] ?? null
   );
+  const [harmonyRule, setHarmonyRule] = useState<HarmonyRule>('none');
+  const [hoveredCombo, setHoveredCombo] = useState<Combination | null>(null);
 
   const activeColor = useMemo(() => {
     if (selectedColor && filteredColors.some((c) => c.id === selectedColor.id)) {
@@ -60,6 +67,24 @@ export const ColorWheelPage: React.FC<ColorWheelPageProps> = ({
       .filter((c) => c.colors.some((sw) => sw.id === activeColor.id))
       .slice(0, 6);
   }, [activeColor, allCombinations]);
+
+  const harmonyGroups = useMemo(() => {
+    if (!activeColor || harmonyRule === 'none') return [];
+    const pool = filteredColors.length >= 8 ? filteredColors : allColors;
+    return findHarmonyMatches(activeColor, pool, harmonyRule, 3);
+  }, [activeColor, filteredColors, allColors, harmonyRule]);
+
+  const harmonyHighlightIds = useMemo(
+    () => harmonyGroups.flatMap((g) => g.matches.map((m) => m.id)),
+    [harmonyGroups]
+  );
+
+  const activeChordCombo =
+    hoveredCombo ?? (harmonyRule === 'none' ? matchingCombos[0] ?? null : null);
+  const chordPolygonIds = useMemo(
+    () => (activeChordCombo ? activeChordCombo.colors.map((c) => c.id) : []),
+    [activeChordCombo]
+  );
 
   const hasActiveFilters = volumeFilter !== 'all' || toneFilter !== 'all' || hasKanjiOnly;
 
@@ -153,11 +178,45 @@ export const ColorWheelPage: React.FC<ColorWheelPageProps> = ({
       {/* Main Dedicated Color Wheel Layout */}
       {filteredColors.length > 0 ? (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-7 space-y-3">
+            {/* Geometric Harmony Rule Bar */}
+            <div className="rounded-xl border border-stone-300/70 dark:border-stone-800 bg-white/80 dark:bg-stone-900/80 px-3.5 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs shadow-xs">
+              <div className="flex items-center gap-1.5 text-stone-700 dark:text-stone-300 font-medium">
+                <Compass size={14} className="text-teal-700 dark:text-teal-400" />
+                <span>Harmony Finder:</span>
+              </div>
+              <div
+                role="group"
+                aria-label="Geometric harmony rule"
+                className="inline-flex flex-wrap rounded-lg p-0.5 bg-stone-200/60 dark:bg-stone-800 border border-stone-300/40 dark:border-stone-700/60"
+              >
+                {(['none', 'complementary', 'split', 'triadic', 'analogous'] as const).map(
+                  (rule) => (
+                    <button
+                      type="button"
+                      key={rule}
+                      aria-pressed={harmonyRule === rule}
+                      onClick={() => setHarmonyRule(rule)}
+                      title={HARMONY_RULE_META[rule].description}
+                      className={`px-2 py-1 rounded-md font-medium transition-colors cursor-pointer ${
+                        harmonyRule === rule
+                          ? 'bg-white dark:bg-stone-900 text-teal-800 dark:text-teal-300 shadow-xs'
+                          : 'text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-200'
+                      }`}
+                    >
+                      {HARMONY_RULE_META[rule].label}
+                    </button>
+                  )
+                )}
+              </div>
+            </div>
+
             <WadaColorWheel
               colors={filteredColors}
               onSelectColor={setSelectedColor}
               selectedIds={activeColor ? [activeColor.id] : []}
+              chordPolygonIds={chordPolygonIds}
+              harmonyHighlightIds={harmonyHighlightIds}
             />
           </div>
 
@@ -229,11 +288,60 @@ export const ColorWheelPage: React.FC<ColorWheelPageProps> = ({
                     </button>
                   </div>
 
+                  {/* Geometric Harmony Suggestions */}
+                  {harmonyRule !== 'none' && harmonyGroups.length > 0 && (
+                    <div className="pt-2 border-t border-stone-200 dark:border-stone-800 space-y-2">
+                      <div className="flex items-center justify-between text-stone-700 dark:text-stone-300 font-medium">
+                        <span className="flex items-center gap-1.5">
+                          <Compass size={13} className="text-teal-700 dark:text-teal-400" />
+                          <span>{HARMONY_RULE_META[harmonyRule].label} Archival Matches:</span>
+                        </span>
+                        <span className="text-[10px] font-code text-stone-400">
+                          {HARMONY_RULE_META[harmonyRule].anglesDeg.map((d) => `+${d}°`).join(' / ')}
+                        </span>
+                      </div>
+                      <div className="space-y-1.5">
+                        {harmonyGroups.map((group) => (
+                          <div key={group.angleDeg} className="space-y-1">
+                            <div className="text-[10px] font-code text-teal-700 dark:text-teal-400">
+                              Target {group.targetHueDeg}° (+{group.angleDeg}°)
+                            </div>
+                            <div className="grid grid-cols-3 gap-1.5">
+                              {group.matches.map((match) => (
+                                <button
+                                  type="button"
+                                  key={match.id}
+                                  onClick={() => setSelectedColor(match)}
+                                  className="flex items-center gap-1.5 p-1.5 rounded-lg border border-stone-200 dark:border-stone-800 hover:border-teal-600/60 bg-stone-50/70 dark:bg-stone-950/40 text-left cursor-pointer transition-colors"
+                                >
+                                  <span
+                                    style={{ backgroundColor: match.hex }}
+                                    className="w-4 h-4 rounded shrink-0 border border-black/20"
+                                  />
+                                  <span className="truncate text-[10px] font-medium text-stone-800 dark:text-stone-200">
+                                    #{match.id} {match.name}
+                                  </span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Harmonies Featuring This Swatch */}
                   <div className="pt-2 border-t border-stone-200 dark:border-stone-800 space-y-2">
-                    <div className="flex items-center gap-1.5 text-stone-600 dark:text-stone-300 font-medium">
-                      <Sparkles size={13} className="text-amber-700 dark:text-amber-400" />
-                      <span>Appears in {matchingCombos.length}+ Harmonies:</span>
+                    <div className="flex items-center justify-between text-stone-600 dark:text-stone-300 font-medium">
+                      <span className="flex items-center gap-1.5">
+                        <Sparkles size={13} className="text-amber-700 dark:text-amber-400" />
+                        <span>Appears in {matchingCombos.length}+ Harmonies:</span>
+                      </span>
+                      {matchingCombos.length > 0 && (
+                        <span className="text-[10px] font-code text-stone-400">
+                          Hover to trace chord
+                        </span>
+                      )}
                     </div>
 
                     {matchingCombos.length > 0 ? (
@@ -243,6 +351,10 @@ export const ColorWheelPage: React.FC<ColorWheelPageProps> = ({
                             type="button"
                             key={`${combo.volume}-${combo.id}`}
                             onClick={() => onSelectCombo(combo)}
+                            onMouseEnter={() => setHoveredCombo(combo)}
+                            onMouseLeave={() => setHoveredCombo(null)}
+                            onFocus={() => setHoveredCombo(combo)}
+                            onBlur={() => setHoveredCombo(null)}
                             className="w-full flex items-center justify-between gap-2 p-2 rounded-lg border border-stone-200 dark:border-stone-800 hover:border-amber-700/60 bg-stone-50/70 dark:bg-stone-950/40 text-left cursor-pointer transition-colors"
                           >
                             <span className="flex h-4 w-14 rounded overflow-hidden border border-black/15 shrink-0">

@@ -1,12 +1,14 @@
 import React, { useMemo, useRef, useState } from 'react';
 import { ColorItem } from '../types/color';
 import { formatOklch, getIdealTextColor } from '../utils/colorUtils';
-import { findNearestWheelNode, layoutColorWheelPoints } from '../utils/spectrumLayout';
+import { findNearestWheelNode, layoutColorWheelPoints, WheelNode } from '../utils/spectrumLayout';
 
 interface WadaColorWheelProps {
   colors: ColorItem[];
   onSelectColor: (color: ColorItem) => void;
   selectedIds?: number[];
+  chordPolygonIds?: number[];
+  harmonyHighlightIds?: number[];
   activeSlotLabel?: string;
   title?: string;
   subtitle?: string;
@@ -26,6 +28,8 @@ export const WadaColorWheel: React.FC<WadaColorWheelProps> = ({
   colors,
   onSelectColor,
   selectedIds = [],
+  chordPolygonIds = [],
+  harmonyHighlightIds = [],
   activeSlotLabel,
   title,
   subtitle,
@@ -36,7 +40,31 @@ export const WadaColorWheel: React.FC<WadaColorWheelProps> = ({
   const wheelBoxRef = useRef<HTMLDivElement>(null);
 
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
+  const chordSet = useMemo(() => new Set(chordPolygonIds), [chordPolygonIds]);
+  const harmonySet = useMemo(() => new Set(harmonyHighlightIds), [harmonyHighlightIds]);
   const nodes = useMemo(() => layoutColorWheelPoints(colors), [colors]);
+  const nodeById = useMemo(() => {
+    const map = new Map<number, WheelNode>();
+    for (const n of nodes) map.set(n.color.id, n);
+    return map;
+  }, [nodes]);
+
+  const chordNodes = useMemo(
+    () =>
+      chordPolygonIds
+        .map((id) => nodeById.get(id))
+        .filter((n): n is WheelNode => Boolean(n)),
+    [chordPolygonIds, nodeById]
+  );
+
+  const anchorNode = selectedIds.length > 0 ? nodeById.get(selectedIds[0]) ?? null : null;
+  const harmonyNodes = useMemo(
+    () =>
+      harmonyHighlightIds
+        .map((id) => nodeById.get(id))
+        .filter((n): n is WheelNode => Boolean(n)),
+    [harmonyHighlightIds, nodeById]
+  );
 
   const getCoordsFromPointer = (e: React.MouseEvent<HTMLDivElement>) => {
     const el = wheelBoxRef.current;
@@ -198,6 +226,49 @@ export const WadaColorWheel: React.FC<WadaColorWheelProps> = ({
                 />
               );
             })}
+
+            {/* Geometric Archival Combination Chord Polygon */}
+            {chordNodes.length === 2 && (
+              <line
+                data-testid="wheel-chord-shape"
+                x1={chordNodes[0].xPct}
+                y1={chordNodes[0].yPct}
+                x2={chordNodes[1].xPct}
+                y2={chordNodes[1].yPct}
+                stroke="#B45309"
+                strokeOpacity="0.82"
+                strokeWidth="0.7"
+                strokeDasharray="1.5 1.1"
+              />
+            )}
+            {chordNodes.length >= 3 && (
+              <polygon
+                data-testid="wheel-chord-shape"
+                points={chordNodes.map((n) => `${n.xPct},${n.yPct}`).join(' ')}
+                fill="rgba(217,119,6,0.11)"
+                stroke="#B45309"
+                strokeOpacity="0.82"
+                strokeWidth="0.65"
+                strokeLinejoin="round"
+              />
+            )}
+
+            {/* Geometric Harmony Finder Spokes */}
+            {anchorNode &&
+              harmonyNodes.map((target) => (
+                <line
+                  key={`harmony-spoke-${target.color.id}`}
+                  data-testid="wheel-harmony-spoke"
+                  x1={anchorNode.xPct}
+                  y1={anchorNode.yPct}
+                  x2={target.xPct}
+                  y2={target.yPct}
+                  stroke="#0F766E"
+                  strokeOpacity="0.68"
+                  strokeWidth="0.55"
+                  strokeDasharray="1.3 1"
+                />
+              ))}
           </svg>
 
           {/* Outer Hue Degree Labels */}
@@ -221,6 +292,8 @@ export const WadaColorWheel: React.FC<WadaColorWheelProps> = ({
           {/* Swatch Pigment Dots */}
           {nodes.map(({ color, xPct, yPct, sizePx }) => {
             const isSelected = selectedSet.has(color.id);
+            const isChordMember = chordSet.has(color.id) && !isSelected;
+            const isHarmonyMatch = harmonySet.has(color.id) && !isSelected;
             const dotSize = compact ? Math.max(11, sizePx - 2) : sizePx;
             return (
               <button
@@ -247,6 +320,10 @@ export const WadaColorWheel: React.FC<WadaColorWheelProps> = ({
                 className={`absolute rounded-full transition-transform cursor-pointer flex items-center justify-center text-[8px] font-code font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 hover:scale-150 hover:z-30 focus:scale-150 focus:z-30 ${
                   isSelected
                     ? 'ring-2 ring-amber-500 ring-offset-2 ring-offset-white dark:ring-offset-stone-900 scale-125 z-20 border border-black/40'
+                    : isHarmonyMatch
+                    ? 'ring-2 ring-teal-600 ring-offset-1 ring-offset-white dark:ring-offset-stone-900 scale-120 z-10 border border-black/35'
+                    : isChordMember
+                    ? 'ring-2 ring-amber-600/80 ring-offset-1 ring-offset-white dark:ring-offset-stone-900 scale-115 z-10 border border-black/35'
                     : 'border border-black/30 dark:border-white/35 shadow-xs'
                 }`}
               >

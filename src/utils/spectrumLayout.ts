@@ -171,3 +171,85 @@ export function findNearestWheelNode(
   }
   return best;
 }
+
+export type HarmonyRule = 'none' | 'complementary' | 'split' | 'triadic' | 'analogous';
+
+export const HARMONY_RULE_META: Record<
+  HarmonyRule,
+  { label: string; anglesDeg: number[]; description: string }
+> = {
+  none: {
+    label: 'Off',
+    anglesDeg: [],
+    description: 'Archival combination chords only',
+  },
+  complementary: {
+    label: 'Complementary',
+    anglesDeg: [180],
+    description: '180° direct opposite pigment across the wheel',
+  },
+  split: {
+    label: 'Split-Comp',
+    anglesDeg: [150, 210],
+    description: '150° & 210° split-complementary triad',
+  },
+  triadic: {
+    label: 'Triadic',
+    anglesDeg: [120, 240],
+    description: '120° & 240° equilateral triad',
+  },
+  analogous: {
+    label: 'Analogous',
+    anglesDeg: [30, 330],
+    description: '±30° neighboring analogous hues',
+  },
+};
+
+export interface HarmonyMatchGroup {
+  angleDeg: number;
+  targetHueDeg: number;
+  matches: ColorItem[];
+}
+
+function angularDiffDeg(a: number, b: number): number {
+  const diff = Math.abs(a - b) % 360;
+  return diff > 180 ? 360 - diff : diff;
+}
+
+/**
+ * Finds the closest historical Wada pigments matching classic geometric hue rules
+ * relative to an anchor swatch.
+ */
+export function findHarmonyMatches(
+  anchor: ColorItem,
+  candidates: ColorItem[],
+  rule: HarmonyRule,
+  perAngleLimit = 3
+): HarmonyMatchGroup[] {
+  const angles = HARMONY_RULE_META[rule].anglesDeg;
+  if (angles.length === 0) return [];
+
+  const [anchorHue, , anchorLight] = rgbToHsl(anchor.rgb);
+  const chromaticPool = candidates.filter((c) => c.id !== anchor.id && rgbToHsl(c.rgb)[1] >= 0.09);
+  const pool = chromaticPool.length >= perAngleLimit ? chromaticPool : candidates.filter((c) => c.id !== anchor.id);
+
+  return angles.map((angleOffset) => {
+    const targetHueDeg = Math.round((anchorHue + angleOffset) % 360);
+    const ranked = pool
+      .map((c) => {
+        const [h, , l] = rgbToHsl(c.rgb);
+        const hueScore = angularDiffDeg(h, targetHueDeg);
+        const toneTiebreak = Math.abs(l - anchorLight) * 6;
+        return { color: c, score: hueScore + toneTiebreak };
+      })
+      .sort((a, b) => a.score - b.score || a.color.id - b.color.id)
+      .slice(0, perAngleLimit)
+      .map((entry) => entry.color);
+
+    return {
+      angleDeg: angleOffset,
+      targetHueDeg,
+      matches: ranked,
+    };
+  });
+}

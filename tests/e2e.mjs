@@ -208,6 +208,7 @@ async function run() {
       document.fonts.load('700 24px "Cinzel"'),
       document.fonts.load('400 14px "Plus Jakarta Sans"'),
       document.fonts.load('400 12px "JetBrains Mono"'),
+      document.fonts.load('700 18px "Noto Serif JP"', '三造'),
     ])`);
     const baselineAudit = await client.eval(`(() => {
       const headerCount = document.querySelectorAll('header').length;
@@ -218,19 +219,23 @@ async function run() {
         if (txt.length > 0) return false;
         return !(b.getAttribute('aria-label') || b.getAttribute('title'));
       }).length;
+      const externalGoogleFonts = document.querySelectorAll('link[href*="fonts.googleapis.com"]').length;
       const fontsLoaded = {
         cinzel: document.fonts.check('700 24px "Cinzel"'),
         jakarta: document.fonts.check('400 14px "Plus Jakarta Sans"'),
         mono: document.fonts.check('400 12px "JetBrains Mono"'),
+        notoJp: document.fonts.check('700 18px "Noto Serif JP"', '三造'),
       };
-      return { headerCount, mainCount, unlabelledIconBtns, fontsLoaded };
+      return { headerCount, mainCount, unlabelledIconBtns, externalGoogleFonts, fontsLoaded };
     })()`);
     assert.equal(baselineAudit.headerCount, 1);
     assert.equal(baselineAudit.mainCount, 1);
     assert.equal(baselineAudit.unlabelledIconBtns, 0);
+    assert.equal(baselineAudit.externalGoogleFonts, 0);
     assert.equal(baselineAudit.fontsLoaded.cinzel, true);
     assert.equal(baselineAudit.fontsLoaded.jakarta, true);
     assert.equal(baselineAudit.fontsLoaded.mono, true);
+    assert.equal(baselineAudit.fontsLoaded.notoJp, true);
 
     const getRects = async () =>
       client.eval(`(() => {
@@ -537,15 +542,15 @@ async function run() {
     await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Reset').click()`);
     await new Promise((r) => setTimeout(r, 80));
 
-    // 10. Switch to Master Colors, test Kanji (44) filter, 2D Spectrum Map, Show #IDs, and URL sync
+    // 10. Switch to Master Colors, test Kanji (160) filter, 2D Spectrum Map, Show #IDs, and URL sync
     await client.eval(`Array.from(document.querySelectorAll('button[role="tab"]')).find(b => b.textContent.includes('Master Colors')).click()`);
     await new Promise((r) => setTimeout(r, 100));
-    await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Kanji (44)')).click()`);
+    await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Kanji (160)')).click()`);
     await new Promise((r) => setTimeout(r, 80));
-    assert.equal(await client.eval(`document.body.innerText.includes('(Showing 44)')`), true);
+    assert.equal(await client.eval(`document.body.innerText.includes('(Showing 160)')`), true);
 
     await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Spectrum').click()`);
-    assert.equal(await waitForText('2D Hue × Lightness Spectrum (44 Swatches)'), true);
+    assert.equal(await waitForText('2D Hue × Lightness Spectrum (160 Swatches)'), true);
 
     const mapUrl = await client.eval(`window.location.search`);
     assert.ok(mapUrl.includes('view=colors') && mapUrl.includes('layout=map') && mapUrl.includes('kanji=1'), `Expected map/kanji params in ${mapUrl}`);
@@ -555,19 +560,24 @@ async function run() {
     const node5Label = await client.eval(`document.querySelector('button[aria-label^="#5 "]')?.textContent?.trim()`);
     assert.equal(node5Label, '5');
 
-    // 10b. Navigate to the separate Color Wheel page (?view=wheel) — verify no Menswear UI is forced here
+    // 10b. Navigate to the separate Color Wheel page (?view=wheel) — verify geometric chords & Harmony Finder
     await client.eval(`Array.from(document.querySelectorAll('header button[role="tab"]')).find(b => b.textContent.includes('Color Wheel')).click()`);
-    assert.equal(await waitForText('360° Color Wheel Chooser (44 / 171 Pigments)'), true);
+    assert.equal(await waitForText('360° Color Wheel Chooser (160 / 171 Pigments)'), true);
     const wheelPageUrl = await client.eval(`window.location.search`);
     assert.ok(wheelPageUrl.includes('view=wheel'), `Expected view=wheel in ${wheelPageUrl}`);
     assert.equal(await client.eval(`document.querySelector('section[aria-label="Menswear Garment Color Studio"]')`), null);
 
-    await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Kanji (44)')).click()`);
+    await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Kanji (160)')).click()`);
     assert.equal(await waitForText('360° Color Wheel Chooser (171 / 171 Pigments)'), true);
-    await client.eval(`document.querySelector('section[aria-label="Sanzo Wada 360° Color Wheel Page"] button[aria-label^="#14 "]')?.click()`);
-    assert.equal(await waitForText('Raw Sienna'), true);
+    await client.eval(`document.querySelector('section[aria-label="Sanzo Wada 360° Color Wheel Page"] button[aria-label^="#29 "]')?.click()`);
+    assert.equal(await waitForText('Carmine Red'), true);
+    assert.equal(await client.eval(`Boolean(document.querySelector('[data-testid="wheel-chord-shape"]'))`), true);
 
-    // 10c. Navigate to the separate Menswear page (?view=menswear) — verify no Color Wheel is forced here
+    await client.eval(`Array.from(document.querySelectorAll('[aria-label="Geometric harmony rule"] button')).find(b => b.textContent.trim() === 'Triadic')?.click()`);
+    assert.equal(await waitForText('Triadic Archival Matches:'), true);
+    assert.equal(await client.eval(`document.querySelectorAll('[data-testid="wheel-harmony-spoke"]').length >= 2`), true);
+
+    // 10c. Navigate to the separate Menswear page (?view=menswear) — verify personalization, patterns, URL sync & exports
     await client.eval(`Array.from(document.querySelectorAll('header button[role="tab"]')).find(b => b.textContent.includes('Menswear')).click()`);
     assert.equal(await waitForText('Menswear Garment Color Chooser'), true);
     assert.equal(await waitForText('All Wada Swatches (171)'), true);
@@ -580,6 +590,42 @@ async function run() {
     await new Promise((r) => setTimeout(r, 50));
     await client.eval(`Array.from(document.querySelectorAll('section[aria-label="Menswear Garment Color Studio"] button')).find(b => b.textContent.includes('#14') && b.textContent.includes('Raw Sienna'))?.click()`);
     assert.equal(await waitForText('Editing') && await waitForText('#14 Raw Sienna'), true);
+
+    // Switch skin complexion, studio lighting, outerwear texture & two-tone pinstripe pattern
+    await client.eval(`document.querySelector('button[aria-label="Skin tone Warm Olive"]')?.click()`);
+    await client.eval(`document.querySelector('button[aria-label="Lighting Evening Gallery"]')?.click()`);
+    await client.eval(`(() => {
+      const sel = document.querySelector('select[aria-label="Material texture for outerwear"]');
+      const setter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, 'value').set;
+      setter.call(sel, 'corduroy');
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+    })()`);
+    await client.eval(`(() => {
+      const sel = document.querySelector('select[aria-label="Pattern weave for outerwear"]');
+      const setter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, 'value').set;
+      setter.call(sel, 'pinstripe');
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+    })()`);
+    await new Promise((r) => setTimeout(r, 80));
+    const hasTextureAndPatternDefs = await client.eval(`document.querySelectorAll('svg[aria-label*="Menswear lookbook"] defs pattern').length >= 6`);
+    assert.equal(hasTextureAndPatternDefs, true);
+    const enrichedMenswearUrl = await client.eval(`window.location.search`);
+    assert.ok(
+      enrichedMenswearUrl.includes('mskin=olive') &&
+        enrichedMenswearUrl.includes('mlight=evening-gallery') &&
+        enrichedMenswearUrl.includes('mpats=pinstripe'),
+      `Expected enriched menswear URL params in ${enrichedMenswearUrl}`
+    );
+
+    // Trigger SVG Lookbook export & Pin Menswear palette into Compare (3/3) alongside Vol. 1 palettes
+    await client.eval(`document.querySelector('button[aria-label="Export menswear SVG lookbook"]')?.click()`);
+    await client.eval(`document.querySelector('button[aria-label="Pin menswear palette to compare"]')?.click()`);
+    assert.equal(await waitForText('Compare (3/3)'), true);
+    await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Compare (3/3)')).click()`);
+    assert.equal(await waitForText('Palette Comparison (3 / 3)'), true);
+    assert.equal(await waitForText('Custom Mix •'), true);
+    await client.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape' });
+    await new Promise((r) => setTimeout(r, 80));
 
     // Switch through diverse male wardrobe silhouettes (Streetwear hoodie/bomber/denim/sneakers, Summer Shorts, Haori)
     await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Streetwear Look').click()`);
@@ -605,11 +651,12 @@ async function run() {
     const errorsBeforeDeepLink = await client.eval(`window.__errors`);
     assert.deepEqual(errorsBeforeDeepLink, [], `Unexpected page errors: ${JSON.stringify(errorsBeforeDeepLink)}`);
 
-    // 11. Navigate to shareable custom mix URL (?mix=1,74,134) and verify Custom Studio opens automatically with Menswear Look tab
+    // 11. Navigate to shareable custom mix URL (?mix=1,74,134) and verify Custom Studio opens with Compare pin & Menswear tab
     await client.send('Page.navigate', { url: `${BASE_URL}?mix=1,74,134` });
     assert.equal(await waitForText('Custom Studio Palette', 8000), true);
     assert.equal(await waitForText('3-Color Custom Mix', 3000), true);
     assert.equal(await client.eval(`document.querySelector('[role="dialog"]')?.getAttribute('aria-modal')`), 'true');
+    assert.equal(await client.eval(`Boolean(document.querySelector('[role="dialog"] button[aria-label*="to compare"]'))`), true);
 
     await client.eval(`document.querySelector('[role="dialog"] button[role="tab"][aria-label="Menswear Look"]').click()`);
     assert.equal(await waitForText('Palette Mapped to Male Garments'), true);

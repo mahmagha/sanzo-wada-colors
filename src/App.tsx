@@ -17,16 +17,26 @@ import {
   SeasonFilter,
   SortOption,
 } from './types/color';
-import { classifyColorTone } from './utils/colorUtils';
+import { classifyColorTone, createCustomCombination, getCompareKey } from './utils/colorUtils';
 import { hydrateCombinations, SEASON_MONTHS } from './utils/paletteData';
 import { matchesColorTokens, matchesCombinationTokens, sortMasterColors } from './utils/searchUtils';
 import { DEFAULT_URL_STATE, parseUrlState, serializeUrlState } from './utils/urlState';
 import {
+  DEFAULT_GARMENT_PATTERNS,
   DEFAULT_MENSWEAR_OUTFIT,
+  DEFAULT_PATTERN_COLORS,
+  GarmentMaterials,
   GarmentOutfitIds,
+  GarmentPatternColorIds,
+  GarmentPatterns,
+  GarmentPieces,
   GarmentStyle,
+  getDefaultMaterialsForPieces,
+  LightingPreset,
   outfitArrayToRecord,
   serializeOutfitIds,
+  SkinToneId,
+  STYLE_PRESET_PIECES,
 } from './utils/menswearUtils';
 import { Header } from './components/Header';
 import { FiltersBar } from './components/FiltersBar';
@@ -81,6 +91,18 @@ function getComboKey(id: number, volume: number): string {
   return `v${volume}-${id}`;
 }
 
+function resolveCompareCombo(key: string): HydratedCombination | null {
+  const existing = comboByKey.get(key);
+  if (existing) return existing;
+  if (!key.startsWith('mix-')) return null;
+  const colors = key
+    .slice(4)
+    .split('-')
+    .map((s) => colorById.get(Number(s)))
+    .filter((c): c is ColorItem => Boolean(c));
+  return colors.length >= 2 ? createCustomCombination(colors) : null;
+}
+
 function getInitialUrlState() {
   if (typeof window === 'undefined') return parseUrlState('');
   return parseUrlState(window.location.search);
@@ -105,6 +127,25 @@ export const App: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>(initialUrl.viewMode);
   const [colorsLayout, setColorsLayout] = useState<ColorsLayout>(initialUrl.colorsLayout);
   const [menswearStyle, setMenswearStyle] = useState<GarmentStyle>(initialUrl.menswearStyle);
+  const [menswearPieces, setMenswearPieces] = useState<GarmentPieces>(
+    () => initialUrl.menswearPieces ?? { ...STYLE_PRESET_PIECES[initialUrl.menswearStyle] }
+  );
+  const [menswearMaterials, setMenswearMaterials] = useState<GarmentMaterials>(() =>
+    initialUrl.menswearMaterials ??
+    getDefaultMaterialsForPieces(
+      initialUrl.menswearPieces ?? STYLE_PRESET_PIECES[initialUrl.menswearStyle]
+    )
+  );
+  const [menswearPatterns, setMenswearPatterns] = useState<GarmentPatterns>(
+    () => initialUrl.menswearPatterns ?? { ...DEFAULT_GARMENT_PATTERNS }
+  );
+  const [menswearPatternColors, setMenswearPatternColors] = useState<GarmentPatternColorIds>(
+    () => initialUrl.menswearPatternColors ?? { ...DEFAULT_PATTERN_COLORS }
+  );
+  const [menswearSkin, setMenswearSkin] = useState<SkinToneId>(initialUrl.menswearSkin);
+  const [menswearLighting, setMenswearLighting] = useState<LightingPreset>(
+    initialUrl.menswearLighting
+  );
   const [menswearOutfit, setMenswearOutfit] = useState<GarmentOutfitIds>(() => {
     if (initialUrl.menswearIds.length === 5 && initialUrl.menswearIds.every((id) => colorById.has(id))) {
       return outfitArrayToRecord(initialUrl.menswearIds);
@@ -170,7 +211,9 @@ export const App: React.FC = () => {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          return parsed.filter((k) => typeof k === 'string' && comboByKey.has(k)).slice(0, MAX_COMPARE);
+          return parsed
+            .filter((k) => typeof k === 'string' && resolveCompareCombo(k) !== null)
+            .slice(0, MAX_COMPARE);
         }
       }
     } catch {
@@ -226,7 +269,7 @@ export const App: React.FC = () => {
   const comparedCombinations = useMemo(
     () =>
       compareKeys
-        .map((key) => comboByKey.get(key))
+        .map((key) => resolveCompareCombo(key))
         .filter((c): c is HydratedCombination => Boolean(c)),
     [compareKeys]
   );
@@ -341,6 +384,12 @@ export const App: React.FC = () => {
       colorId: selectedColor ? selectedColor.id : null,
       menswearStyle: viewMode === 'menswear' ? menswearStyle : 'suit',
       menswearIds: viewMode === 'menswear' ? serializeOutfitIds(menswearOutfit) : [],
+      menswearSkin: viewMode === 'menswear' ? menswearSkin : 'warm-ivory',
+      menswearLighting: viewMode === 'menswear' ? menswearLighting : 'daylight',
+      menswearPieces: viewMode === 'menswear' ? menswearPieces : null,
+      menswearMaterials: viewMode === 'menswear' ? menswearMaterials : null,
+      menswearPatterns: viewMode === 'menswear' ? menswearPatterns : null,
+      menswearPatternColors: viewMode === 'menswear' ? menswearPatternColors : null,
     });
     const targetUrl = `${window.location.pathname}${query}${window.location.hash}`;
     if (`${window.location.pathname}${window.location.search}${window.location.hash}` !== targetUrl) {
@@ -365,6 +414,12 @@ export const App: React.FC = () => {
     selectedColor,
     menswearStyle,
     menswearOutfit,
+    menswearSkin,
+    menswearLighting,
+    menswearPieces,
+    menswearMaterials,
+    menswearPatterns,
+    menswearPatternColors,
   ]);
 
   // Handle browser back/forward navigation
@@ -374,6 +429,13 @@ export const App: React.FC = () => {
       setViewMode(parsed.viewMode);
       setColorsLayout(parsed.colorsLayout);
       setMenswearStyle(parsed.menswearStyle);
+      const nextPieces = parsed.menswearPieces ?? { ...STYLE_PRESET_PIECES[parsed.menswearStyle] };
+      setMenswearPieces(nextPieces);
+      setMenswearMaterials(parsed.menswearMaterials ?? getDefaultMaterialsForPieces(nextPieces));
+      setMenswearPatterns(parsed.menswearPatterns ?? { ...DEFAULT_GARMENT_PATTERNS });
+      setMenswearPatternColors(parsed.menswearPatternColors ?? { ...DEFAULT_PATTERN_COLORS });
+      setMenswearSkin(parsed.menswearSkin);
+      setMenswearLighting(parsed.menswearLighting);
       if (parsed.menswearIds.length === 5 && parsed.menswearIds.every((id) => colorById.has(id))) {
         setMenswearOutfit(outfitArrayToRecord(parsed.menswearIds));
       }
@@ -438,8 +500,7 @@ export const App: React.FC = () => {
   }, []);
 
   const toggleCompare = useCallback((combo: Combination) => {
-    if (combo.id <= 0) return;
-    const key = getComboKey(combo.id, combo.volume);
+    const key = getCompareKey(combo);
     setCompareKeys((prev) => {
       if (prev.includes(key)) {
         return prev.filter((k) => k !== key);
@@ -447,6 +508,9 @@ export const App: React.FC = () => {
       if (prev.length >= MAX_COMPARE) {
         setToastMessage(`Compare tray holds up to ${MAX_COMPARE} palettes — remove one first`);
         return prev;
+      }
+      if (combo.id === 0) {
+        setToastMessage(`Pinned Custom Mix (${combo.size} swatches) to Compare`);
       }
       return [...prev, key];
     });
@@ -707,6 +771,12 @@ export const App: React.FC = () => {
       viewMode: 'menswear',
       menswearStyle,
       menswearIds: serializeOutfitIds(menswearOutfit),
+      menswearSkin,
+      menswearLighting,
+      menswearPieces,
+      menswearMaterials,
+      menswearPatterns,
+      menswearPatternColors,
     });
     const shareUrl = `${window.location.origin}${window.location.pathname}${query}`;
     handleCopyText(shareUrl, 'Copied share link for Menswear outfit');
@@ -1075,6 +1145,20 @@ export const App: React.FC = () => {
               onChangeStyle={setMenswearStyle}
               outfitIds={menswearOutfit}
               onChangeOutfit={setMenswearOutfit}
+              pieces={menswearPieces}
+              onChangePieces={setMenswearPieces}
+              materials={menswearMaterials}
+              onChangeMaterials={setMenswearMaterials}
+              patterns={menswearPatterns}
+              onChangePatterns={setMenswearPatterns}
+              patternColors={menswearPatternColors}
+              onChangePatternColors={setMenswearPatternColors}
+              skinTone={menswearSkin}
+              onChangeSkinTone={setMenswearSkin}
+              lighting={menswearLighting}
+              onChangeLighting={setMenswearLighting}
+              onPinCompare={toggleCompare}
+              compareSet={compareSet}
               onSelectCombo={(combo) => {
                 setReturnCombo(null);
                 setSelectedCombo(combo);
@@ -1111,9 +1195,9 @@ export const App: React.FC = () => {
           <div className="flex items-center gap-1.5">
             {comparedCombinations.map((combo) => (
               <div
-                key={`${combo.volume}-${combo.id}`}
+                key={getCompareKey(combo)}
                 className="flex h-5 w-10 rounded overflow-hidden border border-white/20"
-                title={`Vol.${combo.volume} № ${combo.id}`}
+                title={combo.id === 0 ? `Custom Mix (${combo.size})` : `Vol.${combo.volume} № ${combo.id}`}
               >
                 {combo.colors.map((c) => (
                   <div key={c.id} style={{ backgroundColor: c.hex }} className="flex-1 h-full" />
@@ -1168,10 +1252,7 @@ export const App: React.FC = () => {
               selectedCombo.id > 0 &&
               favoriteSet.has(getComboKey(selectedCombo.id, selectedCombo.volume))
             }
-            isCompared={
-              selectedCombo.id > 0 &&
-              compareSet.has(getComboKey(selectedCombo.id, selectedCombo.volume))
-            }
+            isCompared={compareSet.has(getCompareKey(selectedCombo))}
             onToggleFavorite={toggleFavorite}
             onToggleCompare={toggleCompare}
             onCopyText={handleCopyText}
@@ -1181,9 +1262,13 @@ export const App: React.FC = () => {
               setSelectedColor(color);
             }}
             onOpenInMenswear={(_combo, outfit, style) => {
+              const nextPieces = { ...STYLE_PRESET_PIECES[style] };
               setSelectedCombo(null);
               setMenswearOutfit(outfit);
               setMenswearStyle(style);
+              setMenswearPieces(nextPieces);
+              setMenswearMaterials(getDefaultMaterialsForPieces(nextPieces));
+              setMenswearPatterns({ ...DEFAULT_GARMENT_PATTERNS });
               setViewMode('menswear');
             }}
             onPrev={handlePrevCombo}
@@ -1234,8 +1319,8 @@ export const App: React.FC = () => {
           <CompareModal
             combinations={comparedCombinations}
             onClose={() => setCompareOpen(false)}
-            onRemove={(id, volume) =>
-              setCompareKeys((prev) => prev.filter((k) => k !== getComboKey(id, volume)))
+            onRemove={(combo) =>
+              setCompareKeys((prev) => prev.filter((k) => k !== getCompareKey(combo)))
             }
             onClearAll={() => setCompareKeys([])}
             onSelectCombo={(combo) => {
@@ -1253,6 +1338,8 @@ export const App: React.FC = () => {
             selectedIds={customIds}
             onChangeIds={setCustomIds}
             onClose={() => setCustomOpen(false)}
+            onPinCompare={toggleCompare}
+            compareSet={compareSet}
             onLaunchStudio={(combo) => {
               setReturnCombo(null);
               setSelectedCombo(combo);

@@ -19,10 +19,12 @@ import {
   generateTailwindConfig,
   generateTailwindV4Theme,
   getAccessibleBadgeColors,
+  getCompareKey,
   getContrastRatio,
   getDeltaE2000,
   getIdealTextColor,
   getProportionWeights,
+  createCustomCombination,
   hexToRgb,
   normalizeHex,
   rgbToLab,
@@ -239,5 +241,11 @@ describe('SVG & code exporters', () => {
     assert.ok(weightedSvg.includes('(60%)'));
     assert.ok(weightedSvg.includes('(30%)'));
     assert.ok(weightedSvg.includes('(10%)'));
+
+    const hydratedCustom = createCustomCombination([masterColors[0], masterColors[73], masterColors[133]]);
+    assert.equal(hydratedCustom.id, 0);
+    assert.ok(hydratedCustom.maxContrast > 1);
+    assert.equal(getCompareKey(hydratedCustom), 'mix-1-74-134');
+    assert.equal(getCompareKey({ id: 14, volume: 2, colors: [] }), 'v2-14');
   });
 });

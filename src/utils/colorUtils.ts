@@ -1,4 +1,4 @@
-import { ColorItem, Combination, CvdMode, ToneFilter } from '../types/color';
+import { ColorItem, Combination, CvdMode, HydratedCombination, ToneFilter } from '../types/color';
 
 /**
  * Normalize 3- or 6-character hex strings into lowercase `#rrggbb`, or return null if invalid.
@@ -413,6 +413,22 @@ function getComboPrefix(combo: Combination): string {
 function getComboFileBase(combo: Combination): string {
   if (combo.id === 0) return 'sanzo-wada-custom-mix';
   return `sanzo-wada-vol${combo.volume}-combo-${combo.id}`;
+}
+
+export function getCompareKey(combo: Pick<Combination, 'id' | 'volume' | 'colors'>): string {
+  if (combo.id > 0) return `v${combo.volume}-${combo.id}`;
+  return `mix-${combo.colors.map((c) => c.id).join('-')}`;
+}
+
+export function createCustomCombination(colors: ColorItem[]): HydratedCombination {
+  return {
+    id: 0,
+    volume: 1,
+    size: colors.length,
+    colors,
+    maxContrast: getMaxPaletteContrast({ colors }),
+    popularity: 0,
+  };
 }
 
 export function generateCssVariables(

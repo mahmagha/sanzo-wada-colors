@@ -1,7 +1,10 @@
 import { ColorItem, Combination, HydratedCombination } from '../types/color';
 import {
+  createCustomCombination,
+  escapeXml,
   getContrastRatio,
   getDeltaE2000,
+  getIdealTextColor,
   getLuminance,
   hexToRgb,
   rgbToHsl,
@@ -24,6 +27,22 @@ export type BottomCut = 'trousers' | 'chinos' | 'denim' | 'shorts' | 'hakama';
 export type AccentCut = 'tie' | 'scarf' | 'belt-socks' | 'cap-trim' | 'obi';
 export type FootwearCut = 'oxfords' | 'sneakers' | 'loafers' | 'boots' | 'zori';
 
+export type FabricMaterial =
+  | 'worsted-wool'
+  | 'tweed-herringbone'
+  | 'corduroy'
+  | 'cotton-oxford'
+  | 'heavy-twill'
+  | 'selvedge-denim'
+  | 'rib-knit'
+  | 'fleece-jersey'
+  | 'slub-linen'
+  | 'nylon-satin'
+  | 'silk-crepe'
+  | 'full-grain-leather'
+  | 'brushed-suede'
+  | 'canvas-rubber';
+
 export interface GarmentPieces {
   outerwear: OuterwearCut;
   top: TopCut;
@@ -32,11 +51,25 @@ export interface GarmentPieces {
   footwear: FootwearCut;
 }
 
+export type GarmentMaterials = Record<GarmentSlotKey, FabricMaterial>;
+
+export type SkinToneId = 'porcelain' | 'warm-ivory' | 'olive' | 'medium-tan' | 'deep-espresso';
+export type LightingPreset = 'daylight' | 'warm-indoor' | 'evening-gallery';
+export type FabricPattern = 'solid' | 'pinstripe' | 'windowpane' | 'breton' | 'gingham';
+
+export type GarmentPatterns = Record<GarmentSlotKey, FabricPattern>;
+export type GarmentPatternColorIds = Record<GarmentSlotKey, number>;
+
 export interface SavedMenswearOutfit {
   id: string;
   name: string;
   style: GarmentStyle;
   pieces?: GarmentPieces;
+  materials?: GarmentMaterials;
+  patterns?: GarmentPatterns;
+  patternColors?: GarmentPatternColorIds;
+  skinTone?: SkinToneId;
+  lighting?: LightingPreset;
   outfit: GarmentOutfitIds;
 }
 
@@ -154,6 +187,204 @@ const CUT_LABEL_LOOKUP: Record<string, string> = Object.fromEntries([
 export function getSlotDisplayLabel(slot: GarmentSlotKey, pieces: GarmentPieces): string {
   return CUT_LABEL_LOOKUP[`${slot}:${pieces[slot]}`] || slot;
 }
+
+export const FABRIC_MATERIAL_META: Record<FabricMaterial, { label: string }> = {
+  'worsted-wool': { label: 'Worsted Wool' },
+  'tweed-herringbone': { label: 'Herringbone Tweed' },
+  corduroy: { label: 'Ribbed Corduroy' },
+  'cotton-oxford': { label: 'Oxford Cotton' },
+  'heavy-twill': { label: 'Heavy Chinos Twill' },
+  'selvedge-denim': { label: 'Selvedge Denim' },
+  'rib-knit': { label: 'Merino Rib Knit' },
+  'fleece-jersey': { label: 'Brushed Fleece' },
+  'slub-linen': { label: 'Textured Slub Linen' },
+  'nylon-satin': { label: 'Matte Nylon Satin' },
+  'silk-crepe': { label: 'Woven Silk / Crêpe' },
+  'full-grain-leather': { label: 'Full-Grain Leather' },
+  'brushed-suede': { label: 'Napped Suede' },
+  'canvas-rubber': { label: 'Heavy Canvas' },
+};
+
+export const MATERIALS_BY_SLOT: Record<GarmentSlotKey, FabricMaterial[]> = {
+  outerwear: [
+    'worsted-wool',
+    'tweed-herringbone',
+    'corduroy',
+    'heavy-twill',
+    'selvedge-denim',
+    'nylon-satin',
+    'slub-linen',
+    'silk-crepe',
+    'full-grain-leather',
+  ],
+  top: [
+    'cotton-oxford',
+    'rib-knit',
+    'fleece-jersey',
+    'slub-linen',
+    'heavy-twill',
+    'corduroy',
+    'silk-crepe',
+  ],
+  bottom: [
+    'worsted-wool',
+    'heavy-twill',
+    'selvedge-denim',
+    'corduroy',
+    'slub-linen',
+    'tweed-herringbone',
+    'silk-crepe',
+  ],
+  accent: [
+    'silk-crepe',
+    'rib-knit',
+    'tweed-herringbone',
+    'heavy-twill',
+    'full-grain-leather',
+    'brushed-suede',
+    'slub-linen',
+  ],
+  footwear: [
+    'full-grain-leather',
+    'brushed-suede',
+    'canvas-rubber',
+    'silk-crepe',
+  ],
+};
+
+export function getDefaultMaterialForCut(
+  slot: GarmentSlotKey,
+  cut: string
+): FabricMaterial {
+  switch (`${slot}:${cut}`) {
+    case 'outerwear:blazer':
+    case 'bottom:trousers':
+      return 'worsted-wool';
+    case 'outerwear:overcoat':
+      return 'tweed-herringbone';
+    case 'outerwear:bomber':
+      return 'nylon-satin';
+    case 'outerwear:chore':
+    case 'bottom:chinos':
+    case 'accent:cap-trim':
+      return 'heavy-twill';
+    case 'outerwear:haori':
+    case 'top:kimono':
+    case 'bottom:hakama':
+    case 'accent:tie':
+    case 'accent:obi':
+      return 'silk-crepe';
+    case 'top:dress-shirt':
+      return 'cotton-oxford';
+    case 'top:crewneck':
+    case 'top:turtleneck':
+    case 'accent:scarf':
+      return 'rib-knit';
+    case 'top:hoodie':
+      return 'fleece-jersey';
+    case 'top:camp-shirt':
+    case 'bottom:shorts':
+      return 'slub-linen';
+    case 'bottom:denim':
+      return 'selvedge-denim';
+    case 'footwear:loafers':
+      return 'brushed-suede';
+    case 'footwear:sneakers':
+      return 'canvas-rubber';
+    case 'footwear:zori':
+      return 'silk-crepe';
+    case 'accent:belt-socks':
+    case 'footwear:oxfords':
+    case 'footwear:boots':
+    default:
+      return 'full-grain-leather';
+  }
+}
+
+export function getDefaultMaterialsForPieces(pieces: GarmentPieces): GarmentMaterials {
+  return {
+    outerwear: getDefaultMaterialForCut('outerwear', pieces.outerwear),
+    top: getDefaultMaterialForCut('top', pieces.top),
+    bottom: getDefaultMaterialForCut('bottom', pieces.bottom),
+    accent: getDefaultMaterialForCut('accent', pieces.accent),
+    footwear: getDefaultMaterialForCut('footwear', pieces.footwear),
+  };
+}
+
+export const SKIN_TONE_PRESETS: Record<
+  SkinToneId,
+  { label: string; base: string; shade: string; hair: string }
+> = {
+  porcelain: { label: 'Porcelain', base: '#F2DFD3', shade: '#DEC3B4', hair: '#4A3B32' },
+  'warm-ivory': { label: 'Warm Ivory', base: '#E7D1C2', shade: '#D7BDA9', hair: '#3B322C' },
+  olive: { label: 'Warm Olive', base: '#D4B699', shade: '#BF9B7D', hair: '#2A231E' },
+  'medium-tan': { label: 'Medium Tan', base: '#B58969', shade: '#9A6E50', hair: '#201A17' },
+  'deep-espresso': { label: 'Deep Espresso', base: '#6F4934', shade: '#583725', hair: '#151211' },
+};
+
+export const LIGHTING_PRESET_META: Record<
+  LightingPreset,
+  {
+    label: string;
+    stageBgHex: string;
+    stageTextHex: string;
+    ambientFilter?: string;
+    isDarkStage: boolean;
+  }
+> = {
+  daylight: {
+    label: 'Daylight Washi',
+    stageBgHex: '#FAF7F2',
+    stageTextHex: '#1C1A17',
+    isDarkStage: false,
+  },
+  'warm-indoor': {
+    label: 'Warm Tungsten',
+    stageBgHex: '#F3E7D4',
+    stageTextHex: '#2A2018',
+    ambientFilter: 'sepia(0.14) saturate(1.08) brightness(0.98)',
+    isDarkStage: false,
+  },
+  'evening-gallery': {
+    label: 'Evening Gallery',
+    stageBgHex: '#202026',
+    stageTextHex: '#F4F2EE',
+    ambientFilter: 'contrast(1.06) brightness(0.88)',
+    isDarkStage: true,
+  },
+};
+
+export const FABRIC_PATTERN_META: Record<FabricPattern, { label: string }> = {
+  solid: { label: 'Solid Weave' },
+  pinstripe: { label: 'Chalk Pinstripe' },
+  windowpane: { label: 'Windowpane Check' },
+  breton: { label: 'Breton Stripe' },
+  gingham: { label: 'Gingham Check' },
+};
+
+export const PATTERNS_BY_SLOT: Record<GarmentSlotKey, FabricPattern[]> = {
+  outerwear: ['solid', 'pinstripe', 'windowpane'],
+  top: ['solid', 'breton', 'gingham', 'pinstripe'],
+  bottom: ['solid', 'pinstripe', 'windowpane'],
+  accent: ['solid'],
+  footwear: ['solid'],
+};
+
+export const DEFAULT_GARMENT_PATTERNS: GarmentPatterns = {
+  outerwear: 'solid',
+  top: 'solid',
+  bottom: 'solid',
+  accent: 'solid',
+  footwear: 'solid',
+};
+
+export const DEFAULT_PATTERN_COLORS: GarmentPatternColorIds = {
+  outerwear: 154, // White chalk line
+  top: 130, // Dark Tyrian Blue thread
+  bottom: 154, // White chalk line
+  accent: 154,
+  footwear: 154,
+};
 
 export const GARMENT_STYLE_META: Record<
   GarmentStyle,
@@ -412,7 +643,9 @@ export function analyzeOutfitHarmony(
 export function generateMenswearCss(
   style: GarmentStyle,
   outfit: Record<GarmentSlotKey, ColorItem>,
-  pieces: GarmentPieces = STYLE_PRESET_PIECES[style]
+  pieces: GarmentPieces = STYLE_PRESET_PIECES[style],
+  materials: GarmentMaterials = getDefaultMaterialsForPieces(pieces),
+  patterns: GarmentPatterns = DEFAULT_GARMENT_PATTERNS
 ): string {
   const activeSlots =
     pieces.outerwear === 'none'
@@ -420,7 +653,171 @@ export function generateMenswearCss(
       : GARMENT_SLOT_ORDER;
   const lines = activeSlots.map((slot) => {
     const c = outfit[slot];
-    return `  --garment-${slot}: ${c.hex}; /* ${getSlotDisplayLabel(slot, pieces)}: ${c.name}${c.ja ? ` (${c.ja})` : ''} (#${c.id}) */`;
+    const matLabel = FABRIC_MATERIAL_META[materials[slot]].label;
+    const patLabel =
+      patterns[slot] !== 'solid' ? ` • ${FABRIC_PATTERN_META[patterns[slot]].label}` : '';
+    return `  --garment-${slot}: ${c.hex}; /* ${getSlotDisplayLabel(slot, pieces)} (${matLabel}${patLabel}): ${c.name}${c.ja ? ` (${c.ja})` : ''} (#${c.id}) */`;
   });
   return `/* Sanzo Wada Menswear Palette — ${GARMENT_STYLE_META[style].label} */\n:root {\n${lines.join('\n')}\n}`;
+}
+
+export function buildMenswearLookbookSvg(params: {
+  croquisSvgMarkup: string;
+  style: GarmentStyle;
+  pieces: GarmentPieces;
+  materials: GarmentMaterials;
+  patterns: GarmentPatterns;
+  outfit: Record<GarmentSlotKey, ColorItem>;
+  skinTone: SkinToneId;
+  lighting: LightingPreset;
+}): string {
+  const {
+    croquisSvgMarkup,
+    style,
+    pieces,
+    materials,
+    patterns,
+    outfit,
+    skinTone,
+    lighting,
+  } = params;
+  const width = 880;
+  const height = 720;
+  const stageMeta = LIGHTING_PRESET_META[lighting];
+  const skinMeta = SKIN_TONE_PRESETS[skinTone];
+  const styleMeta = GARMENT_STYLE_META[style];
+
+  // Clean inner SVG markup from live croquis element so nested <svg> renders cleanly
+  const cleanCroquis = croquisSvgMarkup
+    .replace(/^<svg[^>]*>/, '')
+    .replace(/<\/svg>\s*$/, '');
+
+  const activeSlots =
+    pieces.outerwear === 'none'
+      ? GARMENT_SLOT_ORDER.filter((s) => s !== 'outerwear')
+      : GARMENT_SLOT_ORDER;
+
+  const slotRowsSvg = activeSlots
+    .map((slot, idx) => {
+      const c = outfit[slot];
+      const txt = getIdealTextColor(c.hex);
+      const y = 175 + idx * 92;
+      const cutName = escapeXml(getSlotDisplayLabel(slot, pieces));
+      const matName = escapeXml(FABRIC_MATERIAL_META[materials[slot]].label);
+      const patName =
+        patterns[slot] !== 'solid'
+          ? ` • ${escapeXml(FABRIC_PATTERN_META[patterns[slot]].label)}`
+          : '';
+      const colorTitle = escapeXml(`#${c.id} ${c.name}${c.ja ? ` (${c.ja})` : ''}`);
+      return `
+      <g transform="translate(420, ${y})">
+        <rect width="412" height="76" rx="10" fill="${escapeXml(c.hex)}" stroke="#2B2B2B" stroke-opacity="0.18" />
+        <text x="16" y="25" fill="${txt}" opacity="0.82" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="11">${cutName} • ${matName}${patName}</text>
+        <text x="16" y="50" fill="${txt}" font-family="'Noto Serif JP', Georgia, serif" font-size="17" font-weight="700">${colorTitle}</text>
+        <text x="396" y="50" fill="${txt}" opacity="0.85" text-anchor="end" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="12">${escapeXml(c.hex.toUpperCase())}</text>
+      </g>`;
+    })
+    .join('');
+
+  return `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${width} ${height}" width="${width}" height="${height}">
+  <rect width="100%" height="100%" fill="#FAF7F2" />
+  <rect x="20" y="20" width="${width - 40}" height="${height - 40}" fill="none" stroke="#2B2B2B" stroke-opacity="0.22" stroke-width="1.5" />
+
+  <text x="48" y="64" font-family="'Cinzel', Georgia, serif" font-size="22" font-weight="bold" fill="#1C1A17" letter-spacing="1.5">SANZO WADA — MENSWEAR LOOKBOOK</text>
+  <text x="48" y="92" font-family="'Noto Serif JP', Georgia, serif" font-size="13" fill="#6B665E">${escapeXml(styleMeta.label)} • ${escapeXml(skinMeta.label)} Complexion • ${escapeXml(stageMeta.label)}</text>
+
+  <g transform="translate(790, 44)">
+    <rect width="44" height="44" fill="none" stroke="#B93826" stroke-width="2" rx="5" />
+    <text x="22" y="29" font-family="'Noto Serif JP', Georgia, serif" font-size="16" font-weight="900" fill="#B93826" text-anchor="middle">三造</text>
+  </g>
+
+  <rect x="48" y="120" width="340" height="530" rx="16" fill="${escapeXml(stageMeta.stageBgHex)}" stroke="#2B2B2B" stroke-opacity="0.16" />
+  <svg x="58" y="138" width="320" height="490" viewBox="0 0 360 490">
+    ${cleanCroquis}
+  </svg>
+
+  <text x="420" y="148" font-family="'Cinzel', Georgia, serif" font-size="14" font-weight="bold" fill="#B93826" letter-spacing="1">GARMENT PIGMENTS &amp; TEXTILES</text>
+  ${slotRowsSvg}
+
+  <line x1="48" y1="672" x2="832" y2="672" stroke="#D6CFC2" stroke-width="1" />
+  <text x="48" y="690" font-family="'Noto Serif JP', Georgia, serif" font-size="11" fill="#888177">Haishoku Sōkan Archival Wardrobe Composition • sanzo-wada-colors</text>
+</svg>`.trim();
+}
+
+export function downloadMenswearLookbookSvg(
+  params: Parameters<typeof buildMenswearLookbookSvg>[0]
+): void {
+  const markup = buildMenswearLookbookSvg(params);
+  const blob = new Blob([markup], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `sanzo-wada-menswear-${params.style}.svg`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+export async function downloadMenswearLookbookPng(
+  params: Parameters<typeof buildMenswearLookbookSvg>[0]
+): Promise<void> {
+  if (typeof document !== 'undefined' && document.fonts) {
+    try {
+      await Promise.all([
+        document.fonts.load('700 22px "Cinzel"'),
+        document.fonts.load('400 12px "JetBrains Mono"'),
+        document.fonts.ready,
+      ]);
+    } catch {
+      // Ignore font load errors
+    }
+  }
+  const markup = buildMenswearLookbookSvg(params);
+  const blob = new Blob([markup], { type: 'image/svg+xml;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const i = new Image();
+      i.onload = () => resolve(i);
+      i.onerror = reject;
+      i.src = url;
+    });
+    const scale = 2;
+    const canvas = document.createElement('canvas');
+    canvas.width = 880 * scale;
+    canvas.height = 720 * scale;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Canvas 2D context unavailable');
+    ctx.scale(scale, scale);
+    ctx.drawImage(img, 0, 0, 880, 720);
+    const pngBlob = await new Promise<Blob>((resolve, reject) =>
+      canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('PNG export failed'))), 'image/png')
+    );
+    const pngUrl = URL.createObjectURL(pngBlob);
+    const a = document.createElement('a');
+    a.href = pngUrl;
+    a.download = `sanzo-wada-menswear-${params.style}.png`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(pngUrl);
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+export function menswearOutfitToCombination(
+  outfit: Record<GarmentSlotKey, ColorItem>,
+  pieces: GarmentPieces
+): HydratedCombination {
+  const activeSlots =
+    pieces.outerwear === 'none'
+      ? GARMENT_SLOT_ORDER.filter((s) => s !== 'outerwear')
+      : GARMENT_SLOT_ORDER;
+  const uniqueColors = Array.from(
+    new Map(activeSlots.map((s) => [outfit[s].id, outfit[s]])).values()
+  );
+  return createCustomCombination(uniqueColors);
 }

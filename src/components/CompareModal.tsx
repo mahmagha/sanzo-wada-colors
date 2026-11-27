@@ -1,13 +1,18 @@
 import React, { useRef } from 'react';
 import { X, Copy, Sliders, Trash2, Columns2 } from 'lucide-react';
 import { HydratedCombination } from '../types/color';
-import { classifyColorTone, generateCssVariables, getIdealTextColor } from '../utils/colorUtils';
+import {
+  classifyColorTone,
+  generateCssVariables,
+  getCompareKey,
+  getIdealTextColor,
+} from '../utils/colorUtils';
 import { useModalDialog } from '../utils/useModalDialog';
 
 interface CompareModalProps {
   combinations: HydratedCombination[];
   onClose: () => void;
-  onRemove: (id: number, volume: number) => void;
+  onRemove: (combo: HydratedCombination) => void;
   onClearAll: () => void;
   onSelectCombo: (combo: HydratedCombination) => void;
   onCopyText: (text: string, label: string) => void;
@@ -92,15 +97,18 @@ export const CompareModal: React.FC<CompareModalProps> = ({
             }`}
           >
             {combinations.map((combo) => {
+              const comboKey = getCompareKey(combo);
               const title =
-                combo.volume === 2
+                combo.id === 0
+                  ? `Custom Mix • ${combo.size} Colors`
+                  : combo.volume === 2
                   ? `Vol. 2 Card № ${combo.id.toString().padStart(2, '0')}`
                   : `Vol. 1 № ${combo.id.toString().padStart(3, '0')}`;
               const tones = Array.from(new Set(combo.colors.map((c) => classifyColorTone(c.rgb))));
 
               return (
                 <div
-                  key={`${combo.volume}-${combo.id}`}
+                  key={comboKey}
                   className="flex flex-col rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50/60 dark:bg-stone-950/40 overflow-hidden"
                 >
                   <div className="p-3.5 border-b border-stone-200 dark:border-stone-800 flex items-center justify-between gap-2">
@@ -112,7 +120,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                     </div>
                     <button
                       type="button"
-                      onClick={() => onRemove(combo.id, combo.volume)}
+                      onClick={() => onRemove(combo)}
                       aria-label={`Remove ${title} from comparison`}
                       className="p-1.5 rounded text-stone-400 hover:text-rose-500 hover:bg-stone-200/50 dark:hover:bg-stone-800 cursor-pointer"
                     >

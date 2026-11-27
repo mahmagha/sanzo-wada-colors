@@ -1,6 +1,12 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseUrlState, serializeUrlState } from '../src/utils/urlState';
+import {
+  DEFAULT_GARMENT_PATTERNS,
+  DEFAULT_PATTERN_COLORS,
+  getDefaultMaterialsForPieces,
+  STYLE_PRESET_PIECES,
+} from '../src/utils/menswearUtils';
 
 describe('URL state parsing and serialization', () => {
   it('returns defaults for empty or invalid query params', () => {
@@ -18,8 +24,14 @@ describe('URL state parsing and serialization', () => {
     assert.equal(empty.colorId, null);
     assert.equal(empty.menswearStyle, 'suit');
     assert.deepEqual(empty.menswearIds, []);
+    assert.equal(empty.menswearSkin, 'warm-ivory');
+    assert.equal(empty.menswearLighting, 'daylight');
+    assert.equal(empty.menswearPieces, null);
+    assert.equal(empty.menswearMaterials, null);
+    assert.equal(empty.menswearPatterns, null);
+    assert.equal(empty.menswearPatternColors, null);
 
-    const invalid = parseUrlState('?view=bad&layout=3d&kanji=0&vol=9&season=monsoon&month=13&size=9&tone=neon&sort=foo&csort=bad&swatch=-1&compare=bad,v1-1,v2-5,v9-1,v1-9&combo=bad&mix=999,bad&color=-3&mstyle=tux&outfit=1,2');
+    const invalid = parseUrlState('?view=bad&layout=3d&kanji=0&vol=9&season=monsoon&month=13&size=9&tone=neon&sort=foo&csort=bad&swatch=-1&compare=bad,v1-1,v2-5,v9-1,mix-999-bad,mix-1-74-134,v1-9&combo=bad&mix=999,bad&color=-3&mstyle=tux&outfit=1,2&mskin=alien&mlight=neon&mpieces=bad&mmats=fake&mpats=dots&mpcols=999');
     assert.equal(invalid.viewMode, 'combinations');
     assert.equal(invalid.colorsLayout, 'grid');
     assert.equal(invalid.hasKanjiOnly, false);
@@ -31,12 +43,18 @@ describe('URL state parsing and serialization', () => {
     assert.equal(invalid.sortBy, 'number-asc');
     assert.equal(invalid.colorSort, 'id-asc');
     assert.equal(invalid.swatchId, null);
-    assert.deepEqual(invalid.compareKeys, ['v1-1', 'v2-5', 'v1-9']);
+    assert.deepEqual(invalid.compareKeys, ['v1-1', 'v2-5', 'mix-1-74-134']);
     assert.equal(invalid.comboKey, null);
     assert.deepEqual(invalid.mixIds, []);
     assert.equal(invalid.colorId, null);
     assert.equal(invalid.menswearStyle, 'suit');
     assert.deepEqual(invalid.menswearIds, []);
+    assert.equal(invalid.menswearSkin, 'warm-ivory');
+    assert.equal(invalid.menswearLighting, 'daylight');
+    assert.equal(invalid.menswearPieces, null);
+    assert.equal(invalid.menswearMaterials, null);
+    assert.equal(invalid.menswearPatterns, null);
+    assert.equal(invalid.menswearPatternColors, null);
 
     const dedupedMix = parseUrlState('?mix=1,74,1,134,999,bad');
     assert.deepEqual(dedupedMix.mixIds, [1, 74, 134]);
@@ -56,6 +74,11 @@ describe('URL state parsing and serialization', () => {
   });
 
   it('serializes and round-trips non-default filter and modal state', () => {
+    const resortPieces = { ...STYLE_PRESET_PIECES.resort, outerwear: 'blazer' as const };
+    const resortMats = { ...getDefaultMaterialsForPieces(resortPieces), outerwear: 'slub-linen' as const };
+    const resortPats = { ...DEFAULT_GARMENT_PATTERNS, outerwear: 'pinstripe' as const };
+    const resortPatCols = { ...DEFAULT_PATTERN_COLORS, outerwear: 110 };
+
     const query = serializeUrlState({
       viewMode: 'colors',
       colorsLayout: 'map',
@@ -76,6 +99,12 @@ describe('URL state parsing and serialization', () => {
       colorId: 42,
       menswearStyle: 'resort',
       menswearIds: [110, 42, 82, 14, 87],
+      menswearSkin: 'olive',
+      menswearLighting: 'evening-gallery',
+      menswearPieces: resortPieces,
+      menswearMaterials: resortMats,
+      menswearPatterns: resortPats,
+      menswearPatternColors: resortPatCols,
     });
 
     assert.ok(query.includes('layout=map'));
@@ -83,6 +112,12 @@ describe('URL state parsing and serialization', () => {
     assert.ok(query.includes('mix='));
     assert.ok(query.includes('mstyle=resort'));
     assert.ok(query.includes('outfit='));
+    assert.ok(query.includes('mskin=olive'));
+    assert.ok(query.includes('mlight=evening-gallery'));
+    assert.ok(query.includes('mpieces='));
+    assert.ok(query.includes('mmats='));
+    assert.ok(query.includes('mpats='));
+    assert.ok(query.includes('mpcols='));
 
     const parsed = parseUrlState(query);
     assert.deepEqual(parsed, {
@@ -105,6 +140,12 @@ describe('URL state parsing and serialization', () => {
       colorId: 42,
       menswearStyle: 'resort',
       menswearIds: [110, 42, 82, 14, 87],
+      menswearSkin: 'olive',
+      menswearLighting: 'evening-gallery',
+      menswearPieces: resortPieces,
+      menswearMaterials: resortMats,
+      menswearPatterns: resortPats,
+      menswearPatternColors: resortPatCols,
     });
 
     assert.equal(
@@ -128,6 +169,12 @@ describe('URL state parsing and serialization', () => {
         colorId: null,
         menswearStyle: 'suit',
         menswearIds: [],
+        menswearSkin: 'warm-ivory',
+        menswearLighting: 'daylight',
+        menswearPieces: null,
+        menswearMaterials: null,
+        menswearPatterns: null,
+        menswearPatternColors: null,
       }),
       ''
     );

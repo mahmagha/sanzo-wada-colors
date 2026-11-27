@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import colorsData from '../src/data/wadaColors.json';
 import { ColorItem } from '../src/types/color';
 import {
+  findHarmonyMatches,
   findNearestWheelNode,
   layoutColorWheelPoints,
   layoutSpectrumPoints,
@@ -54,5 +55,27 @@ describe('SpectrumMap deterministic layout', () => {
     const nearest = findNearestWheelNode(wheelNodes, first.xPct + 0.1, first.yPct - 0.1);
     assert.ok(nearest);
     assert.equal(nearest.color.id, first.color.id);
+  });
+
+  it('finds closest archival pigment matches for geometric harmony rules', () => {
+    const redAnchor = masterColors.find((c) => c.id === 29)!; // Carmine Red
+    assert.deepEqual(findHarmonyMatches(redAnchor, masterColors, 'none'), []);
+
+    const comp = findHarmonyMatches(redAnchor, masterColors, 'complementary', 3);
+    assert.equal(comp.length, 1);
+    assert.equal(comp[0].angleDeg, 180);
+    assert.equal(comp[0].matches.length, 3);
+    assert.ok(comp[0].matches.every((m) => m.id !== redAnchor.id));
+
+    const triadic = findHarmonyMatches(redAnchor, masterColors, 'triadic', 2);
+    assert.equal(triadic.length, 2);
+    assert.equal(triadic[0].angleDeg, 120);
+    assert.equal(triadic[1].angleDeg, 240);
+
+    const split = findHarmonyMatches(redAnchor, masterColors, 'split', 2);
+    assert.equal(split.length, 2);
+
+    const analogous = findHarmonyMatches(redAnchor, masterColors, 'analogous', 2);
+    assert.equal(analogous.length, 2);
   });
 });

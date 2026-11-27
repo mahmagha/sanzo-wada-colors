@@ -445,7 +445,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
               </div>
             )}
 
-            {!isCustom && onToggleCompare && (
+            {onToggleCompare && (
               <button
                 type="button"
                 onClick={() => onToggleCompare(combination)}

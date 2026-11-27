@@ -37,6 +37,7 @@ describe('dataset integrity and hydration', () => {
     assert.equal(ARCHIVAL_NOTES.length, 3);
     const allSeasonMonths = Object.values(SEASON_MONTHS).flat().sort((a, b) => a - b);
     assert.deepEqual(allSeasonMonths, [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]);
-    assert.ok(colors.filter((c) => Boolean(c.ja)).length >= 41);
+    assert.ok(colors.filter((c) => c.volume === 1).every((c) => Boolean(c.ja && c.reading)));
+    assert.ok(colors.filter((c) => Boolean(c.ja)).length >= 160);
   });
 });

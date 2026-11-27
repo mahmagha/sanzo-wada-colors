@@ -10,8 +10,27 @@ import {
 } from '../types/color';
 import {
   DEFAULT_MENSWEAR_OUTFIT,
+  DEFAULT_PATTERN_COLORS,
+  GARMENT_SLOT_ORDER,
+  GarmentMaterials,
+  GarmentPatternColorIds,
+  GarmentPatterns,
+  GarmentPieces,
   GarmentStyle,
+  LightingPreset,
+  OUTERWEAR_CUTS,
+  TOP_CUTS,
+  BOTTOM_CUTS,
+  ACCENT_CUTS,
+  FOOTWEAR_CUTS,
+  FABRIC_MATERIAL_META,
+  FABRIC_PATTERN_META,
+  LIGHTING_PRESET_META,
+  SKIN_TONE_PRESETS,
+  SkinToneId,
   serializeOutfitIds,
+  STYLE_PRESET_PIECES,
+  getDefaultMaterialsForPieces,
 } from './menswearUtils';
 
 export interface UrlAppState {
@@ -34,6 +53,12 @@ export interface UrlAppState {
   colorId: number | null;
   menswearStyle: GarmentStyle;
   menswearIds: number[];
+  menswearSkin: SkinToneId;
+  menswearLighting: LightingPreset;
+  menswearPieces: GarmentPieces | null;
+  menswearMaterials: GarmentMaterials | null;
+  menswearPatterns: GarmentPatterns | null;
+  menswearPatternColors: GarmentPatternColorIds | null;
 }
 
 const VALID_SEASONS = new Set<SeasonFilter>(['all', 'spring', 'summer', 'autumn', 'winter']);
@@ -60,6 +85,12 @@ const VALID_COLOR_SORTS = new Set<ColorSortOption>([
   'name',
 ]);
 const COMBO_KEY_RE = /^v[12]-\d+$/;
+function isValidCompareKey(key: string): boolean {
+  if (COMBO_KEY_RE.test(key)) return true;
+  if (!key.startsWith('mix-')) return false;
+  const ids = key.slice(4).split('-').map((s) => Number(s));
+  return ids.length >= 2 && ids.length <= 6 && ids.every((n) => Number.isInteger(n) && n >= 1 && n <= 171);
+}
 const VALID_MENSWEAR_STYLES = new Set<GarmentStyle>([
   'suit',
   'smart-casual',
@@ -69,6 +100,12 @@ const VALID_MENSWEAR_STYLES = new Set<GarmentStyle>([
   'wafuku',
 ]);
 const DEFAULT_OUTFIT_PARAM = serializeOutfitIds(DEFAULT_MENSWEAR_OUTFIT).join(',');
+
+const OUTERWEAR_SET = new Set<string>(OUTERWEAR_CUTS.map((x) => x.id));
+const TOP_SET = new Set<string>(TOP_CUTS.map((x) => x.id));
+const BOTTOM_SET = new Set<string>(BOTTOM_CUTS.map((x) => x.id));
+const ACCENT_SET = new Set<string>(ACCENT_CUTS.map((x) => x.id));
+const FOOTWEAR_SET = new Set<string>(FOOTWEAR_CUTS.map((x) => x.id));
 
 export const DEFAULT_URL_STATE: UrlAppState = {
   viewMode: 'combinations',
@@ -90,6 +127,12 @@ export const DEFAULT_URL_STATE: UrlAppState = {
   colorId: null,
   menswearStyle: 'suit',
   menswearIds: [],
+  menswearSkin: 'warm-ivory',
+  menswearLighting: 'daylight',
+  menswearPieces: null,
+  menswearMaterials: null,
+  menswearPatterns: null,
+  menswearPatternColors: null,
 };
 
 export function parseUrlState(search: string): UrlAppState {
@@ -154,7 +197,7 @@ export function parseUrlState(search: string): UrlAppState {
       compareRaw
         .split(',')
         .map((s) => s.trim())
-        .filter((s) => COMBO_KEY_RE.test(s))
+        .filter((s) => isValidCompareKey(s))
     )
   ).slice(0, 3);
 
@@ -192,6 +235,70 @@ export function parseUrlState(search: string): UrlAppState {
     .slice(0, 5);
   const menswearIds = parsedOutfit.length === 5 ? parsedOutfit : [];
 
+  const skinRaw = params.get('mskin') as SkinToneId | null;
+  const menswearSkin: SkinToneId =
+    skinRaw && skinRaw in SKIN_TONE_PRESETS ? skinRaw : 'warm-ivory';
+
+  const lightRaw = params.get('mlight') as LightingPreset | null;
+  const menswearLighting: LightingPreset =
+    lightRaw && lightRaw in LIGHTING_PRESET_META ? lightRaw : 'daylight';
+
+  const piecesParts = (params.get('mpieces') || '').split(',').map((s) => s.trim());
+  const menswearPieces: GarmentPieces | null =
+    piecesParts.length === 5 &&
+    OUTERWEAR_SET.has(piecesParts[0]) &&
+    TOP_SET.has(piecesParts[1]) &&
+    BOTTOM_SET.has(piecesParts[2]) &&
+    ACCENT_SET.has(piecesParts[3]) &&
+    FOOTWEAR_SET.has(piecesParts[4])
+      ? {
+          outerwear: piecesParts[0] as GarmentPieces['outerwear'],
+          top: piecesParts[1] as GarmentPieces['top'],
+          bottom: piecesParts[2] as GarmentPieces['bottom'],
+          accent: piecesParts[3] as GarmentPieces['accent'],
+          footwear: piecesParts[4] as GarmentPieces['footwear'],
+        }
+      : null;
+
+  const matsParts = (params.get('mmats') || '').split(',').map((s) => s.trim());
+  const menswearMaterials: GarmentMaterials | null =
+    matsParts.length === 5 && matsParts.every((m) => m in FABRIC_MATERIAL_META)
+      ? {
+          outerwear: matsParts[0] as GarmentMaterials['outerwear'],
+          top: matsParts[1] as GarmentMaterials['top'],
+          bottom: matsParts[2] as GarmentMaterials['bottom'],
+          accent: matsParts[3] as GarmentMaterials['accent'],
+          footwear: matsParts[4] as GarmentMaterials['footwear'],
+        }
+      : null;
+
+  const patsParts = (params.get('mpats') || '').split(',').map((s) => s.trim());
+  const menswearPatterns: GarmentPatterns | null =
+    patsParts.length === 5 && patsParts.every((p) => p in FABRIC_PATTERN_META)
+      ? {
+          outerwear: patsParts[0] as GarmentPatterns['outerwear'],
+          top: patsParts[1] as GarmentPatterns['top'],
+          bottom: patsParts[2] as GarmentPatterns['bottom'],
+          accent: patsParts[3] as GarmentPatterns['accent'],
+          footwear: patsParts[4] as GarmentPatterns['footwear'],
+        }
+      : null;
+
+  const pcolParts = (params.get('mpcols') || '')
+    .split(',')
+    .map((s) => Number(s.trim()))
+    .filter((n) => Number.isInteger(n) && n >= 1 && n <= 171);
+  const menswearPatternColors: GarmentPatternColorIds | null =
+    pcolParts.length === 5
+      ? {
+          outerwear: pcolParts[0],
+          top: pcolParts[1],
+          bottom: pcolParts[2],
+          accent: pcolParts[3],
+          footwear: pcolParts[4],
+        }
+      : null;
+
   return {
     viewMode,
     colorsLayout,
@@ -212,6 +319,12 @@ export function parseUrlState(search: string): UrlAppState {
     colorId,
     menswearStyle,
     menswearIds,
+    menswearSkin,
+    menswearLighting,
+    menswearPieces,
+    menswearMaterials,
+    menswearPatterns,
+    menswearPatternColors,
   };
 }
 
@@ -238,6 +351,35 @@ export function serializeUrlState(state: UrlAppState): string {
   if (state.menswearStyle !== 'suit') params.set('mstyle', state.menswearStyle);
   if (state.menswearIds.length === 5 && state.menswearIds.join(',') !== DEFAULT_OUTFIT_PARAM) {
     params.set('outfit', state.menswearIds.join(','));
+  }
+  if (state.menswearSkin !== 'warm-ivory') params.set('mskin', state.menswearSkin);
+  if (state.menswearLighting !== 'daylight') params.set('mlight', state.menswearLighting);
+  if (state.menswearPieces) {
+    const defPieces = STYLE_PRESET_PIECES[state.menswearStyle];
+    const pStr = GARMENT_SLOT_ORDER.map((s) => state.menswearPieces![s]).join(',');
+    const dStr = GARMENT_SLOT_ORDER.map((s) => defPieces[s]).join(',');
+    if (pStr !== dStr) params.set('mpieces', pStr);
+  }
+  if (state.menswearMaterials) {
+    const basePieces = state.menswearPieces || STYLE_PRESET_PIECES[state.menswearStyle];
+    const defMats = getDefaultMaterialsForPieces(basePieces);
+    const mStr = GARMENT_SLOT_ORDER.map((s) => state.menswearMaterials![s]).join(',');
+    const dStr = GARMENT_SLOT_ORDER.map((s) => defMats[s]).join(',');
+    if (mStr !== dStr) params.set('mmats', mStr);
+  }
+  if (state.menswearPatterns) {
+    const hasCustomPat = GARMENT_SLOT_ORDER.some((s) => state.menswearPatterns![s] !== 'solid');
+    if (hasCustomPat) {
+      params.set(
+        'mpats',
+        GARMENT_SLOT_ORDER.map((s) => state.menswearPatterns![s]).join(',')
+      );
+      if (state.menswearPatternColors) {
+        const pcStr = GARMENT_SLOT_ORDER.map((s) => state.menswearPatternColors![s]).join(',');
+        const dcStr = GARMENT_SLOT_ORDER.map((s) => DEFAULT_PATTERN_COLORS[s]).join(',');
+        if (pcStr !== dcStr) params.set('mpcols', pcStr);
+      }
+    }
   }
 
   const query = params.toString();

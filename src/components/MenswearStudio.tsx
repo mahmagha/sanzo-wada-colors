@@ -1,14 +1,20 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BookmarkPlus,
+  Columns2,
   Copy,
+  Download,
   Eye,
+  Flame,
+  ImageDown,
+  Moon,
   RefreshCw,
   Search,
   Share2,
   Shirt,
   Shuffle,
   Sparkles,
+  Sun,
 } from 'lucide-react';
 import {
   ColorItem,
@@ -18,25 +24,52 @@ import {
   HydratedCombination,
   ToneFilter,
 } from '../types/color';
-import { classifyColorTone, getIdealTextColor } from '../utils/colorUtils';
+import {
+  classifyColorTone,
+  downloadAsePalette,
+  downloadGplPalette,
+  generateDesignTokensJson,
+  getCompareKey,
+  getIdealTextColor,
+} from '../utils/colorUtils';
 import { matchesColorTokens, matchesCombinationTokens, sortMasterColors } from '../utils/searchUtils';
 import {
   ACCENT_CUTS,
   analyzeOutfitHarmony,
   BOTTOM_CUTS,
+  DEFAULT_GARMENT_PATTERNS,
+  DEFAULT_PATTERN_COLORS,
+  downloadMenswearLookbookPng,
+  downloadMenswearLookbookSvg,
+  FABRIC_MATERIAL_META,
+  FABRIC_PATTERN_META,
+  FabricMaterial,
+  FabricPattern,
   FOOTWEAR_CUTS,
   GARMENT_SLOT_ORDER,
   GARMENT_STYLE_META,
+  GarmentMaterials,
   GarmentOutfitIds,
+  GarmentPatternColorIds,
+  GarmentPatterns,
   GarmentPieces,
   GarmentSlotKey,
   GarmentStyle,
   generateMenswearCss,
+  getDefaultMaterialForCut,
+  getDefaultMaterialsForPieces,
   getSlotDisplayLabel,
+  LIGHTING_PRESET_META,
+  LightingPreset,
   mapComboToGarmentOutfit,
+  MATERIALS_BY_SLOT,
   MENSWEAR_PRESETS,
+  menswearOutfitToCombination,
   OUTERWEAR_CUTS,
+  PATTERNS_BY_SLOT,
   SavedMenswearOutfit,
+  SKIN_TONE_PRESETS,
+  SkinToneId,
   STYLE_PRESET_PIECES,
   TOP_CUTS,
 } from '../utils/menswearUtils';
@@ -49,6 +82,20 @@ interface MenswearStudioProps {
   onChangeStyle: (style: GarmentStyle) => void;
   outfitIds: GarmentOutfitIds;
   onChangeOutfit: (next: GarmentOutfitIds) => void;
+  pieces?: GarmentPieces;
+  onChangePieces?: (next: GarmentPieces) => void;
+  materials?: GarmentMaterials;
+  onChangeMaterials?: (next: GarmentMaterials) => void;
+  patterns?: GarmentPatterns;
+  onChangePatterns?: (next: GarmentPatterns) => void;
+  patternColors?: GarmentPatternColorIds;
+  onChangePatternColors?: (next: GarmentPatternColorIds) => void;
+  skinTone?: SkinToneId;
+  onChangeSkinTone?: (next: SkinToneId) => void;
+  lighting?: LightingPreset;
+  onChangeLighting?: (next: LightingPreset) => void;
+  onPinCompare?: (combo: HydratedCombination) => void;
+  compareSet?: Set<string>;
   onSelectCombo?: (combo: Combination) => void;
   onSelectColorDetail?: (color: ColorItem) => void;
   onCopyText: (text: string, label: string) => void;
@@ -82,23 +129,84 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
   onChangeStyle,
   outfitIds,
   onChangeOutfit,
+  pieces: controlledPieces,
+  onChangePieces,
+  materials: controlledMaterials,
+  onChangeMaterials,
+  patterns: controlledPatterns,
+  onChangePatterns,
+  patternColors: controlledPatternColors,
+  onChangePatternColors,
+  skinTone: controlledSkinTone,
+  onChangeSkinTone,
+  lighting: controlledLighting,
+  onChangeLighting,
+  onPinCompare,
+  compareSet,
   onSelectCombo,
   onSelectColorDetail,
   onCopyText,
   onShareOutfit,
 }) => {
-  const [pieces, setPieces] = useState<GarmentPieces>(() => ({
+  const [localPieces, setLocalPieces] = useState<GarmentPieces>(() => ({
     ...STYLE_PRESET_PIECES[style],
   }));
-  const [activeSlot, setActiveSlot] = useState<GarmentSlotKey>(() =>
-    STYLE_PRESET_PIECES[style].outerwear === 'none' ? 'top' : 'outerwear'
+  const [localMaterials, setLocalMaterials] = useState<GarmentMaterials>(() =>
+    getDefaultMaterialsForPieces(STYLE_PRESET_PIECES[style])
   );
+  const [localPatterns, setLocalPatterns] = useState<GarmentPatterns>({
+    ...DEFAULT_GARMENT_PATTERNS,
+  });
+  const [localPatternColors, setLocalPatternColors] = useState<GarmentPatternColorIds>({
+    ...DEFAULT_PATTERN_COLORS,
+  });
+  const [localSkinTone, setLocalSkinTone] = useState<SkinToneId>('warm-ivory');
+  const [localLighting, setLocalLighting] = useState<LightingPreset>('daylight');
+
+  const pieces = controlledPieces ?? localPieces;
+  const materials = controlledMaterials ?? localMaterials;
+  const patterns = controlledPatterns ?? localPatterns;
+  const patternColors = controlledPatternColors ?? localPatternColors;
+  const skinTone = controlledSkinTone ?? localSkinTone;
+  const lighting = controlledLighting ?? localLighting;
+
+  const setPieces = (next: GarmentPieces) => {
+    setLocalPieces(next);
+    onChangePieces?.(next);
+  };
+  const setMaterials = (next: GarmentMaterials) => {
+    setLocalMaterials(next);
+    onChangeMaterials?.(next);
+  };
+  const setPatterns = (next: GarmentPatterns) => {
+    setLocalPatterns(next);
+    onChangePatterns?.(next);
+  };
+  const setPatternColors = (next: GarmentPatternColorIds) => {
+    setLocalPatternColors(next);
+    onChangePatternColors?.(next);
+  };
+  const setSkinTone = (next: SkinToneId) => {
+    setLocalSkinTone(next);
+    onChangeSkinTone?.(next);
+  };
+  const setLighting = (next: LightingPreset) => {
+    setLocalLighting(next);
+    onChangeLighting?.(next);
+  };
+
+  const [activeSlot, setActiveSlot] = useState<GarmentSlotKey>(() =>
+    pieces.outerwear === 'none' ? 'top' : 'outerwear'
+  );
+  const [editingTarget, setEditingTarget] = useState<'base' | 'pattern'>('base');
   const [chooserTab, setChooserTab] = useState<ChooserTab>('swatches');
   const [cvdMode, setCvdMode] = useState<CvdMode>('normal');
   const [searchQuery, setSearchQuery] = useState('');
   const [toneFilter, setToneFilter] = useState<ToneFilter>('all');
   const [swatchSort, setSwatchSort] = useState<ColorSortOption>('hue');
   const [lookName, setLookName] = useState('');
+  const [isExportingPng, setIsExportingPng] = useState(false);
+  const croquisSvgRef = useRef<SVGSVGElement | null>(null);
   const [savedOutfits, setSavedOutfits] = useState<SavedMenswearOutfit[]>(() => {
     try {
       const raw = localStorage.getItem(SAVED_OUTFITS_KEY);
@@ -113,22 +221,25 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
   });
 
   useEffect(() => {
-    setPieces({ ...STYLE_PRESET_PIECES[style] });
-    setActiveSlot((prev) => {
-      if (STYLE_PRESET_PIECES[style].outerwear === 'none' && prev === 'outerwear') {
-        return 'top';
-      }
-      return prev;
-    });
-  }, [style]);
-
-  useEffect(() => {
     try {
       localStorage.setItem(SAVED_OUTFITS_KEY, JSON.stringify(savedOutfits));
     } catch {
       // Ignore storage failures
     }
   }, [savedOutfits]);
+
+  useEffect(() => {
+    if (pieces.outerwear === 'none' && activeSlot === 'outerwear') {
+      setActiveSlot('top');
+      setEditingTarget('base');
+    }
+  }, [pieces.outerwear, activeSlot]);
+
+  useEffect(() => {
+    if (editingTarget === 'pattern' && patterns[activeSlot] === 'solid') {
+      setEditingTarget('base');
+    }
+  }, [editingTarget, patterns, activeSlot]);
 
   const colorById = useMemo(
     () => new Map<number, ColorItem>(allColors.map((c) => [c.id, c])),
@@ -147,7 +258,24 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
     [outfitIds, colorById, fallbackColor]
   );
 
+  const resolvedPatternColors = useMemo(
+    () => ({
+      outerwear: colorById.get(patternColors.outerwear) ?? fallbackColor,
+      top: colorById.get(patternColors.top) ?? fallbackColor,
+      bottom: colorById.get(patternColors.bottom) ?? fallbackColor,
+      accent: colorById.get(patternColors.accent) ?? fallbackColor,
+      footwear: colorById.get(patternColors.footwear) ?? fallbackColor,
+    }),
+    [patternColors, colorById, fallbackColor]
+  );
+
   const styleMeta = GARMENT_STYLE_META[style];
+  const lightingMeta = LIGHTING_PRESET_META[lighting];
+  const outfitCombo = useMemo(
+    () => menswearOutfitToCombination(resolvedOutfit, pieces),
+    [resolvedOutfit, pieces]
+  );
+  const isOutfitCompared = compareSet?.has(getCompareKey(outfitCombo)) ?? false;
   const harmony = useMemo(
     () => analyzeOutfitHarmony(resolvedOutfit, allCombinations, pieces),
     [resolvedOutfit, allCombinations, pieces]
@@ -167,7 +295,34 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
     return allCombinations.filter((c) => matchesCombinationTokens(c, searchQuery)).slice(0, 60);
   }, [allCombinations, searchQuery]);
 
+  const handleSelectStyle = (nextStyle: GarmentStyle, presetOutfit?: GarmentOutfitIds) => {
+    const nextPieces = { ...STYLE_PRESET_PIECES[nextStyle] };
+    onChangeStyle(nextStyle);
+    setPieces(nextPieces);
+    setMaterials(getDefaultMaterialsForPieces(nextPieces));
+    setPatterns({ ...DEFAULT_GARMENT_PATTERNS });
+    setEditingTarget('base');
+    if (nextPieces.outerwear === 'none' && activeSlot === 'outerwear') {
+      setActiveSlot('top');
+    }
+    if (presetOutfit) {
+      onChangeOutfit(presetOutfit);
+    }
+  };
+
+  const handleSelectSlotBase = (slot: GarmentSlotKey) => {
+    setActiveSlot(slot);
+    setEditingTarget('base');
+  };
+
   const handleAssignColor = (color: ColorItem) => {
+    if (editingTarget === 'pattern' && patterns[activeSlot] !== 'solid') {
+      setPatternColors({
+        ...patternColors,
+        [activeSlot]: color.id,
+      });
+      return;
+    }
     onChangeOutfit({
       ...outfitIds,
       [activeSlot]: color.id,
@@ -175,16 +330,41 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
   };
 
   const handleCutChange = (slot: GarmentSlotKey, nextCut: string) => {
-    setPieces((prev) => ({
-      ...prev,
+    const nextPieces = {
+      ...pieces,
       [slot]: nextCut,
-    }));
+    } as GarmentPieces;
+    setPieces(nextPieces);
+    setMaterials({
+      ...materials,
+      [slot]: getDefaultMaterialForCut(slot, nextCut),
+    });
+    setEditingTarget('base');
     if (slot === 'outerwear' && nextCut !== 'none') {
       setActiveSlot('outerwear');
     } else if (slot === 'outerwear' && nextCut === 'none' && activeSlot === 'outerwear') {
       setActiveSlot('top');
     } else {
       setActiveSlot(slot);
+    }
+  };
+
+  const handleMaterialChange = (slot: GarmentSlotKey, nextMaterial: FabricMaterial) => {
+    setMaterials({
+      ...materials,
+      [slot]: nextMaterial,
+    });
+    setActiveSlot(slot);
+  };
+
+  const handlePatternChange = (slot: GarmentSlotKey, nextPattern: FabricPattern) => {
+    setPatterns({
+      ...patterns,
+      [slot]: nextPattern,
+    });
+    setActiveSlot(slot);
+    if (nextPattern === 'solid') {
+      setEditingTarget('base');
     }
   };
 
@@ -205,6 +385,39 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
     }
   };
 
+  const handleExportSvgLookbook = () => {
+    if (!croquisSvgRef.current) return;
+    downloadMenswearLookbookSvg({
+      croquisSvgMarkup: croquisSvgRef.current.outerHTML,
+      style,
+      pieces,
+      materials,
+      patterns,
+      outfit: resolvedOutfit,
+      skinTone,
+      lighting,
+    });
+  };
+
+  const handleExportPngLookbook = async () => {
+    if (!croquisSvgRef.current || isExportingPng) return;
+    setIsExportingPng(true);
+    try {
+      await downloadMenswearLookbookPng({
+        croquisSvgMarkup: croquisSvgRef.current.outerHTML,
+        style,
+        pieces,
+        materials,
+        patterns,
+        outfit: resolvedOutfit,
+        skinTone,
+        lighting,
+      });
+    } finally {
+      setIsExportingPng(false);
+    }
+  };
+
   const handleSaveOutfit = () => {
     const anchorColor = pieces.outerwear === 'none' ? resolvedOutfit.top : resolvedOutfit.outerwear;
     const name = lookName.trim() || `${styleMeta.shortLabel} (${anchorColor.name.split(' ')[0]})`;
@@ -213,6 +426,11 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
       name,
       style,
       pieces: { ...pieces },
+      materials: { ...materials },
+      patterns: { ...patterns },
+      patternColors: { ...patternColors },
+      skinTone,
+      lighting,
       outfit: { ...outfitIds },
     };
     setSavedOutfits((prev) => [entry, ...prev].slice(0, 10));
@@ -277,7 +495,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
               type="button"
               onClick={() =>
                 onCopyText(
-                  generateMenswearCss(style, resolvedOutfit, pieces),
+                  generateMenswearCss(style, resolvedOutfit, pieces, materials, patterns),
                   'Copied menswear garment CSS variables'
                 )
               }
@@ -286,6 +504,46 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
               <Copy size={13} />
               <span>Copy CSS</span>
             </button>
+
+            <button
+              type="button"
+              onClick={handleExportSvgLookbook}
+              aria-label="Export menswear SVG lookbook"
+              title="Download printable vector Lookbook Card (.svg)"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-200 cursor-pointer"
+            >
+              <Download size={13} />
+              <span>SVG Lookbook</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleExportPngLookbook}
+              disabled={isExportingPng}
+              aria-label="Export menswear PNG lookbook"
+              title="Download High-DPI 2x Lookbook Card (.png)"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-200 cursor-pointer disabled:opacity-50"
+            >
+              <ImageDown size={13} />
+              <span>{isExportingPng ? 'Rendering...' : '2× PNG'}</span>
+            </button>
+
+            {onPinCompare && (
+              <button
+                type="button"
+                onClick={() => onPinCompare(outfitCombo)}
+                aria-label="Pin menswear palette to compare"
+                aria-pressed={isOutfitCompared}
+                className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-colors cursor-pointer ${
+                  isOutfitCompared
+                    ? 'bg-amber-100 dark:bg-amber-950/50 border-amber-700/40 text-amber-900 dark:text-amber-300'
+                    : 'border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-200'
+                }`}
+              >
+                <Columns2 size={13} />
+                <span>{isOutfitCompared ? 'Pinned' : 'Compare'}</span>
+              </button>
+            )}
 
             <button
               type="button"
@@ -312,7 +570,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                     type="button"
                     key={s}
                     aria-pressed={style === s}
-                    onClick={() => onChangeStyle(s)}
+                    onClick={() => handleSelectStyle(s)}
                     className={`px-2.5 py-1.5 rounded-md font-medium transition-colors cursor-pointer ${
                       style === s
                         ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
@@ -336,10 +594,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
               <button
                 type="button"
                 key={preset.id}
-                onClick={() => {
-                  onChangeStyle(preset.style);
-                  onChangeOutfit({ ...preset.outfit });
-                }}
+                onClick={() => handleSelectStyle(preset.style, { ...preset.outfit })}
                 title={preset.note}
                 className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
               >
@@ -360,23 +615,97 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
         {/* LEFT: Interactive Garment Croquis + Modular Piece & Color Controls + Harmony */}
         <div className="lg:col-span-5 space-y-4">
           <div className="rounded-2xl border border-stone-300/70 dark:border-stone-800 bg-[#FAF7F2] dark:bg-stone-900/90 p-5 shadow-sm">
-            <div className="flex items-center justify-between text-xs mb-2">
+            <div className="flex items-center justify-between text-xs mb-2.5 gap-2 flex-wrap">
               <span className="font-editorial font-bold text-stone-800 dark:text-stone-200">
                 {styleMeta.label} Lookbook
               </span>
-              <span className="font-code text-[11px] text-stone-500">
-                Click figure or change garment cuts
-              </span>
+              <div className="flex items-center gap-3 flex-wrap">
+                {/* 5 Skin Complexion Presets */}
+                <div className="flex items-center gap-1" role="group" aria-label="Model skin complexion">
+                  {(Object.keys(SKIN_TONE_PRESETS) as SkinToneId[]).map((id) => {
+                    const skinMeta = SKIN_TONE_PRESETS[id];
+                    const selected = skinTone === id;
+                    return (
+                      <button
+                        type="button"
+                        key={id}
+                        onClick={() => setSkinTone(id)}
+                        title={`Complexion: ${skinMeta.label}`}
+                        aria-label={`Skin tone ${skinMeta.label}`}
+                        aria-pressed={selected}
+                        style={{ backgroundColor: skinMeta.base }}
+                        className={`w-4 h-4 rounded-full border transition-transform cursor-pointer ${
+                          selected
+                            ? 'ring-2 ring-amber-700 ring-offset-1 dark:ring-amber-400 scale-110 border-black/30'
+                            : 'border-black/25 opacity-80 hover:opacity-100'
+                        }`}
+                      />
+                    );
+                  })}
+                </div>
+
+                {/* 3 Studio Stage Lighting Presets */}
+                <div
+                  role="group"
+                  aria-label="Stage ambient lighting"
+                  className="inline-flex rounded-lg p-0.5 bg-stone-200/70 dark:bg-stone-800 border border-stone-300/40 dark:border-stone-700/50 text-[10px]"
+                >
+                  {(['daylight', 'warm-indoor', 'evening-gallery'] as const).map((presetKey) => {
+                    const active = lighting === presetKey;
+                    const Icon =
+                      presetKey === 'daylight'
+                        ? Sun
+                        : presetKey === 'warm-indoor'
+                        ? Flame
+                        : Moon;
+                    const shortLabel =
+                      presetKey === 'daylight'
+                        ? 'Day'
+                        : presetKey === 'warm-indoor'
+                        ? 'Warm'
+                        : 'Night';
+                    return (
+                      <button
+                        type="button"
+                        key={presetKey}
+                        onClick={() => setLighting(presetKey)}
+                        title={LIGHTING_PRESET_META[presetKey].label}
+                        aria-label={`Lighting ${LIGHTING_PRESET_META[presetKey].label}`}
+                        aria-pressed={active}
+                        className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded font-medium cursor-pointer transition-colors ${
+                          active
+                            ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-xs'
+                            : 'text-stone-500 dark:text-stone-400'
+                        }`}
+                      >
+                        <Icon size={10} />
+                        <span>{shortLabel}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
-            <MenswearIllustration
-              style={style}
-              pieces={pieces}
-              outfit={resolvedOutfit}
-              cvdMode={cvdMode}
-              activeSlot={activeSlot}
-              onSelectSlot={setActiveSlot}
-            />
+            <div
+              style={{ backgroundColor: lightingMeta.stageBgHex }}
+              className="rounded-xl p-3 border border-stone-300/60 dark:border-stone-700/60 transition-colors duration-200"
+            >
+              <MenswearIllustration
+                svgRef={croquisSvgRef}
+                style={style}
+                pieces={pieces}
+                materials={materials}
+                patterns={patterns}
+                patternColors={resolvedPatternColors}
+                skinTone={skinTone}
+                lighting={lighting}
+                outfit={resolvedOutfit}
+                cvdMode={cvdMode}
+                activeSlot={activeSlot}
+                onSelectSlot={handleSelectSlotBase}
+              />
+            </div>
 
             {/* 5 Modular Garment Slot Cards (Color + Mix-and-Match Cut Selector) */}
             <div className="mt-4 space-y-2">
@@ -401,10 +730,10 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                       <button
                         type="button"
                         onClick={() => {
-                          if (!isDisabledCoat) setActiveSlot(slot);
+                          if (!isDisabledCoat) handleSelectSlotBase(slot);
                         }}
                         disabled={isDisabledCoat}
-                        aria-pressed={isActive}
+                        aria-pressed={isActive && editingTarget === 'base'}
                         className="flex items-center gap-2.5 text-left flex-1 min-w-0 cursor-pointer disabled:cursor-default"
                       >
                         <span
@@ -442,12 +771,12 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                         </div>
                       </button>
 
-                      <div className="flex items-center gap-1 shrink-0">
+                      <div className="flex items-center gap-1 shrink-0 flex-wrap justify-end">
                         <select
                           aria-label={`Garment type for ${slot}`}
                           value={pieces[slot]}
                           onChange={(e) => handleCutChange(slot, e.target.value)}
-                          className="px-1.5 py-1 text-[11px] rounded border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-200 max-w-[132px] cursor-pointer"
+                          className="px-1.5 py-1 text-[11px] rounded border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-800 dark:text-stone-200 max-w-[125px] cursor-pointer"
                         >
                           {CUT_OPTIONS_BY_SLOT[slot].map((opt) => (
                             <option key={opt.id} value={opt.id}>
@@ -455,6 +784,63 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                             </option>
                           ))}
                         </select>
+
+                        {!isDisabledCoat && (
+                          <select
+                            aria-label={`Material texture for ${slot}`}
+                            value={materials[slot]}
+                            onChange={(e) =>
+                              handleMaterialChange(slot, e.target.value as FabricMaterial)
+                            }
+                            className="px-1.5 py-1 text-[11px] rounded border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-700 dark:text-stone-300 max-w-[122px] cursor-pointer"
+                          >
+                            {MATERIALS_BY_SLOT[slot].map((matId) => (
+                              <option key={matId} value={matId}>
+                                {FABRIC_MATERIAL_META[matId].label}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+
+                        {!isDisabledCoat && PATTERNS_BY_SLOT[slot].length > 1 && (
+                          <div className="inline-flex items-center gap-1">
+                            <select
+                              aria-label={`Pattern weave for ${slot}`}
+                              value={patterns[slot]}
+                              onChange={(e) =>
+                                handlePatternChange(slot, e.target.value as FabricPattern)
+                              }
+                              className="px-1.5 py-1 text-[11px] rounded border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 text-stone-700 dark:text-stone-300 max-w-[118px] cursor-pointer"
+                            >
+                              {PATTERNS_BY_SLOT[slot].map((patId) => (
+                                <option key={patId} value={patId}>
+                                  {FABRIC_PATTERN_META[patId].label}
+                                </option>
+                              ))}
+                            </select>
+
+                            {patterns[slot] !== 'solid' && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveSlot(slot);
+                                  setEditingTarget((prev) =>
+                                    isActive && prev === 'pattern' ? 'base' : 'pattern'
+                                  );
+                                }}
+                                aria-label={`Edit pattern thread color for ${slot}`}
+                                aria-pressed={isActive && editingTarget === 'pattern'}
+                                title={`Thread color: #${resolvedPatternColors[slot].id} ${resolvedPatternColors[slot].name}`}
+                                style={{ backgroundColor: resolvedPatternColors[slot].hex }}
+                                className={`w-6 h-6 rounded border shrink-0 cursor-pointer ${
+                                  isActive && editingTarget === 'pattern'
+                                    ? 'ring-2 ring-amber-600 border-black/30'
+                                    : 'border-black/25 opacity-90 hover:opacity-100'
+                                }`}
+                              />
+                            )}
+                          </div>
+                        )}
 
                         {onSelectColorDetail && !isDisabledCoat && (
                           <button
@@ -507,7 +893,18 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                         type="button"
                         onClick={() => {
                           onChangeStyle(look.style);
-                          if (look.pieces) setPieces(look.pieces);
+                          setPieces(look.pieces ?? { ...STYLE_PRESET_PIECES[look.style] });
+                          setMaterials(
+                            look.materials ??
+                              getDefaultMaterialsForPieces(
+                                look.pieces ?? STYLE_PRESET_PIECES[look.style]
+                              )
+                          );
+                          setPatterns(look.patterns ?? { ...DEFAULT_GARMENT_PATTERNS });
+                          if (look.patternColors) setPatternColors(look.patternColors);
+                          if (look.skinTone) setSkinTone(look.skinTone);
+                          if (look.lighting) setLighting(look.lighting);
+                          setEditingTarget('base');
                           onChangeOutfit(look.outfit);
                         }}
                         className="flex items-center gap-1.5 px-2.5 py-0.5 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
@@ -597,6 +994,47 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                   </button>
                 </div>
               ))}
+            </div>
+
+            {/* Cross-Workflow Exports (.ase / .gpl / Design Tokens / Open Studio) */}
+            <div className="pt-2.5 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <button
+                  type="button"
+                  onClick={() =>
+                    onCopyText(
+                      generateDesignTokensJson(outfitCombo),
+                      'Copied W3C Design Tokens JSON for menswear outfit'
+                    )
+                  }
+                  className="px-2 py-1 text-[11px] font-code rounded border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
+                >
+                  Tokens JSON
+                </button>
+                <button
+                  type="button"
+                  onClick={() => downloadGplPalette(outfitCombo)}
+                  className="px-2 py-1 text-[11px] font-code rounded border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
+                >
+                  .gpl
+                </button>
+                <button
+                  type="button"
+                  onClick={() => downloadAsePalette(outfitCombo)}
+                  className="px-2 py-1 text-[11px] font-code rounded border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
+                >
+                  .ase
+                </button>
+              </div>
+              {onSelectCombo && (
+                <button
+                  type="button"
+                  onClick={() => onSelectCombo(outfitCombo)}
+                  className="px-2.5 py-1 text-[11px] font-medium rounded bg-stone-900 text-stone-100 dark:bg-stone-100 dark:text-stone-900 hover:opacity-90 cursor-pointer"
+                >
+                  Open Palette in Studio →
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -692,18 +1130,49 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
 
           {chooserTab === 'swatches' && (
             <div className="space-y-2.5">
-              <div className="flex items-center justify-between text-xs px-1 text-stone-600 dark:text-stone-300">
-                <span>
-                  Editing <strong className="text-amber-800 dark:text-amber-400">{getSlotDisplayLabel(activeSlot, pieces)}</strong>{' '}
-                  (#{resolvedOutfit[activeSlot].id} {resolvedOutfit[activeSlot].name})
-                </span>
+              <div className="flex items-center justify-between text-xs px-1 text-stone-600 dark:text-stone-300 gap-2 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span>
+                    {editingTarget === 'pattern' && patterns[activeSlot] !== 'solid' ? (
+                      <>
+                        Editing{' '}
+                        <strong className="text-amber-800 dark:text-amber-400">
+                          {getSlotDisplayLabel(activeSlot, pieces)} Thread ({FABRIC_PATTERN_META[patterns[activeSlot]].label})
+                        </strong>{' '}
+                        (#{resolvedPatternColors[activeSlot].id} {resolvedPatternColors[activeSlot].name})
+                      </>
+                    ) : (
+                      <>
+                        Editing{' '}
+                        <strong className="text-amber-800 dark:text-amber-400">
+                          {getSlotDisplayLabel(activeSlot, pieces)}
+                        </strong>{' '}
+                        (#{resolvedOutfit[activeSlot].id} {resolvedOutfit[activeSlot].name})
+                      </>
+                    )}
+                  </span>
+                  {patterns[activeSlot] !== 'solid' && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setEditingTarget((prev) => (prev === 'base' ? 'pattern' : 'base'))
+                      }
+                      className="px-2 py-0.5 text-[10px] font-medium rounded border border-amber-700/40 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 hover:bg-amber-100 cursor-pointer"
+                    >
+                      {editingTarget === 'base' ? 'Edit Stripe Thread' : 'Edit Base Cloth'}
+                    </button>
+                  )}
+                </div>
                 <span className="font-code text-[11px] text-stone-400">
                   {filteredSwatches.length} swatches
                 </span>
               </div>
               <div className="rounded-2xl border border-stone-300/70 dark:border-stone-800 bg-white/80 dark:bg-stone-900/80 p-4 max-h-[600px] overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5 shadow-sm">
               {filteredSwatches.map((c) => {
-                const isSelected = outfitIds[activeSlot] === c.id;
+                const isSelected =
+                  editingTarget === 'pattern' && patterns[activeSlot] !== 'solid'
+                    ? patternColors[activeSlot] === c.id
+                    : outfitIds[activeSlot] === c.id;
                 const txt = getIdealTextColor(c.hex);
                 return (
                   <button

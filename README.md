@@ -6,7 +6,7 @@ An interactive, responsive digital viewer and color harmony studio for **Sanzo W
 
 Digitized archive containing:
 - **420 Color Combinations** (348 Vol. 1 harmonies + 72 Vol. 2 seasonal plates across the 12 calendar months)
-- **171 Master Colors** (159 Vol. 1 swatches + 12 newly introduced in Vol. 2), including verified Japanese kanji & romaji readings (**44 of 171** documented via upstream data + verified overrides).
+- **171 Master Colors** (159 Vol. 1 swatches + 12 newly introduced in Vol. 2), including verified Japanese kanji & romaji readings (**160 of 171** documented across all 159 Vol. 1 pigments + Vol. 2 card index via upstream atlas data + verified archival *Haishoku Sōkan* overrides).
 
 ---
 
@@ -21,9 +21,9 @@ Digitized archive containing:
 - **171 Master Color Swatches, Image Extractor & Custom Composer**:
   - **Closest Color Match & Image Extractor**: Match any HEX color, upload/drop an image with live thumbnail preview, or click 1-click sample artwork presets (*Ukiyo-e Sunset*, *Botanical Moss*, *Nocturne Indigo*) to quantize dominant colors locally (k-means + CIEDE2000 $\Delta E$) and launch in Studio.
   - **Custom Palette Composer (`Mix`)**: Compose 2–6 swatches from the 171 pigments, save named mixes in `localStorage`, inspect in Studio with dedicated Custom Mix branding/exports, and share via `?mix=`.
-  - **Grid & 2D Spectrum Map (`Master Colors`)**: Sort swatches by ID, Hue Spectrum, Lightness, Popularity, or Name, filter to documented Japanese kanji entries (`Kanji (44)`), or toggle the collision-repelled **2D Hue × Lightness Spectrum Map**.
-  - **Dedicated 360° Color Wheel (`Color Wheel` / `?view=wheel`)**: Explore all 171 archival pigments arranged radially around a 360° wheel (`NEUTRALS` inside the center ring), with live hover inspector, `Show #IDs`, tone/kanji filters, pigment detail card, and direct palette links.
-  - **Dedicated Menswear Dressing Studio (`Menswear` / `?view=menswear`)**: Mix and match 6 complete male wardrobe silhouettes (**Tailored Suit**, **Shirt & Chinos**, **Overcoat & Knit**, **Streetwear Look** with hoodie/bomber/denim/sneakers, **Summer & Shorts**, and traditional **Haori & Kimono (*Wafuku*)**) or customize individual garment cuts across all 171 swatches, apply any of the 420 combinations in 1 click, check contrast & closest 1933 Wada plate harmony, save looks, and export CSS or share URLs.
+  - **Grid & 2D Spectrum Map (`Master Colors`)**: Sort swatches by ID, Hue Spectrum, Lightness, Popularity, or Name, filter to documented Japanese kanji entries (`Kanji (160)`), or toggle the collision-repelled **2D Hue × Lightness Spectrum Map**.
+  - **Dedicated 360° Color Wheel (`Color Wheel` / `?view=wheel`)**: Explore all 171 archival pigments arranged radially around a 360° wheel (`NEUTRALS` inside the center ring), with live SVG **Harmony Chords** tracing archival combinations, a geometric **Harmony Finder** (*Complementary*, *Split-Comp*, *Triadic*, *Analogous*), live hover inspector, `Show #IDs`, tone/kanji filters, pigment detail card, and direct palette links.
+  - **Dedicated Menswear Dressing Studio (`Menswear` / `?view=menswear`)**: Mix and match 6 complete male wardrobe silhouettes (**Tailored Suit**, **Shirt & Chinos**, **Overcoat & Knit**, **Streetwear Look** with hoodie/bomber/denim/sneakers, **Summer & Shorts**, and traditional **Haori & Kimono (*Wafuku*)**), customize model complexion (5 skin tones), studio lighting presets (Daylight, Warm Tungsten, Evening Gallery), individual garment cuts, 14 tactile SVG fabric weaves, and two-tone patterns (Chalk Pinstripe, Windowpane Check, Breton Stripe, Gingham Check with selectable 171-color thread pigments), apply any of the 420 combinations in 1 click, pin looks to **Compare**, export CSS / W3C Tokens / `.gpl` / `.ase` / printable **SVG** & **2× PNG Lookbook cards**, save looks, and share full URLs (`?mstyle=`, `?outfit=`, `?mskin=`, `?mlight=`, `?mpieces=`, `?mmats=`, `?mpats=`, `?mpcols=`).
   - **Full Color Space Profiles**: **HEX**, **OKLCH**, **RGB**, **CMYK**, and **CIE-LAB** with bidirectional swatch ↔ palette navigation.
 - **Deep Inspection Studio (Modal)**:
   - **Color Vision Deficiency (CVD) Simulator**: Preview swatches, UI mockups, and contrast under *Protanopia*, *Deuteranopia*, *Tritanopia*, and *Achromatopsia*.

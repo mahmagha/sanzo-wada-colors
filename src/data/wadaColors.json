@@ -304,8 +304,8 @@
   {
     "id": 9,
     "name": "Eosine Pink",
-    "ja": null,
-    "reading": null,
+    "ja": "浅紅",
+    "reading": "asakurenai",
     "hex": "#f37f94",
     "rgb": [
       243,
@@ -425,8 +425,8 @@
   {
     "id": 12,
     "name": "Eugenia Red | A",
-    "ja": null,
-    "reading": null,
+    "ja": "緋褪色",
+    "reading": "hizame-iro",
     "hex": "#e2625e",
     "rgb": [
       226,
@@ -459,8 +459,8 @@
   {
     "id": 13,
     "name": "Eugenia Red | B",
-    "ja": null,
-    "reading": null,
+    "ja": "浅緋",
+    "reading": "asaake",
     "hex": "#da525d",
     "rgb": [
       218,
@@ -546,8 +546,8 @@
   {
     "id": 15,
     "name": "Vinaceous Tawny",
-    "ja": null,
-    "reading": null,
+    "ja": "柿渋色",
+    "reading": "kakishibu-iro",
     "hex": "#c56127",
     "rgb": [
       197,
@@ -577,8 +577,8 @@
   {
     "id": 16,
     "name": "Jasper Red",
-    "ja": null,
-    "reading": null,
+    "ja": "紅柿色",
+    "reading": "benikaki-iro",
     "hex": "#eb5324",
     "rgb": [
       235,
@@ -612,8 +612,8 @@
   {
     "id": 17,
     "name": "Spectrum Red",
-    "ja": null,
-    "reading": null,
+    "ja": "赤色",
+    "reading": "aka-iro",
     "hex": "#e31f26",
     "rgb": [
       227,
@@ -650,8 +650,8 @@
   {
     "id": 18,
     "name": "Red Orange",
-    "ja": null,
-    "reading": null,
+    "ja": "朱色",
+    "reading": "shu-iro",
     "hex": "#dd4027",
     "rgb": [
       221,
@@ -686,8 +686,8 @@
   {
     "id": 19,
     "name": "Etruscan Red",
-    "ja": null,
-    "reading": null,
+    "ja": "雀茶",
+    "reading": "suzume-cha",
     "hex": "#c55347",
     "rgb": [
       197,
@@ -723,8 +723,8 @@
   {
     "id": 20,
     "name": "Burnt Sienna",
-    "ja": null,
-    "reading": null,
+    "ja": "栗梅",
+    "reading": "kuri-ume",
     "hex": "#ae5224",
     "rgb": [
       174,
@@ -762,8 +762,8 @@
   {
     "id": 21,
     "name": "Ocher Red",
-    "ja": null,
-    "reading": null,
+    "ja": "小豆茶",
+    "reading": "azuki-cha",
     "hex": "#ab544d",
     "rgb": [
       171,
@@ -794,8 +794,8 @@
   {
     "id": 22,
     "name": "Scarlet",
-    "ja": null,
-    "reading": null,
+    "ja": "紅",
+    "reading": "beni",
     "hex": "#cb2f43",
     "rgb": [
       203,
@@ -827,8 +827,8 @@
   {
     "id": 23,
     "name": "Carmine",
-    "ja": null,
-    "reading": null,
+    "ja": "臙脂色",
+    "reading": "enji-iro",
     "hex": "#cc1236",
     "rgb": [
       204,
@@ -863,8 +863,8 @@
   {
     "id": 24,
     "name": "Indian Lake",
-    "ja": null,
-    "reading": null,
+    "ja": "浅蘇芳",
+    "reading": "asaki-suō",
     "hex": "#c53c69",
     "rgb": [
       197,
@@ -933,8 +933,8 @@
   {
     "id": 26,
     "name": "Pomegranate Purple",
-    "ja": null,
-    "reading": null,
+    "ja": "苺色",
+    "reading": "ichigo-iro",
     "hex": "#b71f57",
     "rgb": [
       183,
@@ -966,8 +966,8 @@
   {
     "id": 27,
     "name": "Hydrangea Red",
-    "ja": null,
-    "reading": null,
+    "ja": "小豆色",
+    "reading": "azuki-iro",
     "hex": "#a94151",
     "rgb": [
       169,
@@ -997,8 +997,8 @@
   {
     "id": 28,
     "name": "Brick Red",
-    "ja": null,
-    "reading": null,
+    "ja": "柿色",
+    "reading": "kaki-iro",
     "hex": "#a84222",
     "rgb": [
       168,
@@ -1030,8 +1030,8 @@
   {
     "id": 29,
     "name": "Carmine Red",
-    "ja": null,
-    "reading": null,
+    "ja": "紅色",
+    "reading": "beni-iro",
     "hex": "#a62c37",
     "rgb": [
       166,
@@ -1072,8 +1072,8 @@
   {
     "id": 30,
     "name": "Pompeian Red",
-    "ja": null,
-    "reading": null,
+    "ja": "紅樺色",
+    "reading": "benikaba-iro",
     "hex": "#ab2439",
     "rgb": [
       171,
@@ -1140,8 +1140,8 @@
   {
     "id": 32,
     "name": "Brown",
-    "ja": null,
-    "reading": null,
+    "ja": "鳶茶色",
+    "reading": "tobicha-iro",
     "hex": "#7c4226",
     "rgb": [
       124,
@@ -1172,8 +1172,8 @@
   {
     "id": 33,
     "name": "Hay's Russet",
-    "ja": null,
-    "reading": null,
+    "ja": "鳶色",
+    "reading": "tobi-iro",
     "hex": "#793327",
     "rgb": [
       121,
@@ -1211,8 +1211,8 @@
   {
     "id": 34,
     "name": "Vandyke Red",
-    "ja": null,
-    "reading": null,
+    "ja": "紅海老茶",
+    "reading": "beni-ebicha",
     "hex": "#82241f",
     "rgb": [
       130,
@@ -1246,8 +1246,8 @@
   {
     "id": 35,
     "name": "Pansy Purple",
-    "ja": null,
-    "reading": null,
+    "ja": "蘇芳色",
+    "reading": "suō-iro",
     "hex": "#7d133a",
     "rgb": [
       125,
@@ -1345,8 +1345,8 @@
   {
     "id": 38,
     "name": "Vistoris Lake",
-    "ja": null,
-    "reading": null,
+    "ja": "栗皮色",
+    "reading": "kurikawa-iro",
     "hex": "#6d4145",
     "rgb": [
       109,
@@ -1384,8 +1384,8 @@
   {
     "id": 39,
     "name": "Sulphur Yellow",
-    "ja": null,
-    "reading": null,
+    "ja": "蒸栗色",
+    "reading": "mushikuri-iro",
     "hex": "#f5ecc2",
     "rgb": [
       245,
@@ -1491,8 +1491,8 @@
   {
     "id": 41,
     "name": "Naples Yellow",
-    "ja": null,
-    "reading": null,
+    "ja": "淡黄蘗",
+    "reading": "usu-kihada",
     "hex": "#fbe6a0",
     "rgb": [
       251,
@@ -1530,8 +1530,8 @@
   {
     "id": 42,
     "name": "Ivory Buff",
-    "ja": null,
-    "reading": null,
+    "ja": "白茶",
+    "reading": "shiracha",
     "hex": "#ebd3a2",
     "rgb": [
       235,
@@ -1581,8 +1581,8 @@
   {
     "id": 43,
     "name": "Seashell Pink",
-    "ja": null,
-    "reading": null,
+    "ja": "肌色",
+    "reading": "hada-iro",
     "hex": "#fdd4bd",
     "rgb": [
       253,
@@ -1624,8 +1624,8 @@
   {
     "id": 44,
     "name": "Light Pinkish Cinnamon",
-    "ja": null,
-    "reading": null,
+    "ja": "淡香色",
+    "reading": "usukō-iro",
     "hex": "#fcc79b",
     "rgb": [
       252,
@@ -1657,8 +1657,8 @@
   {
     "id": 45,
     "name": "Pinkish Cinnamon",
-    "ja": null,
-    "reading": null,
+    "ja": "砥粉色",
+    "reading": "tonoko-iro",
     "hex": "#eeb480",
     "rgb": [
       238,
@@ -1698,8 +1698,8 @@
   {
     "id": 46,
     "name": "Cinnamon Buff",
-    "ja": null,
-    "reading": null,
+    "ja": "玉蜀黍色",
+    "reading": "tōmorokoshi-iro",
     "hex": "#fdc57e",
     "rgb": [
       253,
@@ -1783,8 +1783,8 @@
   {
     "id": 48,
     "name": "Golden Yellow",
-    "ja": null,
-    "reading": null,
+    "ja": "金茶",
+    "reading": "kincha",
     "hex": "#f3a257",
     "rgb": [
       243,
@@ -1823,8 +1823,8 @@
   {
     "id": 49,
     "name": "Vinaceous Cinnamon",
-    "ja": null,
-    "reading": null,
+    "ja": "香色",
+    "reading": "kō-iro",
     "hex": "#eea78c",
     "rgb": [
       238,
@@ -1901,8 +1901,8 @@
   {
     "id": 51,
     "name": "Isabella Color",
-    "ja": null,
-    "reading": null,
+    "ja": "落葉色",
+    "reading": "ochiba-iro",
     "hex": "#c5a56e",
     "rgb": [
       197,
@@ -1933,8 +1933,8 @@
   {
     "id": 52,
     "name": "Maple",
-    "ja": null,
-    "reading": null,
+    "ja": "幹色",
+    "reading": "miki-iro",
     "hex": "#c59f6b",
     "rgb": [
       197,
@@ -1965,8 +1965,8 @@
   {
     "id": 53,
     "name": "Olive Buff",
-    "ja": null,
-    "reading": null,
+    "ja": "桑色白茶",
+    "reading": "kuwairo-shiracha",
     "hex": "#c1c494",
     "rgb": [
       193,
@@ -2002,8 +2002,8 @@
   {
     "id": 54,
     "name": "Ecru",
-    "ja": null,
-    "reading": null,
+    "ja": "灰汁色",
+    "reading": "aku-iro",
     "hex": "#c2ae93",
     "rgb": [
       194,
@@ -2079,8 +2079,8 @@
   {
     "id": 56,
     "name": "Lemon Yellow",
-    "ja": null,
-    "reading": null,
+    "ja": "金絲雀色",
+    "reading": "kinshijaku-iro",
     "hex": "#f8ed43",
     "rgb": [
       248,
@@ -2124,8 +2124,8 @@
   {
     "id": 57,
     "name": "Apricot Yellow",
-    "ja": null,
-    "reading": null,
+    "ja": "鬱金色",
+    "reading": "ukon-iro",
     "hex": "#ffdd00",
     "rgb": [
       255,
@@ -2164,8 +2164,8 @@
   {
     "id": 58,
     "name": "Pyrite Yellow",
-    "ja": null,
-    "reading": null,
+    "ja": "淡青朽葉",
+    "reading": "usu-aokuchiba",
     "hex": "#cab356",
     "rgb": [
       202,
@@ -2199,8 +2199,8 @@
   {
     "id": 59,
     "name": "Olive Ocher",
-    "ja": null,
-    "reading": null,
+    "ja": "油色",
+    "reading": "abura-iro",
     "hex": "#d6b43e",
     "rgb": [
       214,
@@ -2237,8 +2237,8 @@
   {
     "id": 60,
     "name": "Yellow Ocher",
-    "ja": null,
-    "reading": null,
+    "ja": "山吹茶",
+    "reading": "yamabuki-cha",
     "hex": "#e2b540",
     "rgb": [
       226,
@@ -2276,8 +2276,8 @@
   {
     "id": 61,
     "name": "Orange Yellow",
-    "ja": null,
-    "reading": null,
+    "ja": "山吹色",
+    "reading": "yamabuki-iro",
     "hex": "#fcb315",
     "rgb": [
       252,
@@ -2356,8 +2356,8 @@
   {
     "id": 63,
     "name": "Apricot Orange",
-    "ja": null,
-    "reading": null,
+    "ja": "深支子",
+    "reading": "kokikuchinashi",
     "hex": "#f68c50",
     "rgb": [
       246,
@@ -2428,8 +2428,8 @@
   {
     "id": 65,
     "name": "Peach Red",
-    "ja": null,
-    "reading": null,
+    "ja": "杏色",
+    "reading": "anzu-iro",
     "hex": "#f15a30",
     "rgb": [
       241,
@@ -2466,8 +2466,8 @@
   {
     "id": 66,
     "name": "English Red",
-    "ja": null,
-    "reading": null,
+    "ja": "蒲色",
+    "reading": "kaba-iro",
     "hex": "#d96629",
     "rgb": [
       217,
@@ -2502,8 +2502,8 @@
   {
     "id": 67,
     "name": "Cinnamon Rufous",
-    "ja": null,
-    "reading": null,
+    "ja": "代赭色",
+    "reading": "taisha-iro",
     "hex": "#c27544",
     "rgb": [
       194,
@@ -2539,8 +2539,8 @@
   {
     "id": 68,
     "name": "Orange Rufous",
-    "ja": null,
-    "reading": null,
+    "ja": "飴色",
+    "reading": "ame-iro",
     "hex": "#c16b27",
     "rgb": [
       193,
@@ -2574,8 +2574,8 @@
   {
     "id": 69,
     "name": "Sulphine Yellow",
-    "ja": null,
-    "reading": null,
+    "ja": "黄檗色",
+    "reading": "kihada-iro",
     "hex": "#c19f2c",
     "rgb": [
       193,
@@ -2611,8 +2611,8 @@
   {
     "id": 70,
     "name": "Khaki",
-    "ja": null,
-    "reading": null,
+    "ja": "黄茶",
+    "reading": "ki-cha",
     "hex": "#bc892b",
     "rgb": [
       188,
@@ -2648,8 +2648,8 @@
   {
     "id": 71,
     "name": "Citron Yellow",
-    "ja": null,
-    "reading": null,
+    "ja": "菜種油色",
+    "reading": "nataneyu-iro",
     "hex": "#b2b73e",
     "rgb": [
       178,
@@ -2726,8 +2726,8 @@
   {
     "id": 73,
     "name": "Buffy Citrine",
-    "ja": null,
-    "reading": null,
+    "ja": "黄海松茶",
+    "reading": "kimirucha",
     "hex": "#96874d",
     "rgb": [
       150,
@@ -2760,8 +2760,8 @@
   {
     "id": 74,
     "name": "Dark Citrine",
-    "ja": null,
-    "reading": null,
+    "ja": "路考茶",
+    "reading": "rokō-cha",
     "hex": "#8b835b",
     "rgb": [
       139,
@@ -2794,8 +2794,8 @@
   {
     "id": 75,
     "name": "Light Grayish Olive",
-    "ja": null,
-    "reading": null,
+    "ja": "利久茶",
+    "reading": "rikyū-cha",
     "hex": "#848061",
     "rgb": [
       132,
@@ -2824,8 +2824,8 @@
   {
     "id": 76,
     "name": "Kronbergs Green",
-    "ja": null,
-    "reading": null,
+    "ja": "鶯色",
+    "reading": "uguisu-iro",
     "hex": "#84875e",
     "rgb": [
       132,
@@ -2855,8 +2855,8 @@
   {
     "id": 77,
     "name": "Olive",
-    "ja": null,
-    "reading": null,
+    "ja": "橄欖色",
+    "reading": "kanran-iro",
     "hex": "#837e31",
     "rgb": [
       131,
@@ -2890,8 +2890,8 @@
   {
     "id": 78,
     "name": "Orange Citrine",
-    "ja": null,
-    "reading": null,
+    "ja": "銀煤竹",
+    "reading": "ginsusutake",
     "hex": "#986f2d",
     "rgb": [
       152,
@@ -2957,8 +2957,8 @@
   {
     "id": 80,
     "name": "Olive Green",
-    "ja": null,
-    "reading": null,
+    "ja": "海松茶",
+    "reading": "miru-cha",
     "hex": "#6b7140",
     "rgb": [
       107,
@@ -2989,8 +2989,8 @@
   {
     "id": 81,
     "name": "Light Brownish Olive",
-    "ja": null,
-    "reading": null,
+    "ja": "鶯茶",
+    "reading": "uguisu-cha",
     "hex": "#806e4b",
     "rgb": [
       128,
@@ -3023,8 +3023,8 @@
   {
     "id": 82,
     "name": "Deep Grayish Olive",
-    "ja": null,
-    "reading": null,
+    "ja": "生壁色",
+    "reading": "namakabe-iro",
     "hex": "#635a3a",
     "rgb": [
       99,
@@ -3053,8 +3053,8 @@
   {
     "id": 83,
     "name": "Pale Raw Umber",
-    "ja": null,
-    "reading": null,
+    "ja": "媚茶色",
+    "reading": "kobicha-iro",
     "hex": "#71502f",
     "rgb": [
       113,
@@ -3086,8 +3086,8 @@
   {
     "id": 84,
     "name": "Sepia",
-    "ja": null,
-    "reading": null,
+    "ja": "憲法色",
+    "reading": "kenpō-iro",
     "hex": "#644b1e",
     "rgb": [
       100,
@@ -3119,8 +3119,8 @@
   {
     "id": 85,
     "name": "Madder Brown",
-    "ja": null,
-    "reading": null,
+    "ja": "赤白橡",
+    "reading": "akashiro-tsurubami",
     "hex": "#762c19",
     "rgb": [
       118,
@@ -3154,8 +3154,8 @@
   {
     "id": 86,
     "name": "Mars Brown/Tobacco",
-    "ja": null,
-    "reading": null,
+    "ja": "煙草色",
+    "reading": "tabako-iro",
     "hex": "#653514",
     "rgb": [
       101,
@@ -3185,8 +3185,8 @@
   {
     "id": 87,
     "name": "Vandyke Brown",
-    "ja": null,
-    "reading": null,
+    "ja": "焦茶色",
+    "reading": "kogecha-iro",
     "hex": "#4b3317",
     "rgb": [
       75,
@@ -3222,8 +3222,8 @@
   {
     "id": 88,
     "name": "Turquoise Green",
-    "ja": null,
-    "reading": null,
+    "ja": "白緑",
+    "reading": "byakuroku",
     "hex": "#b5decc",
     "rgb": [
       181,
@@ -3268,8 +3268,8 @@
   {
     "id": 89,
     "name": "Glaucous Green",
-    "ja": null,
-    "reading": null,
+    "ja": "裏葉色",
+    "reading": "uraha-iro",
     "hex": "#b4cdc2",
     "rgb": [
       180,
@@ -3306,8 +3306,8 @@
   {
     "id": 90,
     "name": "Dark Greenish Glaucous",
-    "ja": null,
-    "reading": null,
+    "ja": "若苗色",
+    "reading": "wakanae-iro",
     "hex": "#b7c2a9",
     "rgb": [
       183,
@@ -3407,8 +3407,8 @@
   {
     "id": 93,
     "name": "Night Green",
-    "ja": null,
-    "reading": null,
+    "ja": "鶸萌木",
+    "reading": "hiwa-moegi",
     "hex": "#87c540",
     "rgb": [
       135,
@@ -3442,8 +3442,8 @@
   {
     "id": 94,
     "name": "Olive Yellow",
-    "ja": null,
-    "reading": null,
+    "ja": "苔色",
+    "reading": "koke-iro",
     "hex": "#a6a159",
     "rgb": [
       166,
@@ -3476,8 +3476,8 @@
   {
     "id": 95,
     "name": "Artemisia Green",
-    "ja": null,
-    "reading": null,
+    "ja": "千草鼠",
+    "reading": "chigusa-nezu",
     "hex": "#709390",
     "rgb": [
       112,
@@ -3511,8 +3511,8 @@
   {
     "id": 96,
     "name": "Andover Green",
-    "ja": null,
-    "reading": null,
+    "ja": "山鳩色",
+    "reading": "yamabato-iro",
     "hex": "#6d7e77",
     "rgb": [
       109,
@@ -3544,8 +3544,8 @@
   {
     "id": 97,
     "name": "Rainette Green",
-    "ja": null,
-    "reading": null,
+    "ja": "松葉色",
+    "reading": "matsuba-iro",
     "hex": "#8fa071",
     "rgb": [
       143,
@@ -3611,8 +3611,8 @@
   {
     "id": 99,
     "name": "Pistachio Green",
-    "ja": null,
-    "reading": null,
+    "ja": "木賊色",
+    "reading": "tokusa-iro",
     "hex": "#648f7b",
     "rgb": [
       100,
@@ -3643,8 +3643,8 @@
   {
     "id": 100,
     "name": "Sea Green",
-    "ja": null,
-    "reading": null,
+    "ja": "若竹色",
+    "reading": "wakatake-iro",
     "hex": "#00b49b",
     "rgb": [
       0,
@@ -3684,8 +3684,8 @@
   {
     "id": 101,
     "name": "Benzol Green",
-    "ja": null,
-    "reading": null,
+    "ja": "青竹色",
+    "reading": "aotake-iro",
     "hex": "#00978d",
     "rgb": [
       0,
@@ -3723,8 +3723,8 @@
   {
     "id": 102,
     "name": "Light Porcelain Green",
-    "ja": null,
-    "reading": null,
+    "ja": "老竹色",
+    "reading": "oitake-iro",
     "hex": "#00908a",
     "rgb": [
       0,
@@ -3790,8 +3790,8 @@
   {
     "id": 104,
     "name": "Dull Viridian Green",
-    "ja": null,
-    "reading": null,
+    "ja": "草色",
+    "reading": "kusa-iro",
     "hex": "#009465",
     "rgb": [
       0,
@@ -3825,8 +3825,8 @@
   {
     "id": 105,
     "name": "Oil Green",
-    "ja": null,
-    "reading": null,
+    "ja": "麹塵",
+    "reading": "kikujin",
     "hex": "#819238",
     "rgb": [
       129,
@@ -3858,8 +3858,8 @@
   {
     "id": 106,
     "name": "Diamine Green",
-    "ja": null,
-    "reading": null,
+    "ja": "常磐色",
+    "reading": "tokiwa-iro",
     "hex": "#1a7444",
     "rgb": [
       26,
@@ -3934,8 +3934,8 @@
   {
     "id": 108,
     "name": "Lincoln Green",
-    "ja": null,
-    "reading": null,
+    "ja": "海松色",
+    "reading": "miru-iro",
     "hex": "#555832",
     "rgb": [
       85,
@@ -3971,8 +3971,8 @@
   {
     "id": 109,
     "name": "Blackish Olive",
-    "ja": null,
-    "reading": null,
+    "ja": "藍海松茶",
+    "reading": "ai-mirucha",
     "hex": "#42533e",
     "rgb": [
       66,
@@ -4005,8 +4005,8 @@
   {
     "id": 110,
     "name": "Deep Slate Olive",
-    "ja": null,
-    "reading": null,
+    "ja": "千斎茶",
+    "reading": "sensai-cha",
     "hex": "#253122",
     "rgb": [
       37,
@@ -4045,8 +4045,8 @@
   {
     "id": 111,
     "name": "Nile Blue",
-    "ja": null,
-    "reading": null,
+    "ja": "水色",
+    "reading": "mizu-iro",
     "hex": "#bce4e5",
     "rgb": [
       188,
@@ -4083,8 +4083,8 @@
   {
     "id": 112,
     "name": "Pale King's Blue",
-    "ja": null,
-    "reading": null,
+    "ja": "瓶覗",
+    "reading": "kamenozoki",
     "hex": "#a7d4e4",
     "rgb": [
       167,
@@ -4125,8 +4125,8 @@
   {
     "id": 113,
     "name": "Light Glaucous Blue",
-    "ja": null,
-    "reading": null,
+    "ja": "深川鼠",
+    "reading": "fukagawa-nezumi",
     "hex": "#a5c8d1",
     "rgb": [
       165,
@@ -4301,8 +4301,8 @@
   {
     "id": 117,
     "name": "Venice Green",
-    "ja": null,
-    "reading": null,
+    "ja": "水浅葱",
+    "reading": "mizu-asagi",
     "hex": "#62c6bf",
     "rgb": [
       98,
@@ -4337,8 +4337,8 @@
   {
     "id": 118,
     "name": "Cerulean Blue",
-    "ja": null,
-    "reading": null,
+    "ja": "花浅葱",
+    "reading": "hana-asagi",
     "hex": "#0093a5",
     "rgb": [
       0,
@@ -4375,8 +4375,8 @@
   {
     "id": 119,
     "name": "Peacock Blue",
-    "ja": null,
-    "reading": null,
+    "ja": "浅葱色",
+    "reading": "asagi-iro",
     "hex": "#00939b",
     "rgb": [
       0,
@@ -4447,8 +4447,8 @@
   {
     "id": 121,
     "name": "Olympic Blue",
-    "ja": null,
-    "reading": null,
+    "ja": "浅縹",
+    "reading": "asa-hanada",
     "hex": "#5a82b3",
     "rgb": [
       90,
@@ -4569,8 +4569,8 @@
   {
     "id": 124,
     "name": "Helvetia Blue",
-    "ja": null,
-    "reading": null,
+    "ja": "勝色",
+    "reading": "kachi-iro",
     "hex": "#005b8d",
     "rgb": [
       0,
@@ -4609,8 +4609,8 @@
   {
     "id": 125,
     "name": "Dark Medici Blue",
-    "ja": null,
-    "reading": null,
+    "ja": "藍鼠",
+    "reading": "ai-nezumi",
     "hex": "#547076",
     "rgb": [
       84,
@@ -4644,8 +4644,8 @@
   {
     "id": 126,
     "name": "Dusky Green",
-    "ja": null,
-    "reading": null,
+    "ja": "海松藍",
+    "reading": "miru-ai",
     "hex": "#004f46",
     "rgb": [
       0,
@@ -4768,8 +4768,8 @@
   {
     "id": 129,
     "name": "Vanderpoel's Blue",
-    "ja": null,
-    "reading": null,
+    "ja": "縹色",
+    "reading": "hanada-iro",
     "hex": "#064f6e",
     "rgb": [
       6,
@@ -4808,8 +4808,8 @@
   {
     "id": 130,
     "name": "Dark Tyrian Blue",
-    "ja": null,
-    "reading": null,
+    "ja": "深縹",
+    "reading": "kokihanada",
     "hex": "#12354e",
     "rgb": [
       18,
@@ -4845,8 +4845,8 @@
   {
     "id": 131,
     "name": "Dull Violet Black",
-    "ja": null,
-    "reading": null,
+    "ja": "褐色",
+    "reading": "kachi-iro",
     "hex": "#1e0e3f",
     "rgb": [
       30,
@@ -4889,8 +4889,8 @@
   {
     "id": 132,
     "name": "Deep Indigo",
-    "ja": null,
-    "reading": null,
+    "ja": "紺色",
+    "reading": "kon-iro",
     "hex": "#051230",
     "rgb": [
       5,
@@ -4931,8 +4931,8 @@
   {
     "id": 133,
     "name": "Deep Slate Green",
-    "ja": null,
-    "reading": null,
+    "ja": "鉄色",
+    "reading": "tetsu-iro",
     "hex": "#112f2c",
     "rgb": [
       17,
@@ -5013,8 +5013,8 @@
   {
     "id": 135,
     "name": "Grayish Lavender - B",
-    "ja": null,
-    "reading": null,
+    "ja": "薄色",
+    "reading": "usu-iro",
     "hex": "#c0a9b3",
     "rgb": [
       192,
@@ -5051,8 +5051,8 @@
   {
     "id": 136,
     "name": "Laelia Pink",
-    "ja": null,
-    "reading": null,
+    "ja": "紅藤",
+    "reading": "benifuji",
     "hex": "#ca92a8",
     "rgb": [
       202,
@@ -5123,8 +5123,8 @@
   {
     "id": 138,
     "name": "Eupatorium Purple",
-    "ja": null,
-    "reading": null,
+    "ja": "梅紫",
+    "reading": "ume-murasaki",
     "hex": "#bf5892",
     "rgb": [
       191,
@@ -5191,8 +5191,8 @@
   {
     "id": 140,
     "name": "Aconite Violet",
-    "ja": null,
-    "reading": null,
+    "ja": "半色",
+    "reading": "hashi-iro",
     "hex": "#a36aa5",
     "rgb": [
       163,
@@ -5232,8 +5232,8 @@
   {
     "id": 141,
     "name": "Dull Blue Violet",
-    "ja": null,
-    "reading": null,
+    "ja": "藤納戸",
+    "reading": "fuji-nando",
     "hex": "#80719e",
     "rgb": [
       128,
@@ -5264,8 +5264,8 @@
   {
     "id": 142,
     "name": "Dark Soft Violet",
-    "ja": null,
-    "reading": null,
+    "ja": "二藍",
+    "reading": "futa-ai",
     "hex": "#66629c",
     "rgb": [
       102,
@@ -5297,8 +5297,8 @@
   {
     "id": 143,
     "name": "Blue Violet",
-    "ja": null,
-    "reading": null,
+    "ja": "桔梗色",
+    "reading": "kikyō-iro",
     "hex": "#6450a1",
     "rgb": [
       100,
@@ -5332,8 +5332,8 @@
   {
     "id": 144,
     "name": "Purple Drab",
-    "ja": null,
-    "reading": null,
+    "ja": "浅滅紫",
+    "reading": "asakeshi-murasaki",
     "hex": "#84565b",
     "rgb": [
       132,
@@ -5363,8 +5363,8 @@
   {
     "id": 145,
     "name": "Deep Violet/Plumbeous",
-    "ja": null,
-    "reading": null,
+    "ja": "藤鼠",
+    "reading": "fuji-nezumi",
     "hex": "#70727c",
     "rgb": [
       112,
@@ -5397,8 +5397,8 @@
   {
     "id": 146,
     "name": "Vernonia Purple",
-    "ja": null,
-    "reading": null,
+    "ja": "牡丹鼠",
+    "reading": "botan-nezumi",
     "hex": "#8c4c62",
     "rgb": [
       140,
@@ -5429,8 +5429,8 @@
   {
     "id": 147,
     "name": "Dark Slate Purple",
-    "ja": null,
-    "reading": null,
+    "ja": "蒲萄色",
+    "reading": "ebizome",
     "hex": "#704357",
     "rgb": [
       112,
@@ -5459,8 +5459,8 @@
   {
     "id": 148,
     "name": "Taupe Brown",
-    "ja": null,
-    "reading": null,
+    "ja": "濃色",
+    "reading": "koi-iro",
     "hex": "#7a4456",
     "rgb": [
       122,
@@ -5496,8 +5496,8 @@
   {
     "id": 149,
     "name": "Violet Carmine",
-    "ja": null,
-    "reading": null,
+    "ja": "桑染色",
+    "reading": "kuwasome-iro",
     "hex": "#713b4c",
     "rgb": [
       113,
@@ -5676,8 +5676,8 @@
   {
     "id": 154,
     "name": "White",
-    "ja": null,
-    "reading": null,
+    "ja": "白",
+    "reading": "shiro",
     "hex": "#ffffff",
     "rgb": [
       255,
@@ -5714,8 +5714,8 @@
   {
     "id": 155,
     "name": "Neutral Gray",
-    "ja": null,
-    "reading": null,
+    "ja": "銀鼠",
+    "reading": "gin-nezu",
     "hex": "#b6bfc1",
     "rgb": [
       182,
@@ -5760,8 +5760,8 @@
   {
     "id": 156,
     "name": "Mineral Gray",
-    "ja": null,
-    "reading": null,
+    "ja": "鼠色",
+    "reading": "nezumi-iro",
     "hex": "#a2b0ad",
     "rgb": [
       162,
@@ -5794,8 +5794,8 @@
   {
     "id": 157,
     "name": "Warm Gray",
-    "ja": null,
-    "reading": null,
+    "ja": "灰色",
+    "reading": "hai-iro",
     "hex": "#a1a39a",
     "rgb": [
       161,
@@ -5832,8 +5832,8 @@
   {
     "id": 158,
     "name": "Slate Color",
-    "ja": null,
-    "reading": null,
+    "ja": "石板色",
+    "reading": "sekiban-iro",
     "hex": "#34454c",
     "rgb": [
       52,
@@ -5876,8 +5876,8 @@
   {
     "id": 159,
     "name": "Black",
-    "ja": null,
-    "reading": null,
+    "ja": "黒",
+    "reading": "kuro",
     "hex": "#111314",
     "rgb": [
       17,

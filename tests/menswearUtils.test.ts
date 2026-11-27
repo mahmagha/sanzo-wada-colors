@@ -6,11 +6,19 @@ import { ColorItem, RawCombination } from '../src/types/color';
 import { hydrateCombinations } from '../src/utils/paletteData';
 import {
   analyzeOutfitHarmony,
+  buildMenswearLookbookSvg,
+  DEFAULT_GARMENT_PATTERNS,
+  FABRIC_PATTERN_META,
   GARMENT_SLOT_ORDER,
   generateMenswearCss,
+  getDefaultMaterialsForPieces,
+  LIGHTING_PRESET_META,
   mapComboToGarmentOutfit,
   MENSWEAR_PRESETS,
+  menswearOutfitToCombination,
+  PATTERNS_BY_SLOT,
   serializeOutfitIds,
+  SKIN_TONE_PRESETS,
   STYLE_PRESET_PIECES,
 } from '../src/utils/menswearUtils';
 
@@ -67,9 +75,48 @@ describe('Menswear garment mapping & harmony analysis', () => {
     const css = generateMenswearCss('suit', outfitColors, STYLE_PRESET_PIECES.suit);
     assert.ok(css.includes('--garment-outerwear:'));
     assert.ok(css.includes('--garment-footwear:'));
+    assert.ok(css.includes('Worsted Wool'));
+    assert.ok(css.includes('Full-Grain Leather'));
+
+    const streetMats = getDefaultMaterialsForPieces(STYLE_PRESET_PIECES.streetwear);
+    assert.equal(streetMats.outerwear, 'nylon-satin');
+    assert.equal(streetMats.top, 'fleece-jersey');
+    assert.equal(streetMats.bottom, 'selvedge-denim');
+    assert.equal(streetMats.footwear, 'canvas-rubber');
 
     const noCoatCss = generateMenswearCss('resort', outfitColors, STYLE_PRESET_PIECES.resort);
     assert.ok(!noCoatCss.includes('--garment-outerwear:'));
     assert.ok(noCoatCss.includes('--garment-top:'));
+    assert.ok(noCoatCss.includes('Textured Slub Linen'));
+
+    const patCss = generateMenswearCss(
+      'suit',
+      outfitColors,
+      STYLE_PRESET_PIECES.suit,
+      getDefaultMaterialsForPieces(STYLE_PRESET_PIECES.suit),
+      { ...DEFAULT_GARMENT_PATTERNS, outerwear: 'pinstripe' }
+    );
+    assert.ok(patCss.includes(FABRIC_PATTERN_META.pinstripe.label));
+    assert.ok(PATTERNS_BY_SLOT.outerwear.includes('pinstripe'));
+    assert.ok(Object.keys(SKIN_TONE_PRESETS).length === 5);
+    assert.ok(Object.keys(LIGHTING_PRESET_META).length === 3);
+
+    const lookbookSvg = buildMenswearLookbookSvg({
+      croquisSvgMarkup: '<svg viewBox="0 0 360 490"><rect width="10" height="10"/></svg>',
+      style: 'suit',
+      pieces: STYLE_PRESET_PIECES.suit,
+      materials: getDefaultMaterialsForPieces(STYLE_PRESET_PIECES.suit),
+      patterns: { ...DEFAULT_GARMENT_PATTERNS, outerwear: 'windowpane' },
+      outfit: outfitColors,
+      skinTone: 'olive',
+      lighting: 'evening-gallery',
+    });
+    assert.ok(lookbookSvg.includes('SANZO WADA — MENSWEAR LOOKBOOK'));
+    assert.ok(lookbookSvg.includes('Olive Complexion'));
+    assert.ok(lookbookSvg.includes(FABRIC_PATTERN_META.windowpane.label));
+
+    const synthCombo = menswearOutfitToCombination(outfitColors, STYLE_PRESET_PIECES.resort);
+    assert.equal(synthCombo.id, 0);
+    assert.equal(synthCombo.colors.length, 4);
   });
 });
