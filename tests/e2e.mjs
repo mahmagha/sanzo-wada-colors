@@ -680,6 +680,23 @@ async function run() {
     assert.equal(await client.eval(`document.querySelector('section[aria-label="Sanzo Wada 360° Color Wheel Page"]')`), null);
     assert.equal(await client.eval(`document.querySelector('[aria-label*="360 degree Wada Color Wheel"]')`), null);
 
+    // Ensure garment slot label/Editing badge never overlaps the Garment Cut select on desktop or tablet
+    const slotOverlapCheck = await client.eval(`(() => {
+      const sel = document.querySelector('select[aria-label="Garment type for outerwear"]')?.getBoundingClientRect();
+      const editing = Array.from(document.querySelectorAll('section[aria-label="Menswear Garment Color Studio"] span')).find(s => s.textContent?.trim() === 'Editing')?.getBoundingClientRect();
+      const overlap = (a, b) => a && b && !(a.right <= b.left + 1 || b.right <= a.left + 1 || a.bottom <= b.top + 1 || b.bottom <= a.top + 1);
+      return {
+        hasSel: Boolean(sel),
+        hasEditing: Boolean(editing),
+        overlaps: overlap(sel, editing),
+        editingWidth: editing?.width || 0,
+      };
+    })()`);
+    assert.equal(slotOverlapCheck.hasSel, true);
+    assert.equal(slotOverlapCheck.hasEditing, true);
+    assert.equal(slotOverlapCheck.overlaps, false, `Editing badge overlaps Garment select: ${JSON.stringify(slotOverlapCheck)}`);
+    assert.ok(slotOverlapCheck.editingWidth >= 30);
+
     await client.eval(`Array.from(document.querySelectorAll('section[aria-label="Menswear Garment Color Studio"] button')).find(b => b.textContent.includes('Tailored Trousers'))?.click()`);
     await new Promise((r) => setTimeout(r, 50));
     await client.eval(`Array.from(document.querySelectorAll('section[aria-label="Menswear Garment Color Studio"] button')).find(b => b.textContent.includes('#14') && b.textContent.includes('Raw Sienna'))?.click()`);

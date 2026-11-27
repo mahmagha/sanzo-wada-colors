@@ -726,7 +726,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                         : 'border-stone-300/70 dark:border-stone-800 bg-white/80 dark:bg-stone-950/40'
                     }`}
                   >
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                    <div className="flex flex-col gap-2">
                       <button
                         type="button"
                         onClick={() => {
@@ -734,7 +734,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                         }}
                         disabled={isDisabledCoat}
                         aria-pressed={isActive && editingTarget === 'base'}
-                        className="flex items-center gap-2.5 text-left flex-1 min-w-0 cursor-pointer disabled:cursor-default"
+                        className="flex items-center gap-2.5 text-left w-full min-w-0 cursor-pointer disabled:cursor-default"
                       >
                         <span
                           style={{
@@ -746,13 +746,13 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                               : 'border border-black/20 shadow-xs'
                           }`}
                         />
-                        <div className="min-w-0">
-                          <div className="flex items-center gap-1.5">
+                        <div className="min-w-0 flex-1 overflow-hidden">
+                          <div className="flex items-center gap-1.5 min-w-0">
                             <span className="text-xs font-semibold text-stone-900 dark:text-stone-100 truncate">
                               {slotTitle}
                             </span>
                             {isActive && !isDisabledCoat && (
-                              <span className="px-1.5 py-0.2 rounded bg-amber-800 text-amber-50 text-[10px] font-code">
+                              <span className="px-1.5 py-0.2 rounded bg-amber-800 text-amber-50 text-[10px] font-code shrink-0">
                                 Editing
                               </span>
                             )}
@@ -771,7 +771,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                         </div>
                       </button>
 
-                      <div className="flex items-center gap-1.5 flex-wrap sm:justify-end">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <select
                           aria-label={`Garment type for ${slot}`}
                           value={pieces[slot]}
