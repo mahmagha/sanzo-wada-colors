@@ -718,6 +718,18 @@ async function run() {
     await client.eval(`Array.from(document.querySelectorAll('section[aria-label="Menswear Garment Color Studio"] button')).find(b => b.textContent.includes('#14') && b.textContent.includes('Raw Sienna'))?.click()`);
     assert.equal(await waitForText('Editing') && await waitForText('#14 Raw Sienna'), true);
 
+    // Lock Bottom slot, test Monochrome Ladder strategy, Macro Cloth Loupe & Match Piece matcher
+    assert.equal(await client.eval(`Boolean(document.querySelector('[data-testid="menswear-macro-loupe"]'))`), true);
+    await client.eval(`document.querySelector('button[aria-label="Lock bottom color"]')?.click()`);
+    assert.equal(await waitForText('1 slot locked as anchor'), true);
+    await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Monochrome Ladder')?.click()`);
+    await new Promise((r) => setTimeout(r, 80));
+    assert.equal(await waitForText('#14 Raw Sienna'), true);
+    await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Match Piece'))?.click()`);
+    assert.equal(await client.eval(`Boolean(document.querySelector('[data-testid="menswear-piece-matcher"]'))`), true);
+    await client.eval(`document.querySelector('button[aria-label="Close garment matcher"]')?.click()`);
+    await client.eval(`document.querySelector('button[aria-label="Unlock bottom color"]')?.click()`);
+
     // Switch skin complexion, studio lighting, outerwear texture & two-tone pinstripe pattern
     await client.eval(`document.querySelector('button[aria-label="Skin tone Warm Olive"]')?.click()`);
     await client.eval(`document.querySelector('button[aria-label="Lighting Evening Gallery"]')?.click()`);

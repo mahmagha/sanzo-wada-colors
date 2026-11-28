@@ -8,14 +8,17 @@ import {
   analyzeOutfitHarmony,
   buildMenswearLookbookSvg,
   DEFAULT_GARMENT_PATTERNS,
+  FABRIC_MATERIAL_META,
   FABRIC_PATTERN_META,
   GARMENT_SLOT_ORDER,
   generateMenswearCss,
+  generateStrategyOutfit,
   getDefaultMaterialsForPieces,
   LIGHTING_PRESET_META,
   mapComboToGarmentOutfit,
   MENSWEAR_PRESETS,
   menswearOutfitToCombination,
+  OUTFIT_STRATEGY_LIST,
   PATTERNS_BY_SLOT,
   serializeOutfitIds,
   SKIN_TONE_PRESETS,
@@ -118,5 +121,34 @@ describe('Menswear garment mapping & harmony analysis', () => {
     const synthCombo = menswearOutfitToCombination(outfitColors, STYLE_PRESET_PIECES.resort);
     assert.equal(synthCombo.id, 0);
     assert.equal(synthCombo.colors.length, 4);
+  });
+
+  it('preserves locked slots across mapComboToGarmentOutfit and all styling strategies', () => {
+    const baseOutfit = { ...MENSWEAR_PRESETS[0].outfit };
+    const locked = { bottom: 82, footwear: 87 };
+    const plate = combos.find((c) => c.size >= 3)!;
+    const mappedLocked = mapComboToGarmentOutfit(plate, locked);
+    assert.equal(mappedLocked.bottom, 82);
+    assert.equal(mappedLocked.footwear, 87);
+
+    assert.ok(FABRIC_MATERIAL_META['tweed-herringbone'].drapeNote.length > 10);
+    assert.ok(MENSWEAR_PRESETS.every((p) => p.occasion.length > 0));
+
+    for (const strat of OUTFIT_STRATEGY_LIST) {
+      const result = generateStrategyOutfit({
+        strategy: strat.id,
+        anchorSlot: 'bottom',
+        currentOutfit: { ...baseOutfit, bottom: 82, footwear: 87 },
+        lockedSlots: { bottom: true, footwear: true },
+        allColors: colors,
+        allCombinations: combos,
+        variantSeed: 1,
+      });
+      assert.equal(result.outfit.bottom, 82, `Strategy ${strat.id} broke bottom lock`);
+      assert.equal(result.outfit.footwear, 87, `Strategy ${strat.id} broke footwear lock`);
+      for (const slot of GARMENT_SLOT_ORDER) {
+        assert.ok(colorById.has(result.outfit[slot]));
+      }
+    }
   });
 });

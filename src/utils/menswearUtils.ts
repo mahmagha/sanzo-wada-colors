@@ -188,21 +188,66 @@ export function getSlotDisplayLabel(slot: GarmentSlotKey, pieces: GarmentPieces)
   return CUT_LABEL_LOOKUP[`${slot}:${pieces[slot]}`] || slot;
 }
 
-export const FABRIC_MATERIAL_META: Record<FabricMaterial, { label: string }> = {
-  'worsted-wool': { label: 'Worsted Wool' },
-  'tweed-herringbone': { label: 'Herringbone Tweed' },
-  corduroy: { label: 'Ribbed Corduroy' },
-  'cotton-oxford': { label: 'Oxford Cotton' },
-  'heavy-twill': { label: 'Heavy Chinos Twill' },
-  'selvedge-denim': { label: 'Selvedge Denim' },
-  'rib-knit': { label: 'Merino Rib Knit' },
-  'fleece-jersey': { label: 'Brushed Fleece' },
-  'slub-linen': { label: 'Textured Slub Linen' },
-  'nylon-satin': { label: 'Matte Nylon Satin' },
-  'silk-crepe': { label: 'Woven Silk / Crêpe' },
-  'full-grain-leather': { label: 'Full-Grain Leather' },
-  'brushed-suede': { label: 'Napped Suede' },
-  'canvas-rubber': { label: 'Heavy Canvas' },
+export const FABRIC_MATERIAL_META: Record<
+  FabricMaterial,
+  { label: string; drapeNote: string }
+> = {
+  'worsted-wool': {
+    label: 'Worsted Wool',
+    drapeNote: 'High-twist diagonal weave • Crisp architectural drape',
+  },
+  'tweed-herringbone': {
+    label: 'Herringbone Tweed',
+    drapeNote: 'Chevron carded wool • Dry heritage grain & lofty weight',
+  },
+  corduroy: {
+    label: 'Ribbed Corduroy',
+    drapeNote: 'Plush vertical velvet wales • Matte tactile warmth',
+  },
+  'cotton-oxford': {
+    label: 'Oxford Cotton',
+    drapeNote: 'Open-basket weave • Crisp breathable collar structure',
+  },
+  'heavy-twill': {
+    label: 'Heavy Chinos Twill',
+    drapeNote: 'Tight diagonal cavalry twill • Matte utility structure',
+  },
+  'selvedge-denim': {
+    label: 'Selvedge Denim',
+    drapeNote: '3×1 right-hand indigo weave • Contrasting weft grain',
+  },
+  'rib-knit': {
+    label: 'Merino Rib Knit',
+    drapeNote: 'Vertical elastic rib columns • Soft contoured fall',
+  },
+  'fleece-jersey': {
+    label: 'Brushed Fleece',
+    drapeNote: 'Lofty heather loop-back cotton • Relaxed casual bulk',
+  },
+  'slub-linen': {
+    label: 'Textured Slub Linen',
+    drapeNote: 'Uneven bast flax yarns • Breezy open daylight weave',
+  },
+  'nylon-satin': {
+    label: 'Matte Nylon Satin',
+    drapeNote: 'Tight technical plain-satin • Subtle sheen & wind resistance',
+  },
+  'silk-crepe': {
+    label: 'Woven Silk / Crêpe',
+    drapeNote: 'Undulating chirimen silk micro-slub • Fluid luster',
+  },
+  'full-grain-leather': {
+    label: 'Full-Grain Leather',
+    drapeNote: 'Natural pore pebble grain • Burnished structured gleam',
+  },
+  'brushed-suede': {
+    label: 'Napped Suede',
+    drapeNote: 'Fine velvet reverse hide • Soft light-absorbing matte',
+  },
+  'canvas-rubber': {
+    label: 'Heavy Canvas',
+    drapeNote: 'Balanced duck weave • Crisp sneaker duck silhouette',
+  },
 };
 
 export const MATERIALS_BY_SLOT: Record<GarmentSlotKey, FabricMaterial[]> = {
@@ -425,6 +470,7 @@ export const GARMENT_STYLE_META: Record<
 export interface MenswearPreset {
   id: string;
   name: string;
+  occasion: string;
   note: string;
   style: GarmentStyle;
   outfit: GarmentOutfitIds;
@@ -434,6 +480,7 @@ export const MENSWEAR_PRESETS: MenswearPreset[] = [
   {
     id: 'showa-navy',
     name: 'Tyrian Suit',
+    occasion: 'Formal Tailoring',
     note: 'Crisp navy blazer tailored over white shirting, slate trousers & carmine silk',
     style: 'suit',
     outfit: { ...DEFAULT_MENSWEAR_OUTFIT },
@@ -441,6 +488,7 @@ export const MENSWEAR_PRESETS: MenswearPreset[] = [
   {
     id: 'salvia-oxford',
     name: 'Salvia & Chinos',
+    occasion: 'Smart Casual',
     note: 'Powder-blue Oxford shirt tucked cleanly into charcoal-olive chinos & espresso loafers',
     style: 'smart-casual',
     outfit: {
@@ -454,6 +502,7 @@ export const MENSWEAR_PRESETS: MenswearPreset[] = [
   {
     id: 'autumn-topcoat',
     name: 'Slate Olive Coat',
+    occasion: 'Autumn Layering',
     note: 'Long deep olive topcoat layered with ivory turtleneck, tobacco trousers & sienna scarf',
     style: 'overcoat',
     outfit: {
@@ -467,6 +516,7 @@ export const MENSWEAR_PRESETS: MenswearPreset[] = [
   {
     id: 'urban-bomber',
     name: 'Indigo Streetwear',
+    occasion: 'Streetwear',
     note: 'Deep indigo bomber over warm mineral hoodie, raw slate denim & terracotta cap trim',
     style: 'streetwear',
     outfit: {
@@ -480,6 +530,7 @@ export const MENSWEAR_PRESETS: MenswearPreset[] = [
   {
     id: 'summer-linen',
     name: 'Ivory Resort',
+    occasion: 'Warm Resort',
     note: 'Breezy slate camp shirt, cream linen shorts, raw sienna woven belt & loafers',
     style: 'resort',
     outfit: {
@@ -493,6 +544,7 @@ export const MENSWEAR_PRESETS: MenswearPreset[] = [
   {
     id: 'kyoto-haori',
     name: 'Kyoto Haori',
+    occasion: 'Traditional Wafuku',
     note: 'Traditional Wafuku harmony: slate haori, violet-blue kimono, indigo hakama & obi',
     style: 'wafuku',
     outfit: {
@@ -523,11 +575,15 @@ export function outfitArrayToRecord(
 }
 
 /**
- * Intelligently map any Sanzo Wada palette (2 to 7 colors) onto the 5 male garment slots.
+ * Intelligently map any Sanzo Wada palette (2 to 7 colors) onto the 5 male garment slots,
+ * optionally preserving locked garment slots.
  */
-export function mapComboToGarmentOutfit(combo: Combination): GarmentOutfitIds {
+export function mapComboToGarmentOutfit(
+  combo: Combination,
+  locked: Partial<Record<GarmentSlotKey, number>> = {}
+): GarmentOutfitIds {
   const palette = combo.colors;
-  if (palette.length === 0) return { ...DEFAULT_MENSWEAR_OUTFIT };
+  if (palette.length === 0) return { ...DEFAULT_MENSWEAR_OUTFIT, ...locked };
 
   const scored = palette.map((c) => {
     const [, s, l] = rgbToHsl(c.rgb);
@@ -539,29 +595,250 @@ export function mapComboToGarmentOutfit(combo: Combination): GarmentOutfitIds {
   const byLight = [...scored].sort((a, b) => b.lum - a.lum);
   const byChroma = [...scored].sort((a, b) => b.s - a.s);
 
-  const top = byLight[0].c.id;
-  const bottom = byDark[0].c.id;
+  const usedLocked = new Set<number>(
+    Object.values(locked).filter((id): id is number => typeof id === 'number')
+  );
 
-  const outerwearCandidate =
-    byDark.find((x) => x.c.id !== top && x.c.id !== bottom)?.c.id ??
-    (palette.length >= 2 ? byDark.find((x) => x.c.id !== top)?.c.id : undefined) ??
-    byDark[0].c.id;
+  const pickBest = (
+    list: typeof scored,
+    avoidIds: Set<number>,
+    fallbackList = list
+  ): number => {
+    return (
+      list.find((x) => !avoidIds.has(x.c.id))?.c.id ??
+      fallbackList[0].c.id
+    );
+  };
 
+  const avoidForTop = new Set(usedLocked);
+  const top = locked.top ?? pickBest(byLight, avoidForTop, byLight);
+
+  const avoidForBottom = new Set([...usedLocked, top]);
+  const bottom = locked.bottom ?? pickBest(byDark, avoidForBottom, byDark);
+
+  const avoidForOuterwear = new Set([...usedLocked, top, bottom]);
+  const outerwear =
+    locked.outerwear ??
+    pickBest(byDark, avoidForOuterwear, byDark.filter((x) => x.c.id !== top).length > 0 ? byDark.filter((x) => x.c.id !== top) : byDark);
+
+  const avoidForAccent = new Set([...usedLocked, top, outerwear]);
   const accent =
-    byChroma.find((x) => x.c.id !== top && x.c.id !== outerwearCandidate)?.c.id ??
-    byChroma.find((x) => x.c.id !== top)?.c.id ??
-    byChroma[0].c.id;
+    locked.accent ??
+    pickBest(byChroma, avoidForAccent, byChroma.filter((x) => x.c.id !== top).length > 0 ? byChroma.filter((x) => x.c.id !== top) : byChroma);
 
+  const avoidForFootwear = new Set([top, outerwear]);
   const footwear =
-    byDark.find((x) => x.c.id !== outerwearCandidate && x.c.id !== top)?.c.id ??
-    byDark[0].c.id;
+    locked.footwear ?? pickBest(byDark, avoidForFootwear, byDark);
 
   return {
-    outerwear: outerwearCandidate,
+    outerwear,
     top,
     bottom,
     accent,
     footwear,
+  };
+}
+
+export type OutfitStrategy = 'archival' | 'monochrome' | 'analogous' | 'accent-pop';
+
+export const OUTFIT_STRATEGY_META: Record<
+  OutfitStrategy,
+  { id: OutfitStrategy; label: string; note: string }
+> = {
+  archival: {
+    id: 'archival',
+    label: 'Archival Plate',
+    note: 'Complete unlocked garments around a matching 1933–1935 Wada combination',
+  },
+  monochrome: {
+    id: 'monochrome',
+    label: 'Monochrome Ladder',
+    note: 'Lightness gradation along your locked or anchor garment hue',
+  },
+  analogous: {
+    id: 'analogous',
+    label: 'Analogous Blend',
+    note: 'Smooth neighboring hue transition paired with structured footwear',
+  },
+  'accent-pop': {
+    id: 'accent-pop',
+    label: '60 / 30 / 10 Pop',
+    note: 'Calm neutral tailoring base (90%) with one vivid Wada accent (10%)',
+  },
+};
+
+export const OUTFIT_STRATEGY_LIST: { id: OutfitStrategy; label: string; note: string }[] = [
+  OUTFIT_STRATEGY_META.archival,
+  OUTFIT_STRATEGY_META.monochrome,
+  OUTFIT_STRATEGY_META.analogous,
+  OUTFIT_STRATEGY_META['accent-pop'],
+];
+
+function hueDistanceDeg(h1: number, h2: number): number {
+  const diff = Math.abs(h1 - h2) % 360;
+  return diff > 180 ? 360 - diff : diff;
+}
+
+/**
+ * Generate a refined 5-slot menswear colorway using a named styling strategy
+ * while strictly preserving every locked garment slot.
+ */
+export function generateStrategyOutfit(params: {
+  strategy: OutfitStrategy;
+  anchorSlot: GarmentSlotKey;
+  currentOutfit: GarmentOutfitIds;
+  lockedSlots?: Partial<Record<GarmentSlotKey, boolean>>;
+  allColors: ColorItem[];
+  allCombinations: HydratedCombination[];
+  variantSeed?: number;
+}): { outfit: GarmentOutfitIds; matchedCombo?: HydratedCombination } {
+  const {
+    strategy,
+    anchorSlot,
+    currentOutfit,
+    lockedSlots = {},
+    allColors,
+    allCombinations,
+    variantSeed = 0,
+  } = params;
+
+  const colorById = new Map<number, ColorItem>(allColors.map((c) => [c.id, c]));
+  const lockedOverrides: Partial<Record<GarmentSlotKey, number>> = {};
+  for (const slot of GARMENT_SLOT_ORDER) {
+    if (lockedSlots[slot]) {
+      lockedOverrides[slot] = currentOutfit[slot];
+    }
+  }
+
+  const anchorColor =
+    colorById.get(currentOutfit[anchorSlot]) ?? allColors[0];
+  const [anchorHue, anchorSat] = rgbToHsl(anchorColor.rgb);
+
+  if (strategy === 'archival' && allCombinations.length > 0) {
+    const lockedIds = Array.from(new Set(Object.values(lockedOverrides)));
+    const targetIds = lockedIds.length > 0 ? lockedIds : [anchorColor.id];
+    const matching = allCombinations
+      .map((combo) => {
+        const comboSet = new Set(combo.colors.map((c) => c.id));
+        const exactCount = targetIds.filter((id) => comboSet.has(id)).length;
+        const avgDist =
+          targetIds.reduce((sum, id) => {
+            const c = colorById.get(id);
+            if (!c) return sum;
+            const minD = combo.colors.reduce(
+              (best, cc) => Math.min(best, getDeltaE2000(c.lab, cc.lab)),
+              Infinity
+            );
+            return sum + minD;
+          }, 0) / Math.max(1, targetIds.length);
+        return { combo, exactCount, avgDist };
+      })
+      .sort((a, b) => b.exactCount - a.exactCount || a.avgDist - b.avgDist);
+
+    const exactMatches = matching.filter((m) => m.exactCount > 0);
+    const pool = exactMatches.length >= 2 ? exactMatches.slice(0, 12) : matching.slice(0, 8);
+    const picked = pool[Math.abs(variantSeed) % pool.length]?.combo ?? allCombinations[0];
+    return {
+      outfit: mapComboToGarmentOutfit(picked, lockedOverrides),
+      matchedCombo: picked,
+    };
+  }
+
+  const withMetrics = allColors.map((c) => {
+    const [h, s, l] = rgbToHsl(c.rgb);
+    const lum = getLuminance(...hexToRgb(c.hex));
+    return { c, h, s, l, lum };
+  });
+
+  if (strategy === 'monochrome') {
+    const baseHue = anchorSat >= 0.08 ? anchorHue : 210;
+    const byHueFit = [...withMetrics].sort((a, b) => {
+      const da = a.s < 0.09 ? 16 : hueDistanceDeg(a.h, baseHue);
+      const db = b.s < 0.09 ? 16 : hueDistanceDeg(b.h, baseHue);
+      return da - db || a.c.id - b.c.id;
+    });
+    const topLight =
+      byHueFit.filter((x) => x.lum > 0.45).sort((a, b) => b.lum - a.lum)[0]?.c.id ??
+      154;
+    const midOuter =
+      byHueFit.find((x) => x.lum >= 0.05 && x.lum <= 0.35 && x.s >= 0.12)?.c.id ??
+      byHueFit[Math.min(2, byHueFit.length - 1)].c.id;
+    const deepBottom =
+      byHueFit.filter((x) => x.lum <= 0.22 && x.c.id !== midOuter)[0]?.c.id ??
+      byHueFit[byHueFit.length - 1].c.id;
+    const richAccent =
+      byHueFit.find(
+        (x) => x.c.id !== topLight && x.c.id !== midOuter && x.s >= 0.25
+      )?.c.id ?? anchorColor.id;
+    const darkShoe =
+      withMetrics.filter((x) => x.lum < 0.12 && x.s < 0.35).sort((a, b) => a.lum - b.lum)[0]?.c.id ??
+      87;
+
+    return {
+      outfit: {
+        outerwear: lockedOverrides.outerwear ?? midOuter,
+        top: lockedOverrides.top ?? topLight,
+        bottom: lockedOverrides.bottom ?? deepBottom,
+        accent: lockedOverrides.accent ?? richAccent,
+        footwear: lockedOverrides.footwear ?? darkShoe,
+      },
+    };
+  }
+
+  if (strategy === 'analogous') {
+    const targetShift = variantSeed % 2 === 0 ? 36 : 324;
+    const secondHue = (anchorHue + targetShift) % 360;
+    const shirt =
+      withMetrics
+        .filter((x) => x.lum >= 0.65 && (x.s < 0.28 || hueDistanceDeg(x.h, anchorHue) <= 55))
+        .sort((a, b) => b.lum - a.lum)[0]?.c.id ?? 154;
+    const neighbor =
+      withMetrics
+        .filter((x) => x.s >= 0.14 && x.lum >= 0.06 && x.lum <= 0.45 && x.c.id !== anchorColor.id)
+        .sort((a, b) => hueDistanceDeg(a.h, secondHue) - hueDistanceDeg(b.h, secondHue))[0]?.c.id ??
+      158;
+    const crispAccent =
+      withMetrics
+        .filter((x) => x.s >= 0.4 && hueDistanceDeg(x.h, (anchorHue + 52) % 360) <= 65)
+        .sort((a, b) => b.s - a.s)[0]?.c.id ?? 14;
+    const groundedShoe =
+      withMetrics.filter((x) => x.lum <= 0.16 && x.h >= 15 && x.h <= 60)[0]?.c.id ?? 87;
+
+    return {
+      outfit: {
+        outerwear: lockedOverrides.outerwear ?? neighbor,
+        top: lockedOverrides.top ?? shirt,
+        bottom:
+          lockedOverrides.bottom ??
+          (anchorSlot === 'bottom' ? anchorColor.id : (neighbor !== 158 ? 158 : anchorColor.id)),
+        accent: lockedOverrides.accent ?? crispAccent,
+        footwear: lockedOverrides.footwear ?? groundedShoe,
+      },
+    };
+  }
+
+  // 'accent-pop': Quiet neutral architectural base + one bold high-chroma pop in accent
+  const lightNeutral =
+    withMetrics.filter((x) => x.s < 0.14 && x.lum > 0.72).sort((a, b) => b.lum - a.lum)[0]?.c.id ??
+    154;
+  const slateNeutral =
+    withMetrics.find((x) => x.s < 0.18 && x.lum >= 0.05 && x.lum <= 0.22)?.c.id ?? 158;
+  const darkAnchor =
+    withMetrics.find((x) => x.s < 0.35 && x.lum <= 0.09 && x.c.id !== slateNeutral)?.c.id ?? 130;
+  const vividPops = withMetrics
+    .filter((x) => x.s >= 0.55 && x.lum >= 0.07 && x.lum <= 0.65)
+    .sort((a, b) => b.s - a.s);
+  const popColor =
+    vividPops[Math.abs(variantSeed) % Math.max(1, vividPops.length)]?.c.id ?? 29;
+
+  return {
+    outfit: {
+      outerwear: lockedOverrides.outerwear ?? darkAnchor,
+      top: lockedOverrides.top ?? lightNeutral,
+      bottom: lockedOverrides.bottom ?? slateNeutral,
+      accent: lockedOverrides.accent ?? popColor,
+      footwear: lockedOverrides.footwear ?? 87,
+    },
   };
 }
 

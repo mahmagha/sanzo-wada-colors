@@ -8,7 +8,9 @@ import {
   Eye,
   Flame,
   ImageDown,
+  Lock,
   Moon,
+  Pipette,
   RefreshCw,
   Search,
   Share2,
@@ -16,6 +18,8 @@ import {
   Shuffle,
   Sparkles,
   Sun,
+  Unlock,
+  Wand2,
 } from 'lucide-react';
 import {
   ColorItem,
@@ -57,6 +61,7 @@ import {
   GarmentSlotKey,
   GarmentStyle,
   generateMenswearCss,
+  generateStrategyOutfit,
   getDefaultMaterialForCut,
   getDefaultMaterialsForPieces,
   getSlotDisplayLabel,
@@ -66,7 +71,9 @@ import {
   MATERIALS_BY_SLOT,
   MENSWEAR_PRESETS,
   menswearOutfitToCombination,
+  OUTFIT_STRATEGY_LIST,
   OUTERWEAR_CUTS,
+  OutfitStrategy,
   PATTERNS_BY_SLOT,
   SavedMenswearOutfit,
   SKIN_TONE_PRESETS,
@@ -76,6 +83,8 @@ import {
 } from '../utils/menswearUtils';
 import { analyzePalettePsychology, MOOD_META } from '../utils/colorPsychology';
 import { MenswearIllustration } from './MenswearIllustration';
+import { MenswearMacroLoupe } from './MenswearMacroLoupe';
+import { MenswearPieceMatcher } from './MenswearPieceMatcher';
 
 interface MenswearStudioProps {
   allColors: ColorItem[];
@@ -201,6 +210,10 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
     pieces.outerwear === 'none' ? 'top' : 'outerwear'
   );
   const [editingTarget, setEditingTarget] = useState<'base' | 'pattern'>('base');
+  const [lockedSlots, setLockedSlots] = useState<Partial<Record<GarmentSlotKey, boolean>>>({});
+  const [strategy, setStrategy] = useState<OutfitStrategy>('archival');
+  const [strategyStep, setStrategyStep] = useState(0);
+  const [pieceMatcherOpen, setPieceMatcherOpen] = useState(false);
   const [chooserTab, setChooserTab] = useState<ChooserTab>('swatches');
   const [cvdMode, setCvdMode] = useState<CvdMode>('normal');
   const [searchQuery, setSearchQuery] = useState('');
@@ -390,17 +403,68 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
     }
   };
 
-  const handleRotateGarments = () => {
-    onChangeOutfit({
-      outerwear: outfitIds.bottom,
-      top: outfitIds.accent,
-      bottom: outfitIds.outerwear,
-      accent: outfitIds.top,
-      footwear: outfitIds.footwear,
+  const lockedCount = GARMENT_SLOT_ORDER.filter((s) => Boolean(lockedSlots[s])).length;
+
+  const getLockedOverrides = (): Partial<Record<GarmentSlotKey, number>> => {
+    const out: Partial<Record<GarmentSlotKey, number>> = {};
+    for (const slot of GARMENT_SLOT_ORDER) {
+      if (lockedSlots[slot]) out[slot] = outfitIds[slot];
+    }
+    return out;
+  };
+
+  const handleToggleLock = (slot: GarmentSlotKey) => {
+    setLockedSlots((prev) => ({
+      ...prev,
+      [slot]: !prev[slot],
+    }));
+  };
+
+  const handleApplyStrategy = (nextStrategy: OutfitStrategy) => {
+    const nextStep = nextStrategy === strategy ? strategyStep + 1 : 0;
+    setStrategy(nextStrategy);
+    setStrategyStep(nextStep);
+    const { outfit: nextOutfit } = generateStrategyOutfit({
+      strategy: nextStrategy,
+      anchorSlot: activeSlot,
+      currentOutfit: outfitIds,
+      lockedSlots,
+      allColors,
+      allCombinations,
+      variantSeed: nextStep,
     });
+    onChangeOutfit(nextOutfit);
+  };
+
+  const handleRotateGarments = () => {
+    const unlocked = GARMENT_SLOT_ORDER.filter((s) => !lockedSlots[s]);
+    if (unlocked.length < 2) return;
+    const rotated = { ...outfitIds };
+    for (let i = 0; i < unlocked.length; i++) {
+      const targetSlot = unlocked[i];
+      const sourceSlot = unlocked[(i + 1) % unlocked.length];
+      rotated[targetSlot] = outfitIds[sourceSlot];
+    }
+    onChangeOutfit(rotated);
   };
 
   const handleRandomWadaLook = () => {
+    if (lockedCount > 0) {
+      const nextStep = strategyStep + 1;
+      setStrategy('archival');
+      setStrategyStep(nextStep);
+      const { outfit: nextOutfit } = generateStrategyOutfit({
+        strategy: 'archival',
+        anchorSlot: activeSlot,
+        currentOutfit: outfitIds,
+        lockedSlots,
+        allColors,
+        allCombinations,
+        variantSeed: nextStep,
+      });
+      onChangeOutfit(nextOutfit);
+      return;
+    }
     const pick = allCombinations[Math.floor(Math.random() * allCombinations.length)];
     if (pick) {
       onChangeOutfit(mapComboToGarmentOutfit(pick));
@@ -510,7 +574,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
               className="flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-200 cursor-pointer"
             >
               <Shuffle size={13} />
-              <span>Dress from Random Plate</span>
+              <span>{lockedCount > 0 ? 'Complete Around Locks' : 'Dress from Random Plate'}</span>
             </button>
 
             <button
@@ -617,7 +681,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                 type="button"
                 key={preset.id}
                 onClick={() => handleSelectStyle(preset.style, { ...preset.outfit })}
-                title={preset.note}
+                title={`${preset.occasion}: ${preset.note}`}
                 className="flex items-center gap-1.5 px-2.5 py-1 rounded-full border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer"
               >
                 <span className="flex h-2.5 w-4 rounded-sm overflow-hidden border border-black/15">
@@ -626,8 +690,41 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                   <span style={{ backgroundColor: colorById.get(preset.outfit.accent)?.hex }} className="flex-1" />
                 </span>
                 <span>{preset.name}</span>
+                <span className="hidden sm:inline text-[10px] font-code text-stone-400">
+                  {preset.occasion.split(' ')[0]}
+                </span>
               </button>
             ))}
+          </div>
+
+          <div className="flex items-center justify-between gap-2 flex-wrap pt-1 text-xs">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="flex items-center gap-1 text-stone-500 font-medium mr-0.5">
+                <Wand2 size={12} className="text-amber-800 dark:text-amber-400" />
+                <span>Color Strategy:</span>
+              </span>
+              {OUTFIT_STRATEGY_LIST.map((strat) => (
+                <button
+                  type="button"
+                  key={strat.id}
+                  onClick={() => handleApplyStrategy(strat.id)}
+                  aria-pressed={strategy === strat.id}
+                  title={strat.note}
+                  className={`px-2.5 py-1 rounded-md border font-medium transition-colors cursor-pointer ${
+                    strategy === strat.id
+                      ? 'bg-amber-900 text-amber-50 border-amber-900 dark:bg-amber-700 dark:border-amber-700'
+                      : 'border-stone-300 dark:border-stone-700 bg-white/80 dark:bg-stone-900 text-stone-700 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800'
+                  }`}
+                >
+                  {strat.label}
+                </button>
+              ))}
+            </div>
+            {lockedCount > 0 && (
+              <span className="text-[11px] font-code text-amber-800 dark:text-amber-400">
+                {lockedCount} slot{lockedCount > 1 ? 's' : ''} locked as anchor
+              </span>
+            )}
           </div>
         </div>
       </div>
@@ -729,13 +826,29 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
               />
             </div>
 
-            {/* 5 Modular Garment Slot Cards (Color + Mix-and-Match Cut Selector) */}
+            {/* SuitSupply-Inspired Macro Cloth Weave Loupe for Active Garment */}
+            <MenswearMacroLoupe
+              slot={activeSlot}
+              slotLabel={getSlotDisplayLabel(activeSlot, pieces)}
+              baseColor={resolvedOutfit[activeSlot]}
+              material={materials[activeSlot]}
+              pattern={patterns[activeSlot]}
+              threadColor={resolvedPatternColors[activeSlot]}
+              cvdMode={cvdMode}
+              editingThread={editingTarget === 'pattern' && patterns[activeSlot] !== 'solid'}
+              onToggleEditThread={() =>
+                setEditingTarget((prev) => (prev === 'base' ? 'pattern' : 'base'))
+              }
+            />
+
+            {/* 5 Modular Garment Slot Cards (Color + Lock Anchor + Mix-and-Match Cut Selector) */}
             <div className="mt-4 space-y-2">
               {GARMENT_SLOT_ORDER.map((slot) => {
                 const slotColor = resolvedOutfit[slot];
                 const slotTitle = getSlotDisplayLabel(slot, pieces);
                 const isActive = activeSlot === slot;
                 const isDisabledCoat = slot === 'outerwear' && pieces.outerwear === 'none';
+                const isLocked = Boolean(lockedSlots[slot]);
 
                 return (
                   <div
@@ -749,49 +862,72 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                     }`}
                   >
                     <div className="flex flex-col gap-2">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (!isDisabledCoat) handleSelectSlotBase(slot);
-                        }}
-                        disabled={isDisabledCoat}
-                        aria-pressed={isActive && editingTarget === 'base'}
-                        className="flex items-center gap-2.5 text-left w-full min-w-0 cursor-pointer disabled:cursor-default"
-                      >
-                        <span
-                          style={{
-                            backgroundColor: isDisabledCoat ? 'transparent' : slotColor.hex,
+                      <div className="flex items-start justify-between gap-2 min-w-0">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (!isDisabledCoat) handleSelectSlotBase(slot);
                           }}
-                          className={`w-7 h-7 rounded-lg shrink-0 ${
-                            isDisabledCoat
-                              ? 'border border-dashed border-stone-400'
-                              : 'border border-black/20 shadow-xs'
-                          }`}
-                        />
-                        <div className="min-w-0 flex-1 overflow-hidden">
-                          <div className="flex items-center gap-1.5 min-w-0">
-                            <span className="text-xs font-semibold text-stone-900 dark:text-stone-100 truncate">
-                              {slotTitle}
-                            </span>
-                            {isActive && !isDisabledCoat && (
-                              <span className="px-1.5 py-0.2 rounded bg-amber-800 text-amber-50 text-[10px] font-code shrink-0">
-                                Editing
+                          disabled={isDisabledCoat}
+                          aria-pressed={isActive && editingTarget === 'base'}
+                          className="flex items-center gap-2.5 text-left flex-1 min-w-0 cursor-pointer disabled:cursor-default"
+                        >
+                          <span
+                            style={{
+                              backgroundColor: isDisabledCoat ? 'transparent' : slotColor.hex,
+                            }}
+                            className={`w-7 h-7 rounded-lg shrink-0 ${
+                              isDisabledCoat
+                                ? 'border border-dashed border-stone-400'
+                                : 'border border-black/20 shadow-xs'
+                            }`}
+                          />
+                          <div className="min-w-0 flex-1 overflow-hidden">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                              <span className="text-xs font-semibold text-stone-900 dark:text-stone-100 truncate">
+                                {slotTitle}
                               </span>
-                            )}
+                              {isActive && !isDisabledCoat && (
+                                <span className="px-1.5 py-0.2 rounded bg-amber-800 text-amber-50 text-[10px] font-code shrink-0">
+                                  Editing
+                                </span>
+                              )}
+                            </div>
+                            <div className="text-[11px] font-editorial text-stone-600 dark:text-stone-400 truncate">
+                              {isDisabledCoat ? (
+                                'Layer off — choose a coat below to wear over top'
+                              ) : (
+                                <>
+                                  #{slotColor.id} {slotColor.name}
+                                  {slotColor.ja ? ` (${slotColor.ja})` : ''} •{' '}
+                                  <span className="font-code uppercase">{slotColor.hex}</span>
+                                </>
+                              )}
+                            </div>
                           </div>
-                          <div className="text-[11px] font-editorial text-stone-600 dark:text-stone-400 truncate">
-                            {isDisabledCoat ? (
-                              'Layer off — choose a coat below to wear over top'
-                            ) : (
-                              <>
-                                #{slotColor.id} {slotColor.name}
-                                {slotColor.ja ? ` (${slotColor.ja})` : ''} •{' '}
-                                <span className="font-code uppercase">{slotColor.hex}</span>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </button>
+                        </button>
+
+                        {!isDisabledCoat && (
+                          <button
+                            type="button"
+                            onClick={() => handleToggleLock(slot)}
+                            aria-pressed={isLocked}
+                            aria-label={`${isLocked ? 'Unlock' : 'Lock'} ${slot} color`}
+                            title={
+                              isLocked
+                                ? `Locked: preserves ${slotColor.name} when cycling palettes or strategies`
+                                : `Lock ${slot} as outfit anchor`
+                            }
+                            className={`p-1.5 rounded-lg border transition-colors cursor-pointer shrink-0 ${
+                              isLocked
+                                ? 'bg-amber-800 text-amber-50 border-amber-800 dark:bg-amber-700 dark:border-amber-700'
+                                : 'border-stone-300/80 dark:border-stone-700 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800'
+                            }`}
+                          >
+                            {isLocked ? <Lock size={12} /> : <Unlock size={12} />}
+                          </button>
+                        )}
+                      </div>
 
                       <div className="flex items-center gap-1.5 flex-wrap">
                         <select
@@ -1030,7 +1166,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                   </button>
                   <button
                     type="button"
-                    onClick={() => onChangeOutfit(mapComboToGarmentOutfit(combo))}
+                    onClick={() => onChangeOutfit(mapComboToGarmentOutfit(combo, getLockedOverrides()))}
                     className="px-2 py-0.5 text-[11px] font-medium rounded border border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 cursor-pointer shrink-0"
                   >
                     Apply
@@ -1115,22 +1251,52 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                 ))}
               </div>
 
-              <div className="relative flex-1 sm:max-w-xs">
-                <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-400" />
-                <input
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  placeholder={
-                    chooserTab === 'plates'
-                      ? 'Search 420 plates (e.g. spring blue)...'
-                      : 'Filter colors by name, kanji, or hex...'
-                  }
-                  aria-label="Filter menswear colors or combinations"
-                  className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-950 text-stone-900 dark:text-stone-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700"
-                />
+              <div className="flex items-center gap-2 flex-1 sm:max-w-sm justify-end">
+                <button
+                  type="button"
+                  onClick={() => setPieceMatcherOpen((prev) => !prev)}
+                  aria-pressed={pieceMatcherOpen}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium rounded-lg border transition-colors whitespace-nowrap cursor-pointer ${
+                    pieceMatcherOpen
+                      ? 'bg-amber-800 text-amber-50 border-amber-800 dark:bg-amber-700'
+                      : 'border-stone-300 dark:border-stone-700 hover:bg-stone-100 dark:hover:bg-stone-800 text-stone-700 dark:text-stone-200'
+                  }`}
+                  title="Match a real garment HEX or photo to Wada pigments"
+                >
+                  <Pipette size={13} />
+                  <span>Match Piece</span>
+                </button>
+                <div className="relative flex-1 min-w-0">
+                  <Search size={14} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-stone-400" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder={
+                      chooserTab === 'plates'
+                        ? 'Search 420 plates (e.g. spring blue)...'
+                        : 'Filter colors by name, kanji, or hex...'
+                    }
+                    aria-label="Filter menswear colors or combinations"
+                    className="w-full pl-8 pr-3 py-1.5 text-xs rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-950 text-stone-900 dark:text-stone-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700"
+                  />
+                </div>
               </div>
             </div>
+
+            {pieceMatcherOpen && (
+              <MenswearPieceMatcher
+                allColors={allColors}
+                activeSlotLabel={getSlotDisplayLabel(activeSlot, pieces)}
+                onAssignMatchedColor={(color, lockSlot) => {
+                  onChangeOutfit({ ...outfitIds, [activeSlot]: color.id });
+                  if (lockSlot) {
+                    setLockedSlots((prev) => ({ ...prev, [activeSlot]: true }));
+                  }
+                }}
+                onClose={() => setPieceMatcherOpen(false)}
+              />
+            )}
 
             {chooserTab !== 'plates' && (
               <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
@@ -1248,7 +1414,7 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                 <button
                   type="button"
                   key={`${combo.volume}-${combo.id}`}
-                  onClick={() => onChangeOutfit(mapComboToGarmentOutfit(combo))}
+                  onClick={() => onChangeOutfit(mapComboToGarmentOutfit(combo, getLockedOverrides()))}
                   className="p-3 rounded-xl border border-stone-200 dark:border-stone-800 hover:border-amber-700/60 bg-stone-50/70 dark:bg-stone-950/40 text-left space-y-2 cursor-pointer transition-colors"
                 >
                   <div className="flex h-10 rounded-lg overflow-hidden border border-black/15">

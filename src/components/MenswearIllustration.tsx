@@ -50,7 +50,7 @@ function getSoftHighlight(hex: string): string {
   return lum < 0.08 ? 'rgba(255,255,255,0.09)' : 'rgba(255,255,255,0.16)';
 }
 
-function renderTexturePattern(
+export function renderTexturePattern(
   id: string,
   material: FabricMaterial,
   hex: string
@@ -216,7 +216,7 @@ function renderTexturePattern(
   }
 }
 
-function renderThreadPattern(
+export function renderThreadPattern(
   id: string,
   pattern: FabricPattern,
   threadHex: string
@@ -431,29 +431,34 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
       </defs>
 
       <g style={lightingMeta.ambientFilter ? { filter: lightingMeta.ambientFilter } : undefined}>
-      {/* Ground Shadow */}
-      <ellipse cx="180" cy="466" rx="68" ry="8" fill="rgba(0,0,0,0.08)" />
+      {/* Layered Ground & Foot Contact Shadows */}
+      <ellipse cx="180" cy="466" rx="70" ry="8.5" fill="rgba(0,0,0,0.085)" />
+      <ellipse cx="145" cy="456" rx="23" ry="4" fill="rgba(0,0,0,0.10)" />
+      <ellipse cx="215" cy="456" rx="23" ry="4" fill="rgba(0,0,0,0.10)" />
 
-      {/* Croquis Head, Hair, Ears, Neck, Arms & Legs */}
+      {/* Sculpted Editorial Croquis Head, Hair, Neck, Arms & Legs */}
       <g aria-hidden="true">
-        <path d="M168 58 L192 58 L195 82 C195 88, 165 88, 165 82 Z" fill={skin.shade} />
-        <path d="M150 79 Q180 94 210 79 L213 90 Q180 102 147 90 Z" fill={skin.base} />
-        <ellipse cx="161" cy="43" rx="3" ry="6" fill={skin.shade} />
-        <ellipse cx="199" cy="43" rx="3" ry="6" fill={skin.shade} />
-        <ellipse
-          cx="180"
-          cy="41"
-          rx="18"
-          ry="22.5"
+        <path d="M168.5 57 L191.5 57 L195 83 Q180 91 165 83 Z" fill={skin.shade} />
+        <path d="M150 79 Q180 94 210 79 L213 91 Q180 103 147 91 Z" fill={skin.base} />
+        {/* Subtle Collarbone & Under-Chin Contour */}
+        <path d="M168 59 Q180 65 192 59" fill="none" stroke="rgba(26,20,16,0.22)" strokeWidth="1.4" />
+        <path d="M167 84 Q174 87 178 86 M193 84 Q186 87 182 86" fill="none" stroke={skin.shade} strokeWidth="0.95" opacity="0.8" />
+        <ellipse cx="161" cy="43" rx="2.9" ry="5.6" fill={skin.shade} stroke="rgba(42,32,26,0.15)" strokeWidth="0.6" />
+        <ellipse cx="199" cy="43" rx="2.9" ry="5.6" fill={skin.shade} stroke="rgba(42,32,26,0.15)" strokeWidth="0.6" />
+        {/* Sculpted Cheek & Jawline */}
+        <path
+          d="M162 38 C162 24, 170 18.5, 180 18.5 C190 18.5, 198 24, 198 38 C198 48, 194 56, 188 60.5 Q180 64.5 172 60.5 C166 56, 162 48, 162 38 Z"
           fill={skin.base}
-          stroke="rgba(42,32,26,0.18)"
+          stroke="rgba(42,32,26,0.19)"
           strokeWidth="0.9"
         />
+        {/* Crisp Architectural Crown & Side-Temple Hair */}
         <path
-          d="M161 39 C160 22, 171 16, 180 16 C191 16, 200 23, 199 39 C197 30, 190 25, 180 25 C170 25, 163 30, 161 39 Z"
+          d="M161.2 40 C159.5 22, 170 15.2, 180 15.2 C191.5 15.2, 200.5 22.5, 198.8 40 C197.4 33, 195.8 30, 193.5 28.5 C189 24.5, 173 24.5, 166.5 28.5 C164.2 30, 162.6 33, 161.2 40 Z"
           fill={skin.hair}
-          opacity="0.82"
+          opacity="0.88"
         />
+        <path d="M168 23.5 Q180 20 192 23.5" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="0.8" />
 
         {showBareForearms && (
           <>
@@ -550,6 +555,9 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
             />
             <path d="M124 452 Q145 456 165 453" fill="none" stroke="rgba(255,255,255,0.28)" strokeWidth="1.2" />
             <path d="M195 453 Q215 456 236 452" fill="none" stroke="rgba(255,255,255,0.28)" strokeWidth="1.2" />
+            {/* Oxford Cap-Toe Seam & Quarters */}
+            <path d="M125 446 Q133 441 139 449" fill="none" stroke={getSeamStroke(shown.footwear)} strokeWidth="0.75" strokeOpacity="0.65" />
+            <path d="M235 446 Q227 441 221 449" fill="none" stroke={getSeamStroke(shown.footwear)} strokeWidth="0.75" strokeOpacity="0.65" />
             <path d="M140 434 Q148 439 158 434" fill="none" stroke={getSeamStroke(shown.footwear)} strokeWidth="0.95" />
             <path d="M202 434 Q212 439 220 434" fill="none" stroke={getSeamStroke(shown.footwear)} strokeWidth="0.95" />
           </>
@@ -905,15 +913,24 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
                 shadeFill={getSlotShade('outerwear')}
                 stroke={getSeamStroke(shown.outerwear)}
               />
-              {/* Rolled Notch Lapels & Natural Cloth Tension Folds */}
+              {/* Rolled Notch Lapels, Tailoring Darts, Jetted Pocket Flaps & Cuff Buttons */}
               <path d="M163 75 C154 89, 148 103, 145 111 L156 115 L149 125 L179 160 L165 78 Z" fill={getSoftHighlight(shown.outerwear)} stroke={getSeamStroke(shown.outerwear)} strokeWidth="1" />
               <path d="M197 75 C206 89, 212 103, 215 111 L204 115 L211 125 L181 160 L195 78 Z" fill={getSoftHighlight(shown.outerwear)} stroke={getSeamStroke(shown.outerwear)} strokeWidth="1" />
+              {/* Subtle Torso Waist Suppression Darts */}
+              <path d="M149 152 Q147 182 146 218" fill="none" stroke={getSeamStroke(shown.outerwear)} strokeWidth="0.65" strokeOpacity="0.38" />
+              <path d="M211 152 Q213 182 214 218" fill="none" stroke={getSeamStroke(shown.outerwear)} strokeWidth="0.65" strokeOpacity="0.38" />
               <path d="M174 175 Q158 178 148 183 M186 175 Q202 178 212 183" fill="none" stroke={getSeamStroke(shown.outerwear)} strokeWidth="0.65" strokeOpacity="0.45" />
               <path d="M106 168 Q114 171 122 167 M254 168 Q246 171 238 167" fill="none" stroke={getSeamStroke(shown.outerwear)} strokeWidth="0.65" strokeOpacity="0.4" />
-              <path d="M141 198 Q154 200 166 198" fill="none" stroke={getSeamStroke(shown.outerwear)} strokeWidth="1.4" />
-              <path d="M194 198 Q206 200 219 198" fill="none" stroke={getSeamStroke(shown.outerwear)} strokeWidth="1.4" />
-              <circle cx="180" cy="174" r="2.6" fill={getSeamStroke(shown.outerwear)} />
-              <circle cx="180" cy="202" r="2.6" fill={getSeamStroke(shown.outerwear)} />
+              {/* Jetted Waist Pocket Flaps */}
+              <rect x="141" y="198" width="25" height="6.5" rx="1" fill={getSoftShade(shown.outerwear)} stroke={getSeamStroke(shown.outerwear)} strokeWidth="1" />
+              <rect x="194" y="198" width="25" height="6.5" rx="1" fill={getSoftShade(shown.outerwear)} stroke={getSeamStroke(shown.outerwear)} strokeWidth="1" />
+              {/* Horn Front & Cuff Buttons */}
+              <circle cx="180" cy="174" r="2.7" fill={getSoftShade(shown.outerwear)} stroke={getSeamStroke(shown.outerwear)} strokeWidth="0.9" />
+              <circle cx="180" cy="202" r="2.7" fill={getSoftShade(shown.outerwear)} stroke={getSeamStroke(shown.outerwear)} strokeWidth="0.9" />
+              <circle cx="96.5" cy="233" r="1.2" fill={getSeamStroke(shown.outerwear)} />
+              <circle cx="98" cy="227" r="1.2" fill={getSeamStroke(shown.outerwear)} />
+              <circle cx="263.5" cy="233" r="1.2" fill={getSeamStroke(shown.outerwear)} />
+              <circle cx="262" cy="227" r="1.2" fill={getSeamStroke(shown.outerwear)} />
             </>
           )}
 
@@ -938,10 +955,12 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
               <path d="M161 74 C150 90, 141 108, 139 118 L152 123 L144 134 L179 166 L165 77 Z" fill={getSoftHighlight(shown.outerwear)} stroke={getSeamStroke(shown.outerwear)} strokeWidth="1.05" />
               <path d="M199 74 C210 90, 219 108, 221 118 L208 123 L216 134 L181 166 L195 77 Z" fill={getSoftHighlight(shown.outerwear)} stroke={getSeamStroke(shown.outerwear)} strokeWidth="1.05" />
               <path d="M104 168 Q113 171 121 167 M256 168 Q247 171 239 167" fill="none" stroke={getSeamStroke(shown.outerwear)} strokeWidth="0.65" strokeOpacity="0.4" />
-              <line x1="136" y1="220" x2="153" y2="232" stroke={getSeamStroke(shown.outerwear)} strokeWidth="1.5" />
-              <line x1="224" y1="220" x2="207" y2="232" stroke={getSeamStroke(shown.outerwear)} strokeWidth="1.5" />
-              <circle cx="174" cy="184" r="2.7" fill={getSeamStroke(shown.outerwear)} />
-              <circle cx="174" cy="218" r="2.7" fill={getSeamStroke(shown.outerwear)} />
+              {/* Slanted Welt Pockets & Horn Overcoat Buttons */}
+              <path d="M135 219 L154 231 L151 236 L132 224 Z" fill={getSoftShade(shown.outerwear)} stroke={getSeamStroke(shown.outerwear)} strokeWidth="0.95" />
+              <path d="M225 219 L206 231 L209 236 L228 224 Z" fill={getSoftShade(shown.outerwear)} stroke={getSeamStroke(shown.outerwear)} strokeWidth="0.95" />
+              <circle cx="174" cy="184" r="2.8" fill={getSoftShade(shown.outerwear)} stroke={getSeamStroke(shown.outerwear)} strokeWidth="0.9" />
+              <circle cx="174" cy="218" r="2.8" fill={getSoftShade(shown.outerwear)} stroke={getSeamStroke(shown.outerwear)} strokeWidth="0.9" />
+              <circle cx="174" cy="252" r="2.8" fill={getSoftShade(shown.outerwear)} stroke={getSeamStroke(shown.outerwear)} strokeWidth="0.9" />
             </>
           )}
 
@@ -1059,6 +1078,7 @@ export const MenswearIllustration: React.FC<MenswearIllustrationProps> = ({
                   stroke={getSeamStroke(shown.accent)}
                   strokeWidth={0.95}
                 />
+                <path d="M209 127 L207 132" fill="none" stroke={getSeamStroke(shown.accent)} strokeWidth="0.7" strokeOpacity="0.6" />
                 <line x1="194" y1="133" x2="221" y2="133" stroke={getSeamStroke(shown.outerwear)} strokeWidth="1.4" />
               </>
             )}
