@@ -2,6 +2,7 @@ import React, { useMemo, useRef, useState } from 'react';
 import { ColorItem } from '../types/color';
 import { formatOklch, getIdealTextColor } from '../utils/colorUtils';
 import {
+  filterVisibleWheelNodes,
   findNearestWheelNode,
   layoutColorWheelPoints,
   sortNodesByWheelAngle,
@@ -10,6 +11,7 @@ import {
 
 interface WadaColorWheelProps {
   colors: ColorItem[];
+  allColors?: ColorItem[];
   onSelectColor: (color: ColorItem) => void;
   selectedIds?: number[];
   chordPolygonIds?: number[];
@@ -31,6 +33,7 @@ const HUE_MARKERS: { deg: number; label: string }[] = [
 
 export const WadaColorWheel: React.FC<WadaColorWheelProps> = ({
   colors,
+  allColors,
   onSelectColor,
   selectedIds = [],
   chordPolygonIds = [],
@@ -47,12 +50,23 @@ export const WadaColorWheel: React.FC<WadaColorWheelProps> = ({
   const selectedSet = useMemo(() => new Set(selectedIds), [selectedIds]);
   const chordSet = useMemo(() => new Set(chordPolygonIds), [chordPolygonIds]);
   const harmonySet = useMemo(() => new Set(harmonyHighlightIds), [harmonyHighlightIds]);
-  const nodes = useMemo(() => layoutColorWheelPoints(colors), [colors]);
+  const layoutPool = allColors && allColors.length > 0 ? allColors : colors;
+  const masterNodes = useMemo(() => layoutColorWheelPoints(layoutPool), [layoutPool]);
   const nodeById = useMemo(() => {
     const map = new Map<number, WheelNode>();
-    for (const n of nodes) map.set(n.color.id, n);
+    for (const n of masterNodes) map.set(n.color.id, n);
     return map;
-  }, [nodes]);
+  }, [masterNodes]);
+
+  const { visibleNodes: nodes, companionCount } = useMemo(
+    () =>
+      filterVisibleWheelNodes(masterNodes, colors, [
+        ...selectedIds,
+        ...chordPolygonIds,
+        ...harmonyHighlightIds,
+      ]),
+    [masterNodes, colors, selectedIds, chordPolygonIds, harmonyHighlightIds]
+  );
 
   const chordNodes = useMemo(
     () =>
@@ -297,15 +311,20 @@ export const WadaColorWheel: React.FC<WadaColorWheelProps> = ({
           })}
 
           {/* Swatch Pigment Dots */}
-          {nodes.map(({ color, xPct, yPct, sizePx }) => {
+          {nodes.map(({ color, xPct, yPct, sizePx, isCompanion }) => {
             const isSelected = selectedSet.has(color.id);
             const isChordMember = chordSet.has(color.id) && !isSelected;
             const isHarmonyMatch = harmonySet.has(color.id) && !isSelected;
             const dotSize = compact ? Math.max(11, sizePx - 2) : sizePx;
+            const companionHaloColor =
+              isHarmonyMatch && !isChordMember
+                ? 'border-teal-700 dark:border-teal-400'
+                : 'border-amber-700 dark:border-amber-400';
             return (
               <button
                 type="button"
                 key={color.id}
+                data-companion={isCompanion ? 'true' : undefined}
                 onClick={(e) => {
                   e.stopPropagation();
                   onSelectColor(color);
@@ -313,8 +332,12 @@ export const WadaColorWheel: React.FC<WadaColorWheelProps> = ({
                 onMouseEnter={() => setHovered(color)}
                 onFocus={() => setHovered(color)}
                 aria-pressed={selectedIds.length > 0 ? isSelected : undefined}
-                aria-label={`#${color.id} ${color.name} (${color.hex})`}
-                title={`#${color.id} ${color.name}${color.ja ? ` (${color.ja})` : ''} — ${color.hex}`}
+                aria-label={`#${color.id} ${color.name} (${color.hex})${
+                  isCompanion ? ' — companion outside active filter' : ''
+                }`}
+                title={`#${color.id} ${color.name}${color.ja ? ` (${color.ja})` : ''} — ${color.hex}${
+                  isCompanion ? ' (Harmony companion outside active filter)' : ''
+                }`}
                 style={{
                   left: `${xPct}%`,
                   top: `${yPct}%`,
@@ -324,9 +347,11 @@ export const WadaColorWheel: React.FC<WadaColorWheelProps> = ({
                   color: getIdealTextColor(color.hex),
                   transform: 'translate(-50%, -50%)',
                 }}
-                className={`absolute rounded-full transition-transform cursor-pointer flex items-center justify-center text-[8px] font-code font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 hover:scale-150 hover:z-30 focus:scale-150 focus:z-30 ${
+                className={`absolute rounded-full transition-transform duration-200 cursor-pointer flex items-center justify-center text-[8px] font-code font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-600 hover:scale-150 hover:z-30 focus:scale-150 focus:z-30 ${
                   isSelected
                     ? 'ring-2 ring-amber-500 ring-offset-2 ring-offset-white dark:ring-offset-stone-900 scale-125 z-20 border border-black/40'
+                    : isCompanion
+                    ? 'ring-1 ring-white/95 dark:ring-stone-900/95 scale-120 z-10 border border-black/35 shadow-sm'
                     : isHarmonyMatch
                     ? 'ring-2 ring-teal-600 ring-offset-1 ring-offset-white dark:ring-offset-stone-900 scale-120 z-10 border border-black/35'
                     : isChordMember
@@ -334,12 +359,42 @@ export const WadaColorWheel: React.FC<WadaColorWheelProps> = ({
                     : 'border border-black/30 dark:border-white/35 shadow-xs'
                 }`}
               >
+                {isCompanion && (
+                  <span
+                    aria-hidden="true"
+                    className={`pointer-events-none absolute ${
+                      isSelected ? '-inset-[6px]' : '-inset-[4.5px]'
+                    } rounded-full border-2 border-dashed ${companionHaloColor}`}
+                  />
+                )}
                 {showIds ? color.id : null}
               </button>
             );
           })}
         </div>
       </div>
+
+      {companionCount > 0 && (
+        <div
+          role="status"
+          aria-atomic="true"
+          data-testid="wheel-companion-legend"
+          className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-stone-200/70 dark:border-stone-800 text-[11px] text-stone-600 dark:text-stone-300"
+        >
+          <span className="flex items-center gap-2">
+            <span
+              aria-hidden="true"
+              className="inline-block w-3.5 h-3.5 rounded-full border-[1.75px] border-dashed border-amber-700 dark:border-amber-400 bg-amber-500/20"
+            />
+            <span>
+              <strong>+{companionCount}</strong> harmony companion{companionCount === 1 ? '' : 's'} shown outside active filter
+            </span>
+          </span>
+          <span className="font-code text-[10px] text-stone-400">
+            Click any companion dot to inspect it
+          </span>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ArrowRight, CircleDot, Compass, Plus, Sparkles } from 'lucide-react';
+import { ArrowRight, CircleDot, Compass, Eye, Plus, Sparkles } from 'lucide-react';
 import {
   ColorItem,
   Combination,
@@ -48,18 +48,40 @@ export const ColorWheelPage: React.FC<ColorWheelPageProps> = ({
   onSelectCombo,
   onAddToCustom,
 }) => {
-  const [selectedColor, setSelectedColor] = useState<ColorItem | null>(
-    () => filteredColors[0] ?? allColors[0] ?? null
-  );
+  const filterSignature = `${volumeFilter}|${toneFilter}|${hasKanjiOnly}`;
+  const [selection, setSelection] = useState<{
+    color: ColorItem;
+    filterSignature: string;
+  } | null>(() => {
+    const initial = filteredColors[0] ?? allColors[0] ?? null;
+    return initial ? { color: initial, filterSignature } : null;
+  });
   const [harmonyRule, setHarmonyRule] = useState<HarmonyRule>('none');
   const [hoveredCombo, setHoveredCombo] = useState<Combination | null>(null);
+  const [pinnedPreview, setPinnedPreview] = useState<{
+    combo: Combination;
+    anchorId: number;
+  } | null>(null);
+
+  const filteredColorIds = useMemo(
+    () => new Set(filteredColors.map((c) => c.id)),
+    [filteredColors]
+  );
+
+  const handleSelectColor = (color: ColorItem) => {
+    setSelection({ color, filterSignature });
+  };
 
   const activeColor = useMemo(() => {
-    if (selectedColor && filteredColors.some((c) => c.id === selectedColor.id)) {
-      return selectedColor;
+    if (
+      selection &&
+      (filteredColorIds.has(selection.color.id) ||
+        selection.filterSignature === filterSignature)
+    ) {
+      return selection.color;
     }
-    return filteredColors[0] ?? selectedColor ?? allColors[0];
-  }, [selectedColor, filteredColors, allColors]);
+    return filteredColors[0] ?? selection?.color ?? allColors[0] ?? null;
+  }, [selection, filteredColorIds, filterSignature, filteredColors, allColors]);
 
   const matchingCombos = useMemo(() => {
     if (!activeColor) return [];
@@ -79,8 +101,13 @@ export const ColorWheelPage: React.FC<ColorWheelPageProps> = ({
     [harmonyGroups]
   );
 
+  const pinnedCombo =
+    pinnedPreview && activeColor && pinnedPreview.anchorId === activeColor.id
+      ? pinnedPreview.combo
+      : null;
+
   const activeChordCombo =
-    hoveredCombo ?? (harmonyRule === 'none' ? matchingCombos[0] ?? null : null);
+    hoveredCombo ?? pinnedCombo ?? (harmonyRule === 'none' ? matchingCombos[0] ?? null : null);
   const chordPolygonIds = useMemo(
     () => (activeChordCombo ? activeChordCombo.colors.map((c) => c.id) : []),
     [activeChordCombo]
@@ -213,7 +240,8 @@ export const ColorWheelPage: React.FC<ColorWheelPageProps> = ({
 
             <WadaColorWheel
               colors={filteredColors}
-              onSelectColor={setSelectedColor}
+              allColors={allColors}
+              onSelectColor={handleSelectColor}
               selectedIds={activeColor ? [activeColor.id] : []}
               chordPolygonIds={chordPolygonIds}
               harmonyHighlightIds={harmonyHighlightIds}
@@ -231,8 +259,11 @@ export const ColorWheelPage: React.FC<ColorWheelPageProps> = ({
                   }}
                   className="p-5 sm:p-6 flex flex-col justify-between min-h-[150px]"
                 >
-                  <div className="flex items-center justify-between text-xs font-code opacity-85">
-                    <span>SWATCH #{activeColor.id} • VOL. {activeColor.volume}</span>
+                  <div className="flex items-center justify-between gap-2 text-xs font-code opacity-85">
+                    <span>
+                      SWATCH #{activeColor.id} • VOL. {activeColor.volume}
+                      {hasActiveFilters && !filteredColorIds.has(activeColor.id) ? ' • COMPANION' : ''}
+                    </span>
                     <span className="uppercase">{activeColor.hex}</span>
                   </div>
 
@@ -311,7 +342,7 @@ export const ColorWheelPage: React.FC<ColorWheelPageProps> = ({
                                 <button
                                   type="button"
                                   key={match.id}
-                                  onClick={() => setSelectedColor(match)}
+                                  onClick={() => handleSelectColor(match)}
                                   className="flex items-center gap-1.5 p-1.5 rounded-lg border border-stone-200 dark:border-stone-800 hover:border-teal-600/60 bg-stone-50/70 dark:bg-stone-950/40 text-left cursor-pointer transition-colors"
                                 >
                                   <span
@@ -346,36 +377,86 @@ export const ColorWheelPage: React.FC<ColorWheelPageProps> = ({
 
                     {matchingCombos.length > 0 ? (
                       <div className="space-y-1.5">
-                        {matchingCombos.map((combo) => (
-                          <button
-                            type="button"
-                            key={`${combo.volume}-${combo.id}`}
-                            onClick={() => onSelectCombo(combo, activeColor ?? undefined)}
-                            onMouseEnter={() => setHoveredCombo(combo)}
-                            onMouseLeave={() => setHoveredCombo(null)}
-                            onFocus={() => setHoveredCombo(combo)}
-                            onBlur={() => setHoveredCombo(null)}
-                            className="w-full flex items-center justify-between gap-2 p-2 rounded-lg border border-stone-200 dark:border-stone-800 hover:border-amber-700/60 bg-stone-50/70 dark:bg-stone-950/40 text-left cursor-pointer transition-colors"
-                          >
-                            <span className="flex h-4 w-14 rounded overflow-hidden border border-black/15 shrink-0">
-                              {combo.colors.map((c) => (
-                                <span
-                                  key={c.id}
-                                  style={{ backgroundColor: c.hex }}
-                                  className="flex-1"
-                                />
-                              ))}
-                            </span>
-                            <span className="font-editorial font-bold text-stone-900 dark:text-stone-100 truncate flex-1">
-                              {combo.volume === 2
-                                ? `Vol. 2 Card № ${combo.id}`
-                                : `Vol. 1 № ${combo.id}`}
-                            </span>
-                            <span className="text-[11px] font-code text-amber-800 dark:text-amber-400">
-                              Studio →
-                            </span>
-                          </button>
-                        ))}
+                        {matchingCombos.map((combo) => {
+                          const comboKey = `${combo.volume}-${combo.id}`;
+                          const isHovered =
+                            hoveredCombo?.volume === combo.volume && hoveredCombo?.id === combo.id;
+                          const isPinned =
+                            pinnedCombo?.volume === combo.volume && pinnedCombo?.id === combo.id;
+                          const outsideCount = hasActiveFilters
+                            ? combo.colors.filter((c) => !filteredColorIds.has(c.id)).length
+                            : 0;
+                          return (
+                            <div
+                              key={comboKey}
+                              onMouseEnter={() => setHoveredCombo(combo)}
+                              onMouseLeave={() => setHoveredCombo(null)}
+                              className="flex items-stretch gap-1.5"
+                            >
+                              <button
+                                type="button"
+                                data-testid={`wheel-harmony-card-${comboKey}`}
+                                onClick={() => onSelectCombo(combo, activeColor ?? undefined)}
+                                onFocus={() => setHoveredCombo(combo)}
+                                onBlur={() => setHoveredCombo(null)}
+                                className={`flex-1 min-w-0 flex items-center justify-between gap-2 p-2 rounded-lg border text-left cursor-pointer transition-colors duration-150 ${
+                                  isHovered || isPinned
+                                    ? 'border-amber-700/80 bg-amber-50/70 dark:bg-amber-950/30 dark:border-amber-500/70'
+                                    : 'border-stone-200 dark:border-stone-800 hover:border-amber-700/60 bg-stone-50/70 dark:bg-stone-950/40'
+                                }`}
+                              >
+                                <span className="flex h-4 w-14 rounded overflow-hidden border border-black/15 shrink-0">
+                                  {combo.colors.map((c) => (
+                                    <span
+                                      key={c.id}
+                                      style={{ backgroundColor: c.hex }}
+                                      className="flex-1"
+                                    />
+                                  ))}
+                                </span>
+                                <span className="font-editorial font-bold text-stone-900 dark:text-stone-100 truncate flex-1">
+                                  {combo.volume === 2
+                                    ? `Vol. 2 Card № ${combo.id}`
+                                    : `Vol. 1 № ${combo.id}`}
+                                </span>
+                                {outsideCount > 0 && (
+                                  <span
+                                    title={`Reveals ${outsideCount} companion color${outsideCount === 1 ? '' : 's'} outside active filter`}
+                                    className="text-[10px] font-code px-1.5 py-0.5 rounded bg-amber-100 dark:bg-amber-900/40 text-amber-800 dark:text-amber-300 shrink-0"
+                                  >
+                                    +{outsideCount}
+                                  </span>
+                                )}
+                                <span className="text-[11px] font-code text-amber-800 dark:text-amber-400 shrink-0">
+                                  Studio →
+                                </span>
+                              </button>
+                              <button
+                                type="button"
+                                aria-label={`${isPinned ? 'Unpin' : 'Preview'} Vol. ${combo.volume} No. ${combo.id} chord on wheel`}
+                                aria-pressed={isPinned}
+                                title={isPinned ? 'Clear pinned wheel chord' : 'Pin chord on wheel (great for touch)'}
+                                onClick={() =>
+                                  setPinnedPreview((prev) =>
+                                    prev &&
+                                    prev.anchorId === activeColor.id &&
+                                    prev.combo.volume === combo.volume &&
+                                    prev.combo.id === combo.id
+                                      ? null
+                                      : { combo, anchorId: activeColor.id }
+                                  )
+                                }
+                                className={`px-2 rounded-lg border flex items-center justify-center cursor-pointer transition-colors duration-150 shrink-0 ${
+                                  isPinned
+                                    ? 'bg-amber-800 text-amber-50 border-amber-800 dark:bg-amber-600 dark:border-amber-600'
+                                    : 'border-stone-200 dark:border-stone-800 text-stone-500 hover:text-amber-800 dark:hover:text-amber-300 hover:border-amber-700/60 bg-stone-50/70 dark:bg-stone-950/40'
+                                }`}
+                              >
+                                <Eye size={13} />
+                              </button>
+                            </div>
+                          );
+                        })}
                       </div>
                     ) : (
                       <p className="text-stone-400">No documented combinations under active filter.</p>

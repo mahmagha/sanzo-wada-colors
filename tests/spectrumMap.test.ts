@@ -5,6 +5,7 @@ import rawCombos from '../src/data/wadaCombinations.json';
 import { ColorItem, RawCombination } from '../src/types/color';
 import { hydrateCombinations } from '../src/utils/paletteData';
 import {
+  filterVisibleWheelNodes,
   findHarmonyMatches,
   findNearestWheelNode,
   layoutColorWheelPoints,
@@ -118,6 +119,47 @@ describe('SpectrumMap deterministic layout', () => {
       if (pts.length >= 4) {
         checkNoCrossings(pts, `Vol.${combo.volume} #${combo.id}`);
       }
+    }
+  });
+
+  it('preserves full-wheel coordinates and reveals outside-filter harmony companion nodes', () => {
+    const allNodes = layoutColorWheelPoints(masterColors);
+    const vol2Only = masterColors.filter((c) => c.volume === 2);
+    const vol2Ids = new Set(vol2Only.map((c) => c.id));
+
+    // Find a Vol.2-containing combination that includes at least one Vol.1 companion color
+    const crossCombo = allCombos.find(
+      (combo) =>
+        combo.colors.some((c) => vol2Ids.has(c.id)) &&
+        combo.colors.some((c) => !vol2Ids.has(c.id))
+    );
+    assert.ok(crossCombo, 'Expected at least one combination spanning Vol. 2 and Vol. 1');
+
+    const anchor = crossCombo.colors.find((c) => vol2Ids.has(c.id))!;
+    const expectedCompanions = crossCombo.colors.filter((c) => !vol2Ids.has(c.id));
+
+    // Baseline filtered wheel without chord highlight: zero companions
+    const baseline = filterVisibleWheelNodes(allNodes, vol2Only, [anchor.id]);
+    assert.equal(baseline.companionCount, 0);
+    assert.equal(baseline.visibleNodes.length, vol2Only.length);
+
+    // Hovering the harmony reveals all companion pigments with stable full-wheel positions
+    const withHover = filterVisibleWheelNodes(
+      allNodes,
+      vol2Only,
+      [anchor.id, ...crossCombo.colors.map((c) => c.id)]
+    );
+    assert.equal(withHover.companionCount, expectedCompanions.length);
+    assert.equal(withHover.visibleNodes.length, vol2Only.length + expectedCompanions.length);
+
+    const byFullId = new Map(allNodes.map((n) => [n.color.id, n]));
+    for (const comp of expectedCompanions) {
+      const revealed = withHover.visibleNodes.find((n) => n.color.id === comp.id);
+      assert.ok(revealed, `Expected outside-filter companion #${comp.id} to be revealed`);
+      assert.equal(revealed.isCompanion, true);
+      const canonical = byFullId.get(comp.id)!;
+      assert.equal(revealed.xPct, canonical.xPct);
+      assert.equal(revealed.yPct, canonical.yPct);
     }
   });
 });

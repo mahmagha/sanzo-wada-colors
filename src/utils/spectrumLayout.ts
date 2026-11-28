@@ -17,6 +17,10 @@ export interface WheelNode {
   isNeutral: boolean;
 }
 
+export interface DisplayWheelNode extends WheelNode {
+  isCompanion: boolean;
+}
+
 /**
  * Deterministic 2D scatter coordinates with gentle repulsion so similar Hue/Lightness
  * swatches remain clickable without piling on top of each other.
@@ -150,6 +154,33 @@ export function layoutColorWheelPoints(colors: ColorItem[]): WheelNode[] {
   }
 
   return nodes;
+}
+
+/**
+ * Selects visible wheel nodes from a deterministic full-wheel layout so filtered views keep
+ * stable pigment positions while revealing any highlighted harmony/chord/selected companions
+ * that fall outside the active filter.
+ */
+export function filterVisibleWheelNodes(
+  allNodes: WheelNode[],
+  filteredColors: ColorItem[],
+  highlightedIds: Iterable<number>
+): { visibleNodes: DisplayWheelNode[]; companionCount: number } {
+  const filteredSet = new Set(filteredColors.map((c) => c.id));
+  const highlightSet = new Set(highlightedIds);
+  const visibleNodes: DisplayWheelNode[] = [];
+  let companionCount = 0;
+
+  for (const node of allNodes) {
+    const inFilter = filteredSet.has(node.color.id);
+    if (inFilter || highlightSet.has(node.color.id)) {
+      const isCompanion = !inFilter;
+      if (isCompanion) companionCount += 1;
+      visibleNodes.push({ ...node, isCompanion });
+    }
+  }
+
+  return { visibleNodes, companionCount };
 }
 
 /**

@@ -661,6 +661,67 @@ async function run() {
     assert.equal(await waitForText('Triadic Archival Matches:'), true);
     assert.equal(await client.eval(`document.querySelectorAll('[data-testid="wheel-harmony-spoke"]').length >= 2`), true);
 
+    // 10b-filter. Filtered Color Wheel + Hover over Harmony reveals outside-filter companions
+    await client.eval(`Array.from(document.querySelectorAll('section[aria-label="Sanzo Wada 360° Color Wheel Page"] button')).find(b => b.textContent.trim().toLowerCase() === 'warm')?.click()`);
+    assert.equal(await waitForText('Carmine Red'), true);
+    assert.equal(await client.eval(`document.querySelectorAll('[data-companion="true"]').length`), 0);
+
+    // Hover a harmony card containing out-of-filter companions (+ badge)
+    const targetHarmonyCard = await client.eval(`(() => {
+      const card = Array.from(document.querySelectorAll('[data-testid^="wheel-harmony-card-"]')).find(el => /\\+\\d+/.test(el.textContent || ''));
+      if (!card) return null;
+      card.scrollIntoView({ block: 'center', behavior: 'instant' });
+      const r = card.getBoundingClientRect();
+      const plusMatch = (card.textContent || '').match(/\\+(\\d+)/);
+      return {
+        testId: card.getAttribute('data-testid'),
+        x: r.left + r.width / 2,
+        y: r.top + r.height / 2,
+        expectedCompanions: plusMatch ? Number(plusMatch[1]) : 0,
+      };
+    })()`);
+    assert.ok(targetHarmonyCard && targetHarmonyCard.expectedCompanions > 0, 'Expected a Warm harmony card with out-of-filter companions');
+
+    await client.send('Input.dispatchMouseEvent', {
+      type: 'mouseMoved',
+      x: targetHarmonyCard.x,
+      y: targetHarmonyCard.y,
+    });
+    await new Promise((r) => setTimeout(r, 80));
+
+    const hoverResult = await client.eval(`(() => {
+      const companions = Array.from(document.querySelectorAll('[data-companion="true"]'));
+      const legend = document.querySelector('[data-testid="wheel-companion-legend"]')?.textContent || '';
+      const chord = document.querySelector('[data-testid="wheel-chord-shape"]');
+      const rect = companions[0]?.getBoundingClientRect();
+      return {
+        companionCount: companions.length,
+        hasLegend: legend.includes('harmony companion'),
+        hasChord: Boolean(chord),
+        firstCompanionPoint: rect ? { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 } : null,
+      };
+    })()`);
+    assert.equal(hoverResult.companionCount, targetHarmonyCard.expectedCompanions);
+    assert.equal(hoverResult.hasLegend, true);
+    assert.equal(hoverResult.hasChord, true);
+
+    // Moving pointer off the card clears hovered companion dots
+    await client.send('Input.dispatchMouseEvent', { type: 'mouseMoved', x: 5, y: 5 });
+    await new Promise((r) => setTimeout(r, 80));
+    assert.equal(await client.eval(`document.querySelectorAll('[data-companion="true"]').length`), 0);
+
+    // Pin the same harmony via the touch-friendly Eye button, verify companion click works, then reset back to All colors
+    await client.eval(`document.querySelector('[data-testid="${targetHarmonyCard.testId}"] + button')?.click()`);
+    await new Promise((r) => setTimeout(r, 80));
+    assert.equal(await client.eval(`document.querySelectorAll('[data-companion="true"]').length`), targetHarmonyCard.expectedCompanions);
+    await client.eval(`document.querySelector('[data-companion="true"]')?.click()`);
+    assert.equal(await waitForText('COMPANION'), true);
+    await client.eval(`Array.from(document.querySelectorAll('section[aria-label="Sanzo Wada 360° Color Wheel Page"] button')).find(b => b.textContent.trim().toLowerCase() === 'all')?.click()`);
+    await client.eval(`Array.from(document.querySelectorAll('[aria-label="Geometric harmony rule"] button')).find(b => b.textContent.trim() === 'Off')?.click()`);
+    assert.equal(await waitForText('360° Color Wheel Chooser (171 / 171 Pigments)'), true);
+    await client.eval(`document.querySelector('section[aria-label="Sanzo Wada 360° Color Wheel Page"] button[aria-label^="#29 "]')?.click()`);
+    assert.equal(await waitForText('Carmine Red'), true);
+
     // 10b-cont. Test continuity: Color Sheet -> Combination -> Step to Next Combo for that Color -> Back to Color Sheet
     await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.includes('Open Pigment Sheet'))?.click()`);
     assert.equal(await waitForText('Harmony Combinations:'), true);
