@@ -1,5 +1,6 @@
 import { ColorItem, ColorSortOption, Combination } from '../types/color';
 import { classifyColorTone, rgbToHsl } from './colorUtils';
+import { analyzeColorPsychology, analyzePalettePsychology, MOOD_META } from './colorPsychology';
 import { SEASON_MONTHS } from './paletteData';
 
 function getSeasonForMonth(month?: number): string {
@@ -10,9 +11,18 @@ function getSeasonForMonth(month?: number): string {
   return '';
 }
 
+function matchesMoodKeywords(mood: keyof typeof MOOD_META, token: string): boolean {
+  const meta = MOOD_META[mood];
+  return (
+    mood.includes(token) ||
+    meta.label.toLowerCase().includes(token) ||
+    meta.keywords.some((kw) => kw === token)
+  );
+}
+
 /**
  * Multi-term search for combinations: every whitespace-separated token must match
- * across plate ID, volume-prefixed key, seasonal metadata, or any color's attributes/tone.
+ * across plate ID, volume-prefixed key, seasonal metadata, mood psychology, or any color's attributes/tone.
  */
 export function matchesCombinationTokens(combo: Combination, rawQuery: string): boolean {
   const tokens = rawQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
@@ -20,6 +30,7 @@ export function matchesCombinationTokens(combo: Combination, rawQuery: string): 
 
   const seasonName = combo.volume === 2 ? getSeasonForMonth(combo.month) : '';
   const comboKey = `v${combo.volume}-${combo.id}`;
+  const comboMood = combo.mood ?? analyzePalettePsychology(combo).primaryMood;
 
   return tokens.every((token) => {
     const numToken = token.replace(/^#/, '');
@@ -33,6 +44,7 @@ export function matchesCombinationTokens(combo: Combination, rawQuery: string): 
     if (combo.monthJa?.includes(token)) return true;
     if (combo.monthMeaning?.toLowerCase().includes(token)) return true;
     if (seasonName && seasonName.includes(token)) return true;
+    if (matchesMoodKeywords(comboMood, token)) return true;
 
     return combo.colors.some(
       (color) =>
@@ -51,6 +63,7 @@ export function matchesCombinationTokens(combo: Combination, rawQuery: string): 
 export function matchesColorTokens(color: ColorItem, rawQuery: string): boolean {
   const tokens = rawQuery.toLowerCase().trim().split(/\s+/).filter(Boolean);
   if (tokens.length === 0) return true;
+  const colorMood = analyzeColorPsychology(color).primaryMood;
 
   return tokens.every((token) => {
     const numToken = token.replace(/^#/, '');
@@ -60,7 +73,8 @@ export function matchesColorTokens(color: ColorItem, rawQuery: string): boolean 
       Boolean(color.reading?.toLowerCase().includes(token)) ||
       color.hex.toLowerCase().includes(token) ||
       color.id.toString() === numToken ||
-      classifyColorTone(color.rgb) === token
+      classifyColorTone(color.rgb) === token ||
+      matchesMoodKeywords(colorMood, token)
     );
   });
 }

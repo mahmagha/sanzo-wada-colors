@@ -2,12 +2,14 @@ import React from 'react';
 import { Calendar, Filter, RotateCcw, X } from 'lucide-react';
 import {
   ColorItem,
+  MoodFilter,
   VolumeFilter,
   PaletteSizeFilter,
   ToneFilter,
   SeasonFilter,
   SortOption,
 } from '../types/color';
+import { MOOD_LIST } from '../utils/colorPsychology';
 import { MONTH_OPTIONS, SEASON_MONTHS } from '../utils/paletteData';
 
 interface FiltersBarProps {
@@ -17,6 +19,8 @@ interface FiltersBarProps {
   onSizeChange: (size: PaletteSizeFilter) => void;
   activeTone: ToneFilter;
   onToneChange: (tone: ToneFilter) => void;
+  activeMood: MoodFilter;
+  onMoodChange: (mood: MoodFilter) => void;
   activeSeason: SeasonFilter;
   onSeasonChange: (season: SeasonFilter) => void;
   activeMonth: number | 'all';
@@ -37,6 +41,8 @@ export const FiltersBar: React.FC<FiltersBarProps> = ({
   onSizeChange,
   activeTone,
   onToneChange,
+  activeMood,
+  onMoodChange,
   activeSeason,
   onSeasonChange,
   activeMonth,
@@ -221,6 +227,24 @@ export const FiltersBar: React.FC<FiltersBarProps> = ({
                 );
               }
             )}
+          </div>
+
+          {/* Mood & Color Psychology Dropdown */}
+          <div className="flex items-center gap-1 text-xs">
+            <span className="text-stone-500 font-medium">Mood:</span>
+            <select
+              aria-label="Filter combinations by color psychology mood"
+              value={activeMood}
+              onChange={(e) => onMoodChange(e.target.value as MoodFilter)}
+              className="w-40 px-2 py-1 text-xs rounded border border-stone-300 dark:border-stone-700 bg-white/70 dark:bg-stone-900 text-stone-900 dark:text-stone-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-700 dark:focus-visible:ring-amber-400 cursor-pointer"
+            >
+              <option value="all">All Moods</option>
+              {MOOD_LIST.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.label}
+                </option>
+              ))}
+            </select>
           </div>
 
           {/* Sort Dropdown */}

@@ -14,6 +14,7 @@ import {
   VolumeFilter,
   PaletteSizeFilter,
   ToneFilter,
+  MoodFilter,
   SeasonFilter,
   SortOption,
 } from './types/color';
@@ -249,6 +250,7 @@ export const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState(initialUrl.searchQuery);
   const [sizeFilter, setSizeFilter] = useState<PaletteSizeFilter>(initialUrl.sizeFilter);
   const [toneFilter, setToneFilter] = useState<ToneFilter>(initialUrl.toneFilter);
+  const [moodFilter, setMoodFilter] = useState<MoodFilter>(initialUrl.moodFilter);
   const [seasonFilter, setSeasonFilter] = useState<SeasonFilter>(initialUrl.seasonFilter);
   const [monthFilter, setMonthFilter] = useState<number | 'all'>(initialUrl.monthFilter);
   const [sortBy, setSortBy] = useState<SortOption>(initialUrl.sortBy);
@@ -394,6 +396,7 @@ export const App: React.FC = () => {
       monthFilter,
       sizeFilter,
       toneFilter,
+      moodFilter,
       sortBy,
       colorSort,
       swatchId: swatchIdFilter,
@@ -425,6 +428,7 @@ export const App: React.FC = () => {
     monthFilter,
     sizeFilter,
     toneFilter,
+    moodFilter,
     sortBy,
     colorSort,
     swatchIdFilter,
@@ -466,6 +470,7 @@ export const App: React.FC = () => {
       setMonthFilter(parsed.monthFilter);
       setSizeFilter(parsed.sizeFilter);
       setToneFilter(parsed.toneFilter);
+      setMoodFilter(parsed.moodFilter);
       setSortBy(parsed.sortBy);
       setColorSort(parsed.colorSort);
       setSwatchIdFilter(parsed.swatchId);
@@ -502,6 +507,7 @@ export const App: React.FC = () => {
     monthFilter,
     sizeFilter,
     toneFilter,
+    moodFilter,
     swatchIdFilter,
     searchQuery,
     sortBy,
@@ -593,6 +599,7 @@ export const App: React.FC = () => {
     setVolumeFilter('all');
     setSizeFilter('all');
     setToneFilter('all');
+    setMoodFilter('all');
     setSeasonFilter('all');
     setMonthFilter('all');
     setSwatchIdFilter(null);
@@ -605,6 +612,7 @@ export const App: React.FC = () => {
     volumeFilter !== 'all' ||
     sizeFilter !== 'all' ||
     toneFilter !== 'all' ||
+    moodFilter !== 'all' ||
     seasonFilter !== 'all' ||
     monthFilter !== 'all' ||
     swatchIdFilter !== null ||
@@ -648,6 +656,10 @@ export const App: React.FC = () => {
       );
     }
 
+    if (moodFilter !== 'all') {
+      result = result.filter((c) => c.mood === moodFilter);
+    }
+
     if (searchQuery.trim()) {
       result = result.filter((c) => matchesCombinationTokens(c, searchQuery));
     }
@@ -670,6 +682,7 @@ export const App: React.FC = () => {
     monthFilter,
     sizeFilter,
     toneFilter,
+    moodFilter,
     searchQuery,
     sortBy,
   ]);
@@ -931,6 +944,8 @@ export const App: React.FC = () => {
             onSizeChange={setSizeFilter}
             activeTone={toneFilter}
             onToneChange={setToneFilter}
+            activeMood={moodFilter}
+            onMoodChange={setMoodFilter}
             activeSeason={seasonFilter}
             onSeasonChange={handleSeasonChange}
             activeMonth={monthFilter}
@@ -1477,6 +1492,10 @@ export const App: React.FC = () => {
               setVolumeFilter(2);
               setSeasonFilter('all');
               setMonthFilter(month);
+            }}
+            onSelectMood={(mood) => {
+              setViewMode('combinations');
+              setMoodFilter(mood);
             }}
           />
         )}

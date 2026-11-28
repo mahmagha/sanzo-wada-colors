@@ -17,8 +17,10 @@ import {
   Image as ImageIcon,
   Columns2,
   Shirt,
+  Brain,
 } from 'lucide-react';
 import { ColorItem, Combination, CvdMode } from '../types/color';
+import { analyzePalettePsychology, MOOD_META } from '../utils/colorPsychology';
 import {
   getContrastRatio,
   getIdealTextColor,
@@ -334,6 +336,13 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
       : undefined;
   const proportionWeights = getProportionWeights(posterColors.length);
   const weightedHeights = getWeightedBarHeights(posterColors.length);
+  const palettePsych = analyzePalettePsychology({
+    colors: posterColors,
+    maxContrast: combination.maxContrast,
+    volume: combination.volume,
+    month: combination.month,
+  });
+  const paletteMoodMeta = MOOD_META[palettePsych.primaryMood];
 
   const renderWcagBadge = (ratio: number) => {
     if (ratio >= 7) {
@@ -843,6 +852,50 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                   <Copy size={15} />
                   <span>Copy All Hex Codes</span>
                 </button>
+              </div>
+
+              {/* Mood & Color Psychology Profile Card */}
+              <div className="w-full max-w-xl mt-6 p-4 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50/80 dark:bg-stone-950/40 space-y-3 text-xs">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-1.5 font-editorial font-bold text-stone-900 dark:text-stone-100">
+                    <Brain size={14} className="text-amber-800 dark:text-amber-400" />
+                    <span>Mood &amp; Color Psychology</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap font-code text-[10px]">
+                    <span
+                      className={`px-2 py-0.5 rounded-full font-semibold ${paletteMoodMeta.badgeClass}`}
+                    >
+                      {paletteMoodMeta.label}
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-stone-200/70 dark:bg-stone-800 text-stone-700 dark:text-stone-300">
+                      {palettePsych.contrastFeel}
+                    </span>
+                  </div>
+                </div>
+                <div className="font-editorial font-semibold text-sm text-stone-900 dark:text-stone-100">
+                  {palettePsych.headline}
+                </div>
+                <p className="text-stone-600 dark:text-stone-300 leading-relaxed">
+                  {palettePsych.whyItWorks}
+                </p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-2 border-t border-stone-200/70 dark:border-stone-800">
+                  <div>
+                    <div className="font-code text-[10px] uppercase tracking-wider text-stone-500 mb-0.5">
+                      UI &amp; Brand Guidance
+                    </div>
+                    <p className="text-stone-600 dark:text-stone-300 leading-relaxed">
+                      {palettePsych.uiGuidance}
+                    </p>
+                  </div>
+                  <div>
+                    <div className="font-code text-[10px] uppercase tracking-wider text-stone-500 mb-0.5">
+                      Menswear &amp; Textile Feel
+                    </div>
+                    <p className="text-stone-600 dark:text-stone-300 leading-relaxed">
+                      {palettePsych.menswearGuidance}
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           )}

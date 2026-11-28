@@ -37,6 +37,7 @@ export interface Combination {
   colors: ColorItem[];
   maxContrast?: number;
   popularity?: number;
+  mood?: Exclude<MoodFilter, 'all'>;
 }
 
 export interface HydratedCombination extends Combination {
@@ -50,6 +51,14 @@ export type ColorsLayout = 'grid' | 'map';
 export type VolumeFilter = 'all' | 1 | 2;
 export type PaletteSizeFilter = 'all' | 2 | 3 | 4 | 5;
 export type ToneFilter = 'all' | 'warm' | 'cool' | 'earthy' | 'pastel' | 'deep' | 'neutral';
+export type MoodFilter =
+  | 'all'
+  | 'serene'
+  | 'grounded'
+  | 'luminous'
+  | 'energetic'
+  | 'contemplative'
+  | 'dramatic';
 export type SeasonFilter = 'all' | 'spring' | 'summer' | 'autumn' | 'winter';
 export type SortOption = 'number-asc' | 'number-desc' | 'contrast-desc' | 'popularity';
 export type ColorSortOption = 'id-asc' | 'hue' | 'lightness' | 'popularity' | 'name';
@@ -60,6 +69,7 @@ export interface FilterState {
   searchQuery: string;
   size: PaletteSizeFilter;
   tone: ToneFilter;
+  mood: MoodFilter;
   season: SeasonFilter;
   month: number | 'all';
   sortBy: SortOption;

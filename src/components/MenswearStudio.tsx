@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   BookmarkPlus,
+  Brain,
   Columns2,
   Copy,
   Download,
@@ -73,6 +74,7 @@ import {
   STYLE_PRESET_PIECES,
   TOP_CUTS,
 } from '../utils/menswearUtils';
+import { analyzePalettePsychology, MOOD_META } from '../utils/colorPsychology';
 import { MenswearIllustration } from './MenswearIllustration';
 
 interface MenswearStudioProps {
@@ -280,6 +282,26 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
     () => analyzeOutfitHarmony(resolvedOutfit, allCombinations, pieces),
     [resolvedOutfit, allCombinations, pieces]
   );
+  const outfitPsych = useMemo(() => {
+    const visibleSlots = GARMENT_SLOT_ORDER.filter(
+      (slot) => !(slot === 'outerwear' && pieces.outerwear === 'none')
+    );
+    const seenIds = new Set<number>();
+    const activeColors: ColorItem[] = [];
+    for (const slot of visibleSlots) {
+      const sw = resolvedOutfit[slot];
+      if (!seenIds.has(sw.id)) {
+        seenIds.add(sw.id);
+        activeColors.push(sw);
+      }
+    }
+    return analyzePalettePsychology({
+      colors: activeColors,
+      maxContrast: outfitCombo.maxContrast,
+      volume: 1,
+    });
+  }, [resolvedOutfit, pieces.outerwear, outfitCombo.maxContrast]);
+  const outfitMoodMeta = MOOD_META[outfitPsych.primaryMood];
 
   const filteredSwatches = useMemo(() => {
     const filtered = allColors.filter((c) => {
@@ -957,6 +979,27 @@ export const MenswearStudio: React.FC<MenswearStudioProps> = ({
                 </div>
                 <div className="text-[10px] text-stone-500 truncate">{harmony.separationNote}</div>
               </div>
+            </div>
+
+            {/* Live Outfit Psychological Impression */}
+            <div className="p-2.5 rounded-xl bg-stone-50 dark:bg-stone-950/60 border border-stone-200 dark:border-stone-800 space-y-1.5">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <span className="flex items-center gap-1.5 text-[11px] font-editorial font-bold text-stone-800 dark:text-stone-200">
+                  <Brain size={12} className="text-amber-800 dark:text-amber-400" />
+                  <span>Psychological Impression</span>
+                </span>
+                <span
+                  className={`px-2 py-0.5 rounded-full text-[10px] font-code font-semibold ${outfitMoodMeta.badgeClass}`}
+                >
+                  {outfitMoodMeta.label}
+                </span>
+              </div>
+              <div className="text-xs font-editorial font-semibold text-stone-900 dark:text-stone-100">
+                {outfitPsych.headline}
+              </div>
+              <p className="text-[11px] text-stone-500 dark:text-stone-400 leading-snug">
+                {outfitPsych.menswearGuidance}
+              </p>
             </div>
 
             <div className="space-y-1.5">

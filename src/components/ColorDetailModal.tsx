@@ -9,9 +9,11 @@ import {
   Share2,
   Filter,
   Plus,
+  Brain,
 } from 'lucide-react';
 import { ColorItem, Combination } from '../types/color';
 import { formatOklch, getIdealTextColor } from '../utils/colorUtils';
+import { analyzeColorPsychology, MOOD_META } from '../utils/colorPsychology';
 import { useModalDialog } from '../utils/useModalDialog';
 
 interface ColorDetailModalProps {
@@ -50,6 +52,8 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
   if (!color) return null;
 
   const textColor = getIdealTextColor(color.hex);
+  const colorPsych = analyzeColorPsychology(color);
+  const moodMeta = MOOD_META[colorPsych.primaryMood];
   const matchedCombinations = allCombinations.filter(
     (c) =>
       (c.volume === 1 && color.combinations?.includes(c.id)) ||
@@ -215,6 +219,41 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
                 {matchedCombinations.length} Palettes
               </div>
             </div>
+          </div>
+
+          {/* Mood & Color Psychology Insight */}
+          <div className="p-4 rounded-xl border border-stone-200 dark:border-stone-800 bg-stone-50/80 dark:bg-stone-950/40 space-y-2.5 text-xs">
+            <div className="flex items-center justify-between gap-2 flex-wrap">
+              <div className="flex items-center gap-1.5 font-editorial font-bold text-stone-900 dark:text-stone-100">
+                <Brain size={14} className="text-amber-800 dark:text-amber-400" />
+                <span>Mood &amp; Color Psychology</span>
+              </div>
+              <div className="flex items-center gap-1.5 flex-wrap font-code text-[10px]">
+                <span className={`px-2 py-0.5 rounded-full font-semibold ${moodMeta.badgeClass}`}>
+                  {moodMeta.shortLabel}
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-stone-200/70 dark:bg-stone-800 text-stone-700 dark:text-stone-300">
+                  {colorPsych.temperature}
+                </span>
+                <span className="px-2 py-0.5 rounded-full bg-stone-200/70 dark:bg-stone-800 text-stone-700 dark:text-stone-300">
+                  {colorPsych.arousal}
+                </span>
+              </div>
+            </div>
+            <div className="font-editorial font-semibold text-sm text-stone-900 dark:text-stone-100">
+              {colorPsych.headline}
+            </div>
+            <p className="text-stone-600 dark:text-stone-300 leading-relaxed">
+              {colorPsych.effectNote}
+            </p>
+            <p className="text-stone-500 dark:text-stone-400 leading-relaxed">
+              <strong className="text-stone-700 dark:text-stone-200">Context:</strong>{' '}
+              {colorPsych.culturalNuance}
+            </p>
+            <p className="text-stone-600 dark:text-stone-300 leading-relaxed pt-1 border-t border-stone-200/70 dark:border-stone-800">
+              <strong className="text-stone-700 dark:text-stone-200">Pairing &amp; Usage:</strong>{' '}
+              {colorPsych.pairingGuidance}
+            </p>
           </div>
 
           {/* Combinations containing this color */}

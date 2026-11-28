@@ -369,10 +369,22 @@ async function run() {
       assertZeroJump(`After clicking tone ${tone}`, r0, await getRects());
     }
 
+    // 4b. Select Serene in Mood psychology filter -> verify filtered URL & zero layout jump
+    await client.eval(`(() => {
+      const sel = document.querySelector('select[aria-label="Filter combinations by color psychology mood"]');
+      const setter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, 'value').set;
+      setter.call(sel, 'serene');
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+    })()`);
+    await new Promise((r) => setTimeout(r, 80));
+    assertZeroJump('After selecting serene mood', r0, await getRects());
+    assert.ok((await client.eval(`window.location.search`)).includes('mood=serene'));
+
     // 5. Click Reset, then toggle Favorite heart on a card -> assert zero header jump
     await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Reset').click()`);
     await new Promise((r) => setTimeout(r, 80));
     assertZeroJump('After clicking Reset', r0, await getRects());
+    assert.equal((await client.eval(`window.location.search`)).includes('mood='), false);
 
     await client.eval(`document.querySelector('button[aria-label*="to favorites"]').click()`);
     await new Promise((r) => setTimeout(r, 80));
@@ -440,9 +452,10 @@ async function run() {
     await new Promise((r) => setTimeout(r, 80));
     assert.equal(await client.eval(`document.getElementById('studio-modal-title')`), null);
 
-    // 7c. Press '?' shortcut to open Guide & Backup Modal, then close with Escape
+    // 7c. Press '?' shortcut to open Guide & Backup Modal (incl. Color Psychology archetypes), then close with Escape
     await client.send('Input.dispatchKeyEvent', { type: 'keyDown', key: '?', text: '?' });
     assert.equal(await waitForText('Archive Guide, Shortcuts & Backup'), true);
+    assert.equal(await waitForText('Color Psychology & Mood Filter Guide'), true);
     await client.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape' });
     await new Promise((r) => setTimeout(r, 80));
     assert.equal(await client.eval(`document.getElementById('guide-modal-title')`), null);
@@ -470,6 +483,7 @@ async function run() {
     // 9. Open ModalStudio, verify ALL 5 tabs fit without overflow on desktop AND collapse cleanly to icons on narrow viewport
     await client.eval(`Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Inspect').click()`);
     await waitForText('Showa Art Print');
+    assert.equal(await waitForText('Mood & Color Psychology'), true);
     assert.equal(await client.eval(`Boolean(document.getElementById('studio-modal-title'))`), true);
     assert.equal(await client.eval(`document.body.style.overflow`), 'hidden');
 
@@ -666,6 +680,7 @@ async function run() {
 
     await client.eval(`document.querySelector('[role="dialog"] button[aria-label="Back to #29 Carmine Red"]')?.click()`);
     assert.equal(await waitForText('Harmony Combinations:'), true);
+    assert.equal(await waitForText('Mood & Color Psychology'), true);
     assert.equal(await client.eval(`document.getElementById('color-modal-title')?.textContent?.trim()`), 'Carmine Red');
     await client.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape' });
     await new Promise((r) => setTimeout(r, 80));
@@ -674,6 +689,7 @@ async function run() {
     // 10c. Navigate to the separate Menswear page (?view=menswear) — verify personalization, patterns, URL sync & exports
     await client.eval(`Array.from(document.querySelectorAll('header button[role="tab"]')).find(b => b.textContent.includes('Menswear')).click()`);
     assert.equal(await waitForText('Menswear Garment Color Chooser'), true);
+    assert.equal(await waitForText('Psychological Impression'), true);
     assert.equal(await waitForText('All Wada Swatches (171)'), true);
     const menswearUrl = await client.eval(`window.location.search`);
     assert.ok(menswearUrl.includes('view=menswear'), `Expected view=menswear in ${menswearUrl}`);

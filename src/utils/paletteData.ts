@@ -1,5 +1,6 @@
 import { ColorItem, HydratedCombination, RawCombination, SeasonFilter } from '../types/color';
 import { getMaxPaletteContrast } from './colorUtils';
+import { analyzePalettePsychology } from './colorPsychology';
 
 export const SEASON_MONTHS: Record<Exclude<SeasonFilter, 'all'>, number[]> = {
   spring: [3, 4, 5],
@@ -57,6 +58,12 @@ export function hydrateCombinations(
       (sum, item) => sum + (item.combinations?.length || 0) + (item.vol2Cards?.length || 0),
       0
     );
+    const mood = analyzePalettePsychology({
+      colors,
+      maxContrast,
+      volume: raw.volume,
+      month: raw.month,
+    }).primaryMood;
 
     return {
       id: raw.id,
@@ -70,6 +77,7 @@ export function hydrateCombinations(
       colors,
       maxContrast,
       popularity,
+      mood,
     };
   });
 }

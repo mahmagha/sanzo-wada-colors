@@ -16,6 +16,7 @@ describe('URL state parsing and serialization', () => {
     assert.equal(empty.hasKanjiOnly, false);
     assert.equal(empty.volumeFilter, 'all');
     assert.equal(empty.monthFilter, 'all');
+    assert.equal(empty.moodFilter, 'all');
     assert.equal(empty.colorSort, 'id-asc');
     assert.equal(empty.swatchId, null);
     assert.deepEqual(empty.compareKeys, []);
@@ -31,7 +32,7 @@ describe('URL state parsing and serialization', () => {
     assert.equal(empty.menswearPatterns, null);
     assert.equal(empty.menswearPatternColors, null);
 
-    const invalid = parseUrlState('?view=bad&layout=3d&kanji=0&vol=9&season=monsoon&month=13&size=9&tone=neon&sort=foo&csort=bad&swatch=-1&compare=bad,v1-1,v2-5,v9-1,mix-999-bad,mix-1-74-134,v1-9&combo=bad&mix=999,bad&color=-3&mstyle=tux&outfit=1,2&mskin=alien&mlight=neon&mpieces=bad&mmats=fake&mpats=dots&mpcols=999');
+    const invalid = parseUrlState('?view=bad&layout=3d&kanji=0&vol=9&season=monsoon&month=13&size=9&tone=neon&mood=chaotic&sort=foo&csort=bad&swatch=-1&compare=bad,v1-1,v2-5,v9-1,mix-999-bad,mix-1-74-134,v1-9&combo=bad&mix=999,bad&color=-3&mstyle=tux&outfit=1,2&mskin=alien&mlight=neon&mpieces=bad&mmats=fake&mpats=dots&mpcols=999');
     assert.equal(invalid.viewMode, 'combinations');
     assert.equal(invalid.colorsLayout, 'grid');
     assert.equal(invalid.hasKanjiOnly, false);
@@ -40,6 +41,7 @@ describe('URL state parsing and serialization', () => {
     assert.equal(invalid.monthFilter, 'all');
     assert.equal(invalid.sizeFilter, 'all');
     assert.equal(invalid.toneFilter, 'all');
+    assert.equal(invalid.moodFilter, 'all');
     assert.equal(invalid.sortBy, 'number-asc');
     assert.equal(invalid.colorSort, 'id-asc');
     assert.equal(invalid.swatchId, null);
@@ -88,6 +90,7 @@ describe('URL state parsing and serialization', () => {
       monthFilter: 4,
       sizeFilter: 5,
       toneFilter: 'neutral',
+      moodFilter: 'serene',
       sortBy: 'popularity',
       colorSort: 'hue',
       swatchId: 12,
@@ -109,6 +112,7 @@ describe('URL state parsing and serialization', () => {
 
     assert.ok(query.includes('layout=map'));
     assert.ok(query.includes('kanji=1'));
+    assert.ok(query.includes('mood=serene'));
     assert.ok(query.includes('mix='));
     assert.ok(query.includes('mstyle=resort'));
     assert.ok(query.includes('outfit='));
@@ -129,6 +133,7 @@ describe('URL state parsing and serialization', () => {
       monthFilter: 4,
       sizeFilter: 5,
       toneFilter: 'neutral',
+      moodFilter: 'serene',
       sortBy: 'popularity',
       colorSort: 'hue',
       swatchId: 12,
@@ -158,6 +163,7 @@ describe('URL state parsing and serialization', () => {
         monthFilter: 'all',
         sizeFilter: 'all',
         toneFilter: 'all',
+        moodFilter: 'all',
         sortBy: 'number-asc',
         colorSort: 'id-asc',
         swatchId: null,

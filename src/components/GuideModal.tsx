@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
-import { X, Keyboard, BookOpen, Download, Upload, Calendar } from 'lucide-react';
+import { X, Keyboard, BookOpen, Download, Upload, Calendar, Brain } from 'lucide-react';
 import { ARCHIVAL_NOTES, MONTH_OPTIONS } from '../utils/paletteData';
+import { MOOD_LIST, PaletteMood } from '../utils/colorPsychology';
 import { useModalDialog } from '../utils/useModalDialog';
 
 interface GuideModalProps {
@@ -9,6 +10,7 @@ interface GuideModalProps {
   favorites: string[];
   onImportFavorites: (importedKeys: string[]) => void;
   onSelectMonth?: (month: number) => void;
+  onSelectMood?: (mood: PaletteMood) => void;
 }
 
 const KEYBOARD_SHORTCUTS = [
@@ -25,6 +27,7 @@ export const GuideModal: React.FC<GuideModalProps> = ({
   favorites,
   onImportFavorites,
   onSelectMonth,
+  onSelectMood,
 }) => {
   const [importError, setImportError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -200,6 +203,44 @@ export const GuideModal: React.FC<GuideModalProps> = ({
                     {note.body}
                   </p>
                 </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Color Psychology & Mood Archetypes */}
+          <section>
+            <h3 className="flex items-center gap-2 text-sm font-editorial font-bold mb-1.5">
+              <Brain size={15} className="text-amber-800 dark:text-amber-400" />
+              <span>Color Psychology &amp; Mood Filter Guide</span>
+            </h3>
+            <p className="text-xs text-stone-500 dark:text-stone-400 mb-3">
+              Emotional resonance shifts with hue temperature, value contrast, and chroma intensity. Click any mood to filter combinations:
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+              {MOOD_LIST.map((m) => (
+                <button
+                  type="button"
+                  key={m.id}
+                  onClick={() => {
+                    if (onSelectMood) {
+                      onClose();
+                      onSelectMood(m.id);
+                    }
+                  }}
+                  className="p-2.5 rounded-xl border border-stone-200 dark:border-stone-800 hover:border-amber-700/50 dark:hover:border-amber-500/50 bg-stone-50/50 dark:bg-stone-950/30 text-left transition-colors cursor-pointer space-y-1"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-code font-semibold ${m.badgeClass}`}>
+                      {m.label}
+                    </span>
+                  </div>
+                  <p className="text-[11px] font-medium text-stone-800 dark:text-stone-200">
+                    {m.cue}
+                  </p>
+                  <p className="text-[11px] text-stone-500 dark:text-stone-400 leading-snug">
+                    {m.balancedUsage}
+                  </p>
+                </button>
               ))}
             </div>
           </section>

@@ -1,6 +1,7 @@
 import {
   ColorSortOption,
   ColorsLayout,
+  MoodFilter,
   PaletteSizeFilter,
   SeasonFilter,
   SortOption,
@@ -42,6 +43,7 @@ export interface UrlAppState {
   monthFilter: number | 'all';
   sizeFilter: PaletteSizeFilter;
   toneFilter: ToneFilter;
+  moodFilter: MoodFilter;
   sortBy: SortOption;
   colorSort: ColorSortOption;
   swatchId: number | null;
@@ -70,6 +72,15 @@ const VALID_TONES = new Set<ToneFilter>([
   'pastel',
   'deep',
   'neutral',
+]);
+const VALID_MOODS = new Set<MoodFilter>([
+  'all',
+  'serene',
+  'grounded',
+  'luminous',
+  'energetic',
+  'contemplative',
+  'dramatic',
 ]);
 const VALID_SORTS = new Set<SortOption>([
   'number-asc',
@@ -116,6 +127,7 @@ export const DEFAULT_URL_STATE: UrlAppState = {
   monthFilter: 'all',
   sizeFilter: 'all',
   toneFilter: 'all',
+  moodFilter: 'all',
   sortBy: 'number-asc',
   colorSort: 'id-asc',
   swatchId: null,
@@ -176,6 +188,9 @@ export function parseUrlState(search: string): UrlAppState {
 
   const toneParam = params.get('tone') as ToneFilter | null;
   const toneFilter: ToneFilter = toneParam && VALID_TONES.has(toneParam) ? toneParam : 'all';
+
+  const moodParam = params.get('mood') as MoodFilter | null;
+  const moodFilter: MoodFilter = moodParam && VALID_MOODS.has(moodParam) ? moodParam : 'all';
 
   const sortParam = params.get('sort') as SortOption | null;
   const sortBy: SortOption = sortParam && VALID_SORTS.has(sortParam) ? sortParam : 'number-asc';
@@ -308,6 +323,7 @@ export function parseUrlState(search: string): UrlAppState {
     monthFilter,
     sizeFilter,
     toneFilter,
+    moodFilter,
     sortBy,
     colorSort,
     swatchId,
@@ -339,6 +355,7 @@ export function serializeUrlState(state: UrlAppState): string {
   if (state.monthFilter !== 'all') params.set('month', String(state.monthFilter));
   if (state.sizeFilter !== 'all') params.set('size', String(state.sizeFilter));
   if (state.toneFilter !== 'all') params.set('tone', state.toneFilter);
+  if (state.moodFilter !== 'all') params.set('mood', state.moodFilter);
   if (state.sortBy !== 'number-asc') params.set('sort', state.sortBy);
   if (state.colorSort !== 'id-asc') params.set('csort', state.colorSort);
   if (state.swatchId !== null) params.set('swatch', String(state.swatchId));
