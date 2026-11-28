@@ -269,10 +269,10 @@ export const ColorWheelPage: React.FC<ColorWheelPageProps> = ({
 
                   <div>
                     {activeColor.ja && (
-                      <div className="text-sm font-editorial opacity-90">
+                      <div lang="ja" className="text-sm font-editorial opacity-90">
                         {activeColor.ja}
                         {activeColor.reading && (
-                          <span className="font-sans text-xs ml-1.5 opacity-80">
+                          <span lang="en" className="font-sans text-xs ml-1.5 opacity-80">
                             ({activeColor.reading})
                           </span>
                         )}

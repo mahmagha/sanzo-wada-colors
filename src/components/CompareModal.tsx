@@ -140,7 +140,7 @@ export const CompareModal: React.FC<CompareModalProps> = ({
                         >
                           <div className="min-w-0">
                             <div className="text-xs font-editorial font-bold truncate">
-                              {c.name} {c.ja && <span className="font-normal">({c.ja})</span>}
+                              {c.name} {c.ja && <span lang="ja" className="font-normal">({c.ja})</span>}
                             </div>
                             <div className="text-[10px] font-code opacity-85 uppercase">
                               {c.hex}

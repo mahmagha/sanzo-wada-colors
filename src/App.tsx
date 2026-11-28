@@ -19,6 +19,7 @@ import {
   SortOption,
 } from './types/color';
 import { classifyColorTone, createCustomCombination, getCompareKey } from './utils/colorUtils';
+import { pickOfTheDay } from './utils/dailyPick';
 import { hydrateCombinations, SEASON_MONTHS } from './utils/paletteData';
 import { matchesColorTokens, matchesCombinationTokens, sortMasterColors } from './utils/searchUtils';
 import { DEFAULT_URL_STATE, parseUrlState, serializeUrlState } from './utils/urlState';
@@ -720,6 +721,17 @@ export const App: React.FC = () => {
     return sortMasterColors(result, colorSort);
   }, [volumeFilter, hasKanjiOnly, toneFilter, searchQuery, colorSort]);
 
+  const handleTodaysPalette = () => {
+    const pick = pickOfTheDay(allCombinations);
+    if (!pick) return;
+    setModalHistory([]);
+    setComboSteppingColor(null);
+    setSelectedColor(null);
+    setSelectedCombo(pick);
+    const volLabel = pick.volume === 2 ? `Vol. 2 Card № ${pick.id}` : `Vol. 1 № ${pick.id}`;
+    setToastMessage(`Today's combination: ${volLabel}`);
+  };
+
   const handleRandomPalette = async () => {
     const pool = filteredCombinations.length > 0 ? filteredCombinations : allCombinations;
     const randomIndex = Math.floor(Math.random() * pool.length);
@@ -729,14 +741,21 @@ export const App: React.FC = () => {
     setSelectedColor(null);
     setSelectedCombo(randomCombo);
 
+    const reduceMotion =
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     try {
-      const { default: confetti } = await import('canvas-confetti');
-      confetti({
-        particleCount: 40,
-        spread: 60,
-        origin: { y: 0.6 },
-        colors: randomCombo.colors.map((c) => c.hex),
-      });
+      if (!reduceMotion) {
+        const { default: confetti } = await import('canvas-confetti');
+        confetti({
+          particleCount: 40,
+          spread: 60,
+          origin: { y: 0.6 },
+          colors: randomCombo.colors.map((c) => c.hex),
+        });
+      }
     } catch {
       // Ignore confetti errors offline
     }
@@ -903,6 +922,7 @@ export const App: React.FC = () => {
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
         onRandomPalette={handleRandomPalette}
+        onTodaysPalette={handleTodaysPalette}
         favoritesCount={favorites.length}
         onlyFavorites={onlyFavorites}
         onToggleOnlyFavorites={() => setOnlyFavorites((prev) => !prev)}

@@ -6,3 +6,6 @@ import './imageQuantize.test';
 import './spectrumMap.test';
 import './menswearUtils.test';
 import './colorPsychology.test';
+import './dailyPick.test';
+import './exports.test';
+import './weaveUtils.test';

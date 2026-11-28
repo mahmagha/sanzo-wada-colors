@@ -128,10 +128,10 @@ export const ColorDetailModal: React.FC<ColorDetailModalProps> = ({
 
           <div className="mt-4">
             {color.ja && (
-              <div className="text-sm font-editorial font-bold opacity-90 mb-1">
+              <div lang="ja" className="text-sm font-editorial font-bold opacity-90 mb-1">
                 {color.ja}
                 {color.reading && (
-                  <span className="font-sans font-normal text-xs ml-1.5 opacity-80">
+                  <span lang="en" className="font-sans font-normal text-xs ml-1.5 opacity-80">
                     ({color.reading})
                   </span>
                 )}

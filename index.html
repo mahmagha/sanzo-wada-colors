@@ -20,9 +20,28 @@
     <meta name="twitter:title" content="Sanzo Wada — A Dictionary of Color Combinations" />
     <meta name="twitter:description" content="Interactive studio for Sanzo Wada's 1930s color harmony archive (420 combinations, 171 swatches)." />
     <meta name="twitter:image" content="https://mahmagha.github.io/sanzo-wada-colors/og-preview.png" />
+    <link rel="canonical" href="https://mahmagha.github.io/sanzo-wada-colors/" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Sanzo Wada: A Dictionary of Color Combinations",
+        "url": "https://mahmagha.github.io/sanzo-wada-colors/",
+        "applicationCategory": "DesignApplication",
+        "operatingSystem": "Any",
+        "description": "Interactive viewer and color studio for Sanzo Wada's Haishoku Sokan (Volumes 1 and 2): 420 combinations and 171 master colors.",
+        "inLanguage": ["en", "ja"],
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" }
+      }
+    </script>
   </head>
   <body class="min-h-screen antialiased selection:bg-amber-800 selection:text-amber-50">
-    <div id="root"></div>
+    <div id="root">
+      <noscript>
+        <h1>和田三造 Sanzo Wada: A Dictionary of Color Combinations</h1>
+        <p>Interactive digital archive for Sanzo Wada's Haishoku Sokan (1933–1935): 420 combinations and 171 master colors with palette extraction, color-vision simulation, contrast checks, and code exports. JavaScript is required to run this app.</p>
+      </noscript>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

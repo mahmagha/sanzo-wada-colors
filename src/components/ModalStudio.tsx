@@ -18,6 +18,7 @@ import {
   Columns2,
   Shirt,
   Brain,
+  Grid3x3,
 } from 'lucide-react';
 import { ColorItem, Combination, CvdMode } from '../types/color';
 import { analyzePalettePsychology, MOOD_META } from '../utils/colorPsychology';
@@ -43,6 +44,9 @@ import {
   generateSvgPaletteSnippet,
   generateGplPalette,
   generateJsonExport,
+  generateCssGradients,
+  generateAndroidColorsXml,
+  generateSwiftUiColors,
 } from '../utils/colorUtils';
 import { useModalDialog } from '../utils/useModalDialog';
 import { MONTH_OPTIONS } from '../utils/paletteData';
@@ -57,6 +61,7 @@ import {
   STYLE_PRESET_PIECES,
 } from '../utils/menswearUtils';
 import { MenswearIllustration } from './MenswearIllustration';
+import { WeavePreview } from './WeavePreview';
 
 interface ModalStudioProps {
   combination: Combination | null;
@@ -78,7 +83,7 @@ interface ModalStudioProps {
   onShareLink?: (combo: Combination) => void;
 }
 
-type StudioTab = 'art-print' | 'ui-mockup' | 'menswear' | 'contrast-matrix' | 'export';
+type StudioTab = 'art-print' | 'ui-mockup' | 'menswear' | 'weave' | 'contrast-matrix' | 'export';
 type MockupTemplate = 'hero' | 'dashboard' | 'editorial' | 'mobile';
 type ExportFormat =
   | 'css'
@@ -87,6 +92,9 @@ type ExportFormat =
   | 'design-tokens'
   | 'svg-palette'
   | 'gpl'
+  | 'gradients'
+  | 'android'
+  | 'swiftui'
   | 'json';
 
 const CVD_OPTIONS: { id: CvdMode; label: string }[] = [
@@ -170,7 +178,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
     const el = subnavRef.current;
     if (!el || typeof ResizeObserver === 'undefined') return;
     const updateFit = (width: number) => {
-      setShowTabLabels(width >= 690);
+      setShowTabLabels(width >= 760);
     };
     updateFit(el.getBoundingClientRect().width);
     const observer = new ResizeObserver((entries) => {
@@ -325,6 +333,9 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
     if (exportFormat === 'design-tokens') return generateDesignTokensJson(combination);
     if (exportFormat === 'svg-palette') return generateSvgPaletteSnippet(combination);
     if (exportFormat === 'gpl') return generateGplPalette(combination);
+    if (exportFormat === 'gradients') return generateCssGradients(combination);
+    if (exportFormat === 'android') return generateAndroidColorsXml(combination);
+    if (exportFormat === 'swiftui') return generateSwiftUiColors(combination);
     return generateJsonExport(combination);
   };
 
@@ -572,6 +583,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                 ['art-print', 'Art Print', 'Showa Art Print', Palette],
                 ['ui-mockup', 'UI Mockup', 'Interactive UI Mockup', Layout],
                 ['menswear', 'Menswear', 'Menswear Look', Shirt],
+                ['weave', 'Weave', 'Woven Fabric Preview', Grid3x3],
                 ['contrast-matrix', 'Contrast', 'Color Science & Contrast', Eye],
                 ['export', 'Export', 'Code & Swatch Export', FileCode],
               ] as const
@@ -751,7 +763,7 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                               >
                                 {c.name}{' '}
                                 {c.ja && (
-                                  <span className="opacity-90 font-normal text-xs sm:text-sm">
+                                  <span lang="ja" className="opacity-90 font-normal text-xs sm:text-sm">
                                     ({c.ja})
                                   </span>
                                 )}
@@ -1470,6 +1482,17 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
             );
           })()}
 
+          {/* TAB 2C: WOVEN FABRIC PREVIEW */}
+          {activeTab === 'weave' && (
+            <WeavePreview
+              palette={combination.colors.map((c) => simHex(c.hex))}
+              exportPalette={combination.colors.map((c) => c.hex)}
+              label={`No. ${String(combination.id).padStart(3, '0')}`}
+              fileBase={`wada-${combination.volume === 2 ? 'v2-' : ''}${String(combination.id).padStart(3, '0')}`}
+              onExportToast={(msg) => onCopyText('', msg)}
+            />
+          )}
+
           {/* TAB 3: COLOR SCIENCE & CONTRAST */}
           {activeTab === 'contrast-matrix' && (
             <div className="space-y-6">
@@ -1609,6 +1632,9 @@ export const ModalStudio: React.FC<ModalStudioProps> = ({
                       ['design-tokens', 'W3C / Figma Tokens'],
                       ['svg-palette', 'SVG Palette'],
                       ['gpl', 'GIMP (.gpl)'],
+                      ['gradients', 'CSS Gradients'],
+                      ['android', 'Android XML'],
+                      ['swiftui', 'SwiftUI'],
                       ['json', 'JSON'],
                     ] as const
                   ).map(([key, label]) => (

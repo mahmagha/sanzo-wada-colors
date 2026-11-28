@@ -452,6 +452,16 @@ async function run() {
     await new Promise((r) => setTimeout(r, 80));
     assert.equal(await client.eval(`document.getElementById('studio-modal-title')`), null);
 
+    // 7b2. Test Today's combination button, SEO canonical link, and Japanese lang="ja" semantics
+    assert.equal(await client.eval(`Boolean(document.querySelector('link[rel="canonical"]'))`), true);
+    assert.equal(await client.eval(`Boolean(document.querySelector('[lang="ja"]'))`), true);
+    await client.eval(`document.querySelector('button[aria-label="Today\\'s combination"]')?.click()`);
+    assert.equal(await waitForText("Today's combination:"), true);
+    assert.equal(await client.eval(`Boolean(document.getElementById('studio-modal-title'))`), true);
+    await client.send('Input.dispatchKeyEvent', { type: 'keyDown', key: 'Escape', code: 'Escape' });
+    await new Promise((r) => setTimeout(r, 80));
+    assert.equal(await client.eval(`document.getElementById('studio-modal-title')`), null);
+
     // 7c. Press '?' shortcut to open Guide & Backup Modal (incl. Color Psychology archetypes), then close with Escape
     await client.send('Input.dispatchKeyEvent', { type: 'keyDown', key: '?', text: '?' });
     assert.equal(await waitForText('Archive Guide, Shortcuts & Backup'), true);
@@ -498,7 +508,7 @@ async function run() {
         labelsVisible: tabs.every(t => !t.querySelector('span')?.className.includes('sr-only')),
       };
     })()`);
-    assert.equal(desktopTabs.count, 5);
+    assert.equal(desktopTabs.count, 6);
     assert.equal(desktopTabs.overflows, false);
     assert.equal(desktopTabs.allVisible, true);
     assert.equal(desktopTabs.labelsVisible, true);
@@ -538,13 +548,21 @@ async function run() {
         iconsOnly: tabs.every(t => t.querySelector('span')?.className.includes('sr-only')),
       };
     })()`);
-    assert.equal(narrowTabs.count, 5);
+    assert.equal(narrowTabs.count, 6);
     assert.equal(narrowTabs.overflows, false);
     assert.equal(narrowTabs.allVisible, true);
     assert.equal(narrowTabs.iconsOnly, true);
 
     await client.send('Emulation.clearDeviceMetricsOverride');
     await new Promise((r) => setTimeout(r, 100));
+
+    // Verify new Studio Weave preview tab and platform export formats (CSS Gradients / Android XML / SwiftUI)
+    await client.eval(`document.querySelector('[role="dialog"] button[role="tab"][aria-label="Woven Fabric Preview"]').click()`);
+    assert.equal(await client.eval(`Boolean(document.querySelector('[data-testid="weave-preview"] svg'))`), true);
+    await client.eval(`document.querySelector('[role="dialog"] button[role="tab"][aria-label="Code & Swatch Export"]').click()`);
+    await client.eval(`Array.from(document.querySelectorAll('[role="dialog"] button')).find(b => b.textContent.trim() === 'SwiftUI')?.click()`);
+    assert.equal(await waitForText('import SwiftUI'), true);
+    await client.eval(`document.querySelector('[role="dialog"] button[role="tab"][aria-label="Showa Art Print"]').click()`);
 
     await client.eval(`(() => {
       const sel = document.querySelector('select[aria-label="Simulate color vision deficiency"]');
